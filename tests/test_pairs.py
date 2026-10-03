@@ -1,8 +1,6 @@
 """Tests for same-unit lease matching (measure.pairs.build_pairs). Owner: MSR.
 
-Written in M-01 before the implementation (M-02). Tests that call `build_pairs` are marked
-`expected_until_m02`: they fail with NotImplementedError today and turn into hard failures the moment
-`build_pairs` exists, so M-02 must remove the marker. Key-safety tests on the source data pass now.
+Written in M-01 before the implementation; the xfail markers were removed in M-02.
 
 Fixtures: hand-made leases (exact arithmetic) and the committed synthetic data. Never CRM data.
 """
@@ -16,10 +14,8 @@ import pandas as pd
 import pytest
 
 from leaselens.contracts import DAYS_PER_YEAR, LEASES_COLUMNS, PAIRS_COLUMNS, PERCENT
-from leaselens.measure.pairs import build_pairs
-
-expected_until_m02 = pytest.mark.xfail(raises=NotImplementedError, strict=True,
-                                       reason="build_pairs is implemented in M-02")
+from leaselens.measure.pairs import (REASON_GAP_TOO_SHORT, REASON_NON_POSITIVE_RENT, REASON_SEPARATOR,
+                                     REASON_UNIT_ID_MISMATCH, build_pairs, exclusion_summary, gap_sensitivity)
 
 BASE_RENT = 1000.0
 
@@ -54,7 +50,7 @@ def one_unit(starts: list[str], rents: list[float], **extra) -> pd.DataFrame:
 
 
 # ---------------------------------------------------------------------------
-# Key safety on the source data (pass today)
+# Key safety on the source data
 # ---------------------------------------------------------------------------
 def test_unsafe_site_key_merges_distinct_units(raw):
     """sSite + sUnitCode maps one key to several hUnit values: matching on it would mix apartments."""
@@ -73,7 +69,6 @@ def test_safe_key_identifies_exactly_one_unit(raw):
 # ---------------------------------------------------------------------------
 # Growth arithmetic (hand-made fixtures)
 # ---------------------------------------------------------------------------
-@expected_until_m02
 def test_constant_price_gives_zero_growth(cfg):
     pairs = build_pairs(one_unit(["2022-01-01", "2023-01-01", "2024-01-01"], [BASE_RENT] * 3), cfg)
     eligible = pairs[pairs["eligible"]]
@@ -82,7 +77,6 @@ def test_constant_price_gives_zero_growth(cfg):
     assert np.allclose(eligible["loggrowth_net"], 0.0)
 
 
-@expected_until_m02
 def test_doubling_over_twelve_months_is_about_100_pct(cfg):
     pairs = build_pairs(one_unit(["2023-01-01", "2024-01-01"], [BASE_RENT, 2 * BASE_RENT]), cfg)
     pair = pairs.iloc[0]
@@ -94,7 +88,6 @@ def test_doubling_over_twelve_months_is_about_100_pct(cfg):
     assert annual_pct == pytest.approx(PERCENT, rel=0.01)  # 365/365.25 day-count leaves a ~0.1% gap
 
 
-@expected_until_m02
 def test_growth_is_annualized_over_the_gap(cfg):
     """A 10% rise over two years is ~4.9%/year, not 10%."""
     pairs = build_pairs(one_unit(["2022-01-01", "2024-01-01"], [BASE_RENT, 1.1 * BASE_RENT]), cfg)
@@ -102,7 +95,6 @@ def test_growth_is_annualized_over_the_gap(cfg):
     assert pair["loggrowth_contract"] == pytest.approx(math.log(1.1) / pair["gap_years"])
 
 
-@expected_until_m02
 def test_net_and_contract_growth_use_their_own_rents(cfg):
     leases = make_leases([
         {"unit_id": "u1", "lease_start": "2023-01-01", "rent_contract": BASE_RENT},
@@ -118,7 +110,6 @@ def test_net_and_contract_growth_use_their_own_rents(cfg):
 # ---------------------------------------------------------------------------
 # Matching key: never mix apartments that share a unit code
 # ---------------------------------------------------------------------------
-@expected_until_m02
 def test_same_unit_code_in_two_properties_is_never_paired(cfg):
     """Two apartments with unit code 0101 on one site (different prop_code) stay separate."""
     leases = make_leases([
@@ -133,7 +124,6 @@ def test_same_unit_code_in_two_properties_is_never_paired(cfg):
     assert np.allclose(pairs["loggrowth_contract"], 0.0)
 
 
-@expected_until_m02
 def test_pairs_are_consecutive_by_lease_start_regardless_of_row_order(cfg):
     leases = one_unit(["2024-01-01", "2022-01-01", "2023-01-01"], [1.2 * BASE_RENT, BASE_RENT, 1.1 * BASE_RENT])
     pairs = build_pairs(leases, cfg).sort_values("lease_start")
@@ -144,7 +134,6 @@ def test_pairs_are_consecutive_by_lease_start_regardless_of_row_order(cfg):
 # ---------------------------------------------------------------------------
 # Eligibility and exclusion audit
 # ---------------------------------------------------------------------------
-@expected_until_m02
 def test_gap_outside_config_bounds_is_excluded_with_reason(cfg):
     bounds = cfg["pairs"]
     too_short = pd.Timestamp("2023-01-01") + pd.Timedelta(days=bounds["min_gap_years"] * DAYS_PER_YEAR / 2)
@@ -156,7 +145,6 @@ def test_gap_outside_config_bounds_is_excluded_with_reason(cfg):
     assert (pairs["exclusion_reason"].str.len() > 0).all()
 
 
-@expected_until_m02
 def test_non_positive_rent_is_excluded_with_reason(cfg):
     pairs = build_pairs(one_unit(["2023-01-01", "2024-01-01"], [BASE_RENT, 0.0]), cfg)
     pair = pairs.iloc[0]
@@ -164,7 +152,6 @@ def test_non_positive_rent_is_excluded_with_reason(cfg):
     assert len(pair["exclusion_reason"]) > 0
 
 
-@expected_until_m02
 def test_pair_year_is_year_of_later_lease_start(cfg):
     pairs = build_pairs(one_unit(["2023-03-01", "2024-02-01"], [BASE_RENT, BASE_RENT]), cfg)
     assert pairs.iloc[0]["year"] == 2024
@@ -173,14 +160,12 @@ def test_pair_year_is_year_of_later_lease_start(cfg):
 # ---------------------------------------------------------------------------
 # Contract and audit invariants on the synthetic data
 # ---------------------------------------------------------------------------
-@expected_until_m02
 def test_output_matches_pairs_contract(tables, cfg):
     pairs = build_pairs(tables.leases, cfg)
     assert list(pairs.columns) == PAIRS_COLUMNS
     assert pairs["eligible"].dtype == bool
 
 
-@expected_until_m02
 def test_every_consecutive_pair_is_kept_and_audited(tables, cfg):
     """One row per consecutive pair (eligible or not); every exclusion carries a reason."""
     leases = tables.leases
@@ -191,7 +176,6 @@ def test_every_consecutive_pair_is_kept_and_audited(tables, cfg):
     assert (pairs.loc[pairs["eligible"], "exclusion_reason"] == "").all()
 
 
-@expected_until_m02
 def test_eligible_pairs_respect_gap_bounds(tables, cfg):
     bounds = cfg["pairs"]
     eligible = build_pairs(tables.leases, cfg).query("eligible")
@@ -200,8 +184,51 @@ def test_eligible_pairs_respect_gap_bounds(tables, cfg):
     assert (eligible["gap_years"] < bounds["max_gap_years"]).all()
 
 
-@expected_until_m02
 def test_input_is_not_modified(tables, cfg):
     before = tables.leases.copy()
     build_pairs(tables.leases, cfg)
     pd.testing.assert_frame_equal(tables.leases, before)
+
+
+# ---------------------------------------------------------------------------
+# Audit details and gap sensitivity (M-02)
+# ---------------------------------------------------------------------------
+def test_pair_failing_two_rules_lists_both_reasons(cfg):
+    short = pd.Timestamp("2023-01-01") + pd.Timedelta(days=cfg["pairs"]["min_gap_years"] * DAYS_PER_YEAR / 2)
+    pairs = build_pairs(one_unit(["2023-01-01", short.strftime("%Y-%m-%d")], [BASE_RENT, 0.0]), cfg)
+    reasons = set(pairs.iloc[0]["exclusion_reason"].split(REASON_SEPARATOR))
+    assert reasons == {REASON_GAP_TOO_SHORT, REASON_NON_POSITIVE_RENT}
+
+
+def test_unit_id_disagreeing_with_safe_key_is_excluded(cfg):
+    """Same prop_code + unit_code but different hUnit: the cross-check rejects the pair instead of guessing."""
+    leases = make_leases([
+        {"unit_id": "u1", "lease_start": "2023-01-01", "rent_contract": BASE_RENT},
+        {"unit_id": "u9", "lease_start": "2024-01-01", "rent_contract": BASE_RENT},
+    ])
+    pair = build_pairs(leases, cfg).iloc[0]
+    assert not pair["eligible"]
+    assert pair["exclusion_reason"] == REASON_UNIT_ID_MISMATCH
+
+
+def test_exclusion_summary_counts_add_up(tables, cfg):
+    pairs = build_pairs(tables.leases, cfg)
+    summary = exclusion_summary(pairs).set_index("exclusion_reason")["n_pairs"]
+    assert summary["(eligible)"] == pairs["eligible"].sum()
+    assert summary.drop("(eligible)").sum() >= (~pairs["eligible"]).sum()
+
+
+def test_gap_sensitivity_admits_six_month_leases(cfg):
+    """A 182-day gap (just under 0.5 years) is excluded at base bounds and kept by the sensitivity bound."""
+    pairs = build_pairs(one_unit(["2023-01-01", "2023-07-02", "2024-07-01"], [BASE_RENT] * 3), cfg)
+    assert pairs.iloc[0]["gap_years"] < cfg["pairs"]["min_gap_years"]
+    table = gap_sensitivity(pairs, cfg).set_index("scenario")
+    assert table.loc["base", "n_eligible"] == pairs["eligible"].sum() == 1
+    assert table.loc["include_six_month", "n_eligible"] == 2
+    assert table.loc["include_six_month", "median_net_pct"] == pytest.approx(0.0)
+
+
+def test_gap_sensitivity_keeps_non_gap_exclusions(cfg):
+    pairs = build_pairs(one_unit(["2023-01-01", "2023-07-02"], [BASE_RENT, 0.0]), cfg)
+    table = gap_sensitivity(pairs, cfg).set_index("scenario")
+    assert (table["n_eligible"] == 0).all()
