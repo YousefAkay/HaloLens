@@ -12,4 +12,6 @@
 - 2026-10-03 — `project_analysis.ipynb` added to `.gitignore` until the I-14 submission decision.
 - 2026-10-03 — `app/` made a package (`app/__init__.py`); pytest `pythonpath` now includes the repo root so tests import `app.*`.
 - 2026-10-03 — I-01c: task status "done" requires a commit SUBJECT on origin/dev with the task's own track tag `[TRACK][ID]` or its branch `/prefix/ID-` (merge subject), or Notes starting "done". Commit bodies are ignored. Reason: the I-12a commit body listed other task IDs, which falsely marked I-13a, I-09a, I-11a and I-14 as done.
+- 2026-10-03 — I-07 smoke run: `scripts/smoke_real_data.py` loads the tables (SHA-256 checked), builds pairs on the full history and on the snapshot at the target cutoff, and prints counts only. In real mode it refuses to run without `data/private/` and exits 2.
+- 2026-10-03 — I-07: external observations are an empty table with the contract columns until the MSR registry loader (M-03) is merged; `make_snapshot` is called with it.
 - 2026-10-03 — I-13a section 01: the headline definition is written in French, and every number it cites (target year, cutoff, gap bounds, quantiles, weight window, column names) is generated from config/ in a code cell, not typed into Markdown.
