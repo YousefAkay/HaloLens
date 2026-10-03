@@ -6,8 +6,9 @@ baselines:
   market_gap_window_years: 3      # B2: years before the cutoff used to learn the internal-minus-market gap
 
 incentives:
-  trend_window_years: 2           # years of discount-share history used for the trend
-  min_pairs_per_segment: 5        # segments with fewer pairs fall back to their province-wide discount share
+  trend_window_years: 2           # years of discount-share history used for the linear trend (2 = line through the last two years)
+  min_leases_per_cell: 5          # a segment-year (or base-year) cell with fewer leases is ignored; the segment falls back to its province pool
+  max_discount_share: 0.5         # extrapolated discount share is clipped to [0, this]: a trend must not give away more than half the rent
 
 nowcast:
   method: local_linear_trend      # small state-space / local-trend model on the monthly index
