@@ -12,3 +12,6 @@ Append one bullet per entry, newest last.
 - F-03: The engine only converts a contractual growth forecast into a net one; it does not forecast contractual growth itself (F-05).
 - F-04: The nowcast projects annualized log growth by month of lease start and assumes the calendar-month mix of recent pairs repeats next year. It does not model seasonality in growth itself.
 - F-04: `trend_damping: 0.8`, `max_pool_months: 3` and `min_observed_months: 24` are untuned starting values; F-05 backtests on 2023-24 (never 2025) decide whether they stay.
+- F-06: Assumes (unit_id, lease_start) identifies a lease; two leases of one unit starting the same day would be indistinguishable in LINKS.
+- F-06: Assumes the hypothesis net = contract - (lump + monthly x months) / term holds on the real data; section 05 reports the real reconciliation rate and the failure of the alternatives. On the synthetic data PromoPay always has months = 1, so the lump-times-months comparison cannot discriminate there; it can on real data.
+- F-06: A monthly credit with missing `months` counts as 0 months. Tolerance 1.0 dollar/month is a starting value to revisit after seeing real error distributions (aggregates only).

@@ -10,6 +10,10 @@ incentives:
   min_leases_per_cell: 5          # a segment-year (or base-year) cell with fewer leases is ignored; the segment falls back to its province pool
   max_discount_share: 0.5         # extrapolated discount share is clipped to [0, this]: a trend must not give away more than half the rent
 
+linking:
+  recon_tolerance_dollars: 1.0    # a lease reconciles when reconstructed and reported net rent differ by at most this many dollars per month; also the tie margin between candidate assignments
+  max_combinations: 4096          # per unit, ambiguous concessions are assigned jointly by trying every candidate combination up to this many; beyond it they stay unresolved
+
 nowcast:
   method: local_linear_trend      # "local_linear_trend" (small state-space model) or "trailing_mean" (simple fallback)
   min_pairs_per_month: 10         # months with fewer pairs are pooled with neighbouring months
