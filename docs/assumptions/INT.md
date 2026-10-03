@@ -6,3 +6,4 @@ Append one bullet per entry, newest last.
 - 2026-10-03 — The guard is strict: small counts such as "1 an" must be written as words or be present in the JSON. Intentional, to keep the narrative fully grounded.
 - 2026-10-03 — Dev history cannot be rewritten, so the false "done" markers from the I-12a commit body stay in git history; they are neutralised by the subject-only rule, not by editing history.
 - 2026-10-03 — The real-data run for I-07 has not been done: `data/private/` is absent from this checkout. It needs the sponsor CSVs and manifest placed there locally (AGENTS.md §3.1). Tests cover synthetic mode only.
+- 2026-10-03 — Section 01 states the definition only. It shows no result numbers; the parameter table is read from config/ and is not a finding.
