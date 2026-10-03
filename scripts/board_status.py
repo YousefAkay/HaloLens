@@ -1,8 +1,13 @@
 """Compute task status for the three boards from git, and suggest the next task. Owner: INT.
 
 Status is never stored in the boards; it is derived:
-  done       task ID appears in a commit message on origin/dev (merge commit, branch name or PR title),
-             or the row's Notes start with "done"
+  done       one of these holds:
+             - a commit SUBJECT on origin/dev contains "[<TRACK>][<ID>]" with the task's own track
+               (direct commit or squash-merge title, e.g. "[MSR][M-02] Add build_pairs")
+             - a commit SUBJECT on origin/dev contains "/<prefix><ID>-" with the task's own prefix
+               (GitHub merge subject, e.g. "Merge pull request #5 from owner/msr/M-02-pairs")
+             - the row's Notes start with "done"
+             Commit bodies are ignored. Word boundaries apply: I-01 never matches I-01b or I-010.
   in-review  a remote branch <prefix><ID>-... exists and the task is not done
   todo       otherwise
 A task is workable when every dependency is done. "continuous" tasks are never picked.
@@ -23,6 +28,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 TRACKS = {"INT": "int/", "MSR": "msr/", "FCT": "fct/"}
 BOARD_ROW = re.compile(r"^\|\s*([IMF]-\d+[a-z]?)\s*\|(.*)\|\s*$")
+RECORD_SEPARATOR = "\x1e"  # ends each commit in the `git log --format=%B%x1e` dump
 
 
 def git(*args: str) -> str:
@@ -44,21 +50,38 @@ def read_board(track: str) -> list[dict]:
     return rows
 
 
-def id_pattern(task_id: str) -> re.Pattern:
-    # "I-01" must not match "I-01b" or "I-010"
-    return re.compile(rf"(?<![\w-]){re.escape(task_id)}(?![\w])")
+def subject_lines(raw_log: str) -> list[str]:
+    """First line of each commit message in a `git log --format=%B%x1e` dump. Bodies are dropped."""
+    subjects = []
+    for message in raw_log.split(RECORD_SEPARATOR):
+        lines = [line.strip() for line in message.splitlines() if line.strip()]
+        if lines:
+            subjects.append(lines[0])
+    return subjects
+
+
+def is_done(task_id: str, track: str, notes: str, subjects: list[str]) -> bool:
+    """True when the task's own track tag or branch prefix appears in a commit subject, or Notes say done.
+
+    The trailing "]" and "-" keep IDs apart: "[INT][I-12]" does not match "[INT][I-12a]", and
+    "/msr/M-02-" does not match "/msr/M-020-" or "/msr/M-01-".
+    """
+    if notes.strip().lower().startswith("done"):
+        return True
+    tag = f"[{track}][{task_id}]"
+    branch = f"/{TRACKS[track]}{task_id}-"
+    return any(tag in subject or branch in subject for subject in subjects)
 
 
 def compute(fetch: bool = True) -> dict[str, list[dict]]:
     if fetch:
         git("fetch", "--quiet", "origin")
-    dev_log = git("log", "origin/dev", "--format=%s%n%b")
+    subjects = subject_lines(git("log", "origin/dev", f"--format=%B{RECORD_SEPARATOR}"))
     remote_branches = [b.strip().removeprefix("origin/") for b in git("branch", "-r").splitlines()]
     boards = {track: read_board(track) for track in TRACKS}
     for track, rows in boards.items():
         for row in rows:
-            pattern = id_pattern(row["id"])
-            if row["notes"].lower().startswith("done") or pattern.search(dev_log):
+            if is_done(row["id"], track, row["notes"], subjects):
                 row["status"] = "done"
             elif any(b.startswith(TRACKS[track] + row["id"] + "-") for b in remote_branches):
                 row["status"] = "in-review"

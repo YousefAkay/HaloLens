@@ -134,7 +134,7 @@ HALO/
 ├─ outputs/  private/ (gitignored)  public/ (INT)
 ├─ models/  (gitignored; FCT writes, nobody commits)
 ├─ tests/
-│  ├─ conftest.py  test_contracts.py  test_io.py  test_privacy_guard.py  test_build_notebook.py  test_uncertainty.py  test_number_guard.py  (INT)
+│  ├─ conftest.py  test_contracts.py  test_io.py  test_privacy_guard.py  test_build_notebook.py  test_board_status.py  test_uncertainty.py  test_number_guard.py  (INT)
 │  ├─ test_pairs.py  test_composition.py  test_registry.py  test_asking.py  test_regulation.py           (MSR)
 │  └─ test_asof_leakage.py  test_baselines.py  test_incentives.py  test_linking.py  test_backtest.py  test_combine.py  (FCT)
 └─ docs/
@@ -455,9 +455,10 @@ Never paste raw CRM rows into either tool's chat. Handback Reports contain count
 The repo is self-directing so nobody has to hand-write task prompts:
 - **`.track`** (local, gitignored) holds your track code. Claude Code reads it to know whose agent it is.
 - **`docs/board/<TRACK>.md`** is your track's static task list (ID, task, dependencies, notes). Status is never written there.
-- **`scripts/board_status.py`** computes status from git: **done** = task ID appears in a commit message on `origin/dev`
-  (or the row's Notes start with `done`); **in review** = a remote branch `<prefix><ID>-…` exists; **todo** = neither.
-  It prints the next workable task per track.
+- **`scripts/board_status.py`** computes status from git: **done** = a commit *subject* on `origin/dev` contains
+  `[<TRACK>][<ID>]` with the task's own track, or `/<prefix><ID>-` with the task's own prefix (the GitHub merge subject),
+  or the row's Notes start with `done`. Commit bodies never count, and IDs match on word boundaries (`I-01` ≠ `I-01b`).
+  **in review** = a remote branch `<prefix><ID>-…` exists; **todo** = neither. It prints the next workable task per track.
 - **`/next`** (`.claude/commands/next.md`): sync `dev` → run the status script → branch `<prefix><ID>-<name>` → build →
   test → commit `[<TRACK>][<ID>] …` → push branch → open PR into `dev` → print Handback Report → stop.
 - **`/status`** shows all boards. **`/review-pr <n>`** (INT) pre-checks a PR before merging.
