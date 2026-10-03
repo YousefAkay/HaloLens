@@ -16,12 +16,16 @@ Task details and "done when" criteria: AGENTS.md Section 10.
 | I-01b | Autopilot: boards, /next, /review-pr, push guard via pre-commit | — |  |
 | I-05 | build_notebook.py (sections → executed notebook) | — |  |
 | I-06 | Review + merge PRs (continuous, use /review-pr) | — | continuous; never marked done |
+| I-12a | app/number_guard.py + tests/test_number_guard.py: reject generated text containing any number not present in a given aggregates JSON | — | independent of results |
+| I-13a | Section 01 (notebook/sections/01_definition.py): the headline definition from AGENTS.md §9.1 in French, with its rationale, population, horizon, weighting and companions; no result numbers | — |  |
+| I-09a | Define the aggregates JSON schema as AGGREGATES_SCHEMA in contracts.py (headline, companions, medians, backtest table per year and model, coverage counts, scenario range, sources, as-of date, definition text) + a synthetic example at outputs/public/aggregates_synthetic.json built from synthetic data or clearly fake values | — | lets app work start before F-05 |
+| I-11a | Streamlit app shell (app/streamlit_app.py) with the four views from AGENTS.md I-11, reading only the synthetic aggregates file | I-09a |  |
 | I-07 | Integration #1 smoke run on real data (counts only) | M-02, F-02 |  |
 | I-08 | Unit-cluster bootstrap + section 11a | M-02, F-05 | can start on synthetic |
 | I-09 | Aggregate export + test (no unit-level data) | F-05 |  |
 | I-10 | Integration #2 / core freeze: full notebook on real data | F-05, M-05 |  |
-| I-11 | Streamlit app on aggregates.json + synthetic demo | I-09 |  |
-| I-12 | LLM narrative + number guard + cache | I-11 |  |
-| I-13 | Sections 00, 01, 12 | I-09 | 01 can start now |
+| I-11 | Streamlit app on aggregates.json + synthetic demo | I-09, I-11a |  |
+| I-12 | LLM narrative + number guard + cache | I-11a, I-12a |  |
+| I-13 | Sections 00, 01, 12 | I-09 | section 01 done in I-13a |
 | I-14 | Final build, clean kernel, fix round | all core tasks |  |
 | I-15 | README, privacy check, submission, slides | I-14 |  |
