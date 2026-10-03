@@ -22,6 +22,8 @@ nbclient>=0.10
 streamlit>=1.38,<2
 anthropic>=0.40
 python-dotenv>=1.0,<2
+# REQUEST-MSR-01: scripts/extract_sources.py imports pydantic directly for the LLM schema
+pydantic>=2,<3
 
 # Quality
 pytest>=8.0,<9
