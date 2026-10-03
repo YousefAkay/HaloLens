@@ -15,3 +15,5 @@
 - 2026-10-03 — I-07 smoke run: `scripts/smoke_real_data.py` loads the tables (SHA-256 checked), builds pairs on the full history and on the snapshot at the target cutoff, and prints counts only. In real mode it refuses to run without `data/private/` and exits 2.
 - 2026-10-03 — I-07: external observations are an empty table with the contract columns until the MSR registry loader (M-03) is merged; `make_snapshot` is called with it.
 - 2026-10-03 — I-13a section 01: the headline definition is written in French, and every number it cites (target year, cutoff, gap bounds, quantiles, weight window, column names) is generated from config/ in a code cell, not typed into Markdown.
+- 2026-10-03 — REQUEST-MSR-01 done: `pydantic>=2,<3` added to requirements.txt (MSR's request, filed in docs/requests/from_MSR.md; that file is MSR's and was not edited).
+- 2026-10-03 — Board: M-03b (verify sources for 2018+ from the draft, priority after M-04) added to the MSR board after M-04. F-05 on the FCT board now depends on M-03b instead of M-03.
