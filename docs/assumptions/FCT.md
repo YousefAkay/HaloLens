@@ -10,3 +10,5 @@ Append one bullet per entry, newest last.
 - F-03: Leases are assigned to years by `lease_start`; a lease signed in 2024 but starting 2025 is outside the snapshot. The trend uses at most two points, so it is sensitive to one odd year; the clip and pool fallback limit the damage.
 - F-03: `max_discount_share: 0.5` and `min_leases_per_cell: 5` are judgment values, to be revisited when real lease counts per segment are seen (counts only).
 - F-03: The engine only converts a contractual growth forecast into a net one; it does not forecast contractual growth itself (F-05).
+- F-04: The nowcast projects annualized log growth by month of lease start and assumes the calendar-month mix of recent pairs repeats next year. It does not model seasonality in growth itself.
+- F-04: `trend_damping: 0.8`, `max_pool_months: 3` and `min_observed_months: 24` are untuned starting values; F-05 backtests on 2023-24 (never 2025) decide whether they stay.
