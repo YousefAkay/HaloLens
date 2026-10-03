@@ -1,0 +1,15 @@
+#!/bin/sh
+# LeaseLens: block direct pushes to main and dev.
+# Work goes on feature branches (int/, msr/, fct/) and reaches dev through PRs only.
+while read local_ref local_sha remote_ref remote_sha; do
+  case "$remote_ref" in
+    refs/heads/main|refs/heads/dev)
+      echo ""
+      echo "BLOCKED: direct push to '${remote_ref#refs/heads/}' is not allowed."
+      echo "Push your feature branch instead and open a pull request into dev."
+      echo ""
+      exit 1
+      ;;
+  esac
+done
+exit 0
