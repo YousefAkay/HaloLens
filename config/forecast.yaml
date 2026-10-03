@@ -11,8 +11,12 @@ incentives:
   max_discount_share: 0.5         # extrapolated discount share is clipped to [0, this]: a trend must not give away more than half the rent
 
 nowcast:
-  method: local_linear_trend      # small state-space / local-trend model on the monthly index
-  min_pairs_per_month: 10         # months with fewer pairs are pooled with neighbours
+  method: local_linear_trend      # "local_linear_trend" (small state-space model) or "trailing_mean" (simple fallback)
+  min_pairs_per_month: 10         # months with fewer pairs are pooled with neighbouring months
+  max_pool_months: 3              # a thin month borrows at most this many months on each side; still thin after that = missing
+  min_observed_months: 24         # fewer observed months than this and the nowcast falls back to the trailing mean
+  fallback_window_months: 12      # months averaged by the trailing-mean fallback
+  trend_damping: 0.8              # per-month factor on the fitted slope when projecting (1 = undamped); keeps 12-month projections from running away
 
 combine:
   # Starting weights of the engines in the final blend; re-checked on selection years only (core.yaml forecast_years).
