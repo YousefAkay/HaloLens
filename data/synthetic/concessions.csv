@@ -1,0 +1,89 @@
+hProperty,hUnit,hBuilding,sPropCode,sUnitCode,sBuilding,sSite,sCity,sState,sBeds,sSqft,sChargeCode,sChargeDesc,sAmount,sDateFrom,sDateTo,sMonths,sFloor
+500,9001,60,nc1,0101,North Court,north-court,Laval,Quebec,2,1014,PromoPay,Promo - Payable in the future,-1111.32,2022-11-01,2022-11-30,1.0,1
+500,9001,60,nc1,0101,North Court,north-court,Laval,Quebec,2,1014,freepark,Free Parking,-150.0,2022-11-01,2023-04-30,6.0,1
+500,9001,60,nc1,0101,North Court,north-court,Laval,Quebec,2,1014,PromoPay,Promo - Payable in the future,-873.79,2023-11-01,2023-11-30,1.0,1
+500,9001,60,nc1,0101,North Court,north-court,Laval,Quebec,2,1014,PromoPay,Promo - Payable in the future,-1244.82,2025-05-10,2025-06-09,1.0,1
+500,9002,60,nc1,0102,North Court,north-court,Laval,Quebec,1,762,freepark,Free Parking,-150.0,2020-06-13,2020-09-12,3.0,1
+500,9002,60,nc1,0102,North Court,north-court,Laval,Quebec,1,762,PromoPay,Promo - Payable in the future,-969.86,2025-06-24,2025-07-23,1.0,1
+500,9002,60,nc1,0102,North Court,north-court,Laval,Quebec,1,762,freepark,Free Parking,-150.0,2025-06-24,2025-12-23,6.0,1
+500,9003,60,nc1,0103,North Court,north-court,Laval,Quebec,2,1037,PromoPay,Promo - Payable in the future,-1164.72,2025-02-10,2025-03-09,1.0,1
+500,9004,60,nc1,0104,North Court,north-court,Laval,Quebec,3,1217,PromoPay,Promo - Payable in the future,-1426.37,2025-04-12,2025-05-11,1.0,1
+500,9004,60,nc1,0104,North Court,north-court,Laval,Quebec,3,1217,freepark,Free Parking,-150.0,2025-04-12,2025-07-11,3.0,1
+500,9006,60,nc1,0202,North Court,north-court,Laval,Quebec,1,740,PromoPay,Promo - Payable in the future,-644.94,2021-12-25,2022-01-24,1.0,2
+500,9006,60,nc1,0202,North Court,north-court,Laval,Quebec,1,740,freepark,Free Parking,-150.0,2021-12-25,2022-06-24,6.0,2
+500,9006,60,nc1,0202,North Court,north-court,Laval,Quebec,1,740,PromoPay,Promo - Payable in the future,-831.66,2025-12-25,2026-01-24,1.0,2
+500,9007,60,nc1,0203,North Court,north-court,Laval,Quebec,1,781,freepark,Free Parking,-150.0,2024-02-04,2024-05-03,3.0,2
+500,9008,60,nc1,0204,North Court,north-court,Laval,Quebec,2,977,PromoPay,Promo - Payable in the future,-1104.05,2019-11-09,2019-12-08,1.0,2
+500,9008,60,nc1,0204,North Court,north-court,Laval,Quebec,2,977,freepark,Free Parking,-150.0,2019-11-09,2020-02-08,3.0,2
+500,9008,60,nc1,0204,North Court,north-court,Laval,Quebec,2,977,PromoPay,Promo - Payable in the future,-963.24,2020-11-16,2020-12-15,1.0,2
+500,9008,60,nc1,0204,North Court,north-court,Laval,Quebec,2,977,PromoPay,Promo - Payable in the future,-1014.47,2024-12-17,2025-01-16,1.0,2
+500,9008,60,nc1,0204,North Court,north-court,Laval,Quebec,2,977,freepark,Free Parking,-150.0,2024-12-17,2025-03-16,3.0,2
+501,9009,60,nc2,0101,North Court,north-court,Laval,Quebec,1,734,PromoPay,Promo - Payable in the future,-1147.71,2025-11-06,2025-12-05,1.0,1
+501,9010,60,nc2,0102,North Court,north-court,Laval,Quebec,1,784,PromoPay,Promo - Payable in the future,-723.05,2019-02-01,2019-02-28,1.0,1
+501,9010,60,nc2,0102,North Court,north-court,Laval,Quebec,1,784,freepark,Free Parking,-150.0,2019-02-01,2019-04-30,3.0,1
+501,9010,60,nc2,0102,North Court,north-court,Laval,Quebec,1,784,freepark,Free Parking,-150.0,2023-04-13,2023-07-12,3.0,1
+501,9010,60,nc2,0102,North Court,north-court,Laval,Quebec,1,784,PromoPay,Promo - Payable in the future,-1289.58,2024-04-13,2024-05-12,1.0,1
+501,9010,60,nc2,0102,North Court,north-court,Laval,Quebec,1,784,PromoPay,Promo - Payable in the future,-959.87,2025-05-08,2025-06-07,1.0,1
+501,9010,60,nc2,0102,North Court,north-court,Laval,Quebec,1,784,freepark,Free Parking,-150.0,2025-05-08,2025-08-07,3.0,1
+501,9011,60,nc2,0103,North Court,north-court,Laval,Quebec,2,1034,freepark,Free Parking,-150.0,2020-05-01,2020-10-31,6.0,1
+501,9011,60,nc2,0103,North Court,north-court,Laval,Quebec,2,1034,PromoPay,Promo - Payable in the future,-1659.35,2024-05-01,2024-05-31,1.0,1
+501,9011,60,nc2,0103,North Court,north-court,Laval,Quebec,2,1034,freepark,Free Parking,-150.0,2024-05-01,2024-07-31,3.0,1
+501,9011,60,nc2,0103,North Court,north-court,Laval,Quebec,2,1034,PromoPay,Promo - Payable in the future,-1694.3,2025-05-01,2025-05-31,1.0,1
+501,9011,60,nc2,0103,North Court,north-court,Laval,Quebec,2,1034,freepark,Free Parking,-150.0,2025-05-01,2025-07-31,3.0,1
+501,9012,60,nc2,0104,North Court,north-court,Laval,Quebec,1,733,PromoPay,Promo - Payable in the future,-860.35,2023-05-23,2023-06-22,1.0,1
+501,9012,60,nc2,0104,North Court,north-court,Laval,Quebec,1,733,PromoPay,Promo - Payable in the future,-1003.22,2024-05-23,2024-06-22,1.0,1
+501,9012,60,nc2,0104,North Court,north-court,Laval,Quebec,1,733,freepark,Free Parking,-150.0,2024-05-23,2024-08-22,3.0,1
+501,9012,60,nc2,0104,North Court,north-court,Laval,Quebec,1,733,PromoPay,Promo - Payable in the future,-1300.13,2025-05-23,2025-06-22,1.0,1
+501,9012,60,nc2,0104,North Court,north-court,Laval,Quebec,1,733,freepark,Free Parking,-150.0,2025-05-23,2025-11-22,6.0,1
+501,9013,60,nc2,0201,North Court,north-court,Laval,Quebec,1,763,PromoPay,Promo - Payable in the future,-865.8,2023-06-27,2023-07-26,1.0,2
+501,9013,60,nc2,0201,North Court,north-court,Laval,Quebec,1,763,freepark,Free Parking,-150.0,2023-06-27,2023-09-26,3.0,2
+501,9013,60,nc2,0201,North Court,north-court,Laval,Quebec,1,763,PromoPay,Promo - Payable in the future,-1198.7,2024-08-07,2024-09-06,1.0,2
+501,9013,60,nc2,0201,North Court,north-court,Laval,Quebec,1,763,freepark,Free Parking,-150.0,2024-08-07,2025-02-06,6.0,2
+501,9013,60,nc2,0201,North Court,north-court,Laval,Quebec,1,763,freepark,Free Parking,-150.0,2025-08-07,2025-11-06,3.0,2
+501,9014,60,nc2,0202,North Court,north-court,Laval,Quebec,1,735,freepark,Free Parking,-150.0,2023-12-13,2024-03-12,3.0,2
+501,9014,60,nc2,0202,North Court,north-court,Laval,Quebec,1,735,PromoPay,Promo - Payable in the future,-702.9,2024-12-13,2025-01-12,1.0,2
+501,9014,60,nc2,0202,North Court,north-court,Laval,Quebec,1,735,freepark,Free Parking,-150.0,2024-12-13,2025-03-12,3.0,2
+501,9014,60,nc2,0202,North Court,north-court,Laval,Quebec,1,735,PromoPay,Promo - Payable in the future,-759.89,2025-12-13,2026-01-12,1.0,2
+501,9014,60,nc2,0202,North Court,north-court,Laval,Quebec,1,735,freepark,Free Parking,-150.0,2025-12-13,2026-06-12,6.0,2
+501,9015,60,nc2,0203,North Court,north-court,Laval,Quebec,1,774,PromoPay,Promo - Payable in the future,-851.52,2019-06-01,2019-06-30,1.0,2
+501,9015,60,nc2,0203,North Court,north-court,Laval,Quebec,1,774,PromoPay,Promo - Payable in the future,-1010.96,2021-06-01,2021-06-30,1.0,2
+501,9015,60,nc2,0203,North Court,north-court,Laval,Quebec,1,774,PromoPay,Promo - Payable in the future,-1150.26,2023-07-22,2023-08-21,1.0,2
+501,9015,60,nc2,0203,North Court,north-court,Laval,Quebec,1,774,PromoPay,Promo - Payable in the future,-1118.66,2024-08-17,2024-09-16,1.0,2
+501,9015,60,nc2,0203,North Court,north-court,Laval,Quebec,1,774,PromoPay,Promo - Payable in the future,-920.17,2025-08-17,2025-09-16,1.0,2
+501,9016,60,nc2,0204,North Court,north-court,Laval,Quebec,1,782,PromoPay,Promo - Payable in the future,-842.34,2024-09-01,2024-09-30,1.0,2
+501,9016,60,nc2,0204,North Court,north-court,Laval,Quebec,1,782,freepark,Free Parking,-150.0,2024-09-01,2025-02-28,6.0,2
+501,9016,60,nc2,0204,North Court,north-court,Laval,Quebec,1,782,PromoPay,Promo - Payable in the future,-1295.32,2025-09-01,2025-09-30,1.0,2
+501,9016,60,nc2,0204,North Court,north-court,Laval,Quebec,1,782,freepark,Free Parking,-150.0,2025-09-01,2025-11-30,3.0,2
+502,9018,62,cdp,0102,Cedar Park,cedar-park,Montreal,Quebec,1,765,freepark,Free Parking,-150.0,2023-12-01,2024-02-29,3.0,1
+502,9019,62,cdp,0103,Cedar Park,cedar-park,Montreal,Quebec,2,984,PromoPay,Promo - Payable in the future,-1793.86,2023-12-01,2023-12-31,1.0,1
+502,9019,62,cdp,0103,Cedar Park,cedar-park,Montreal,Quebec,2,984,freepark,Free Parking,-150.0,2023-12-01,2024-05-31,6.0,1
+502,9019,62,cdp,0103,Cedar Park,cedar-park,Montreal,Quebec,2,984,PromoPay,Promo - Payable in the future,-1976.9,2025-12-01,2025-12-31,1.0,1
+502,9019,62,cdp,0103,Cedar Park,cedar-park,Montreal,Quebec,2,984,freepark,Free Parking,-150.0,2025-12-01,2026-02-28,3.0,1
+502,9021,62,cdp,0201,Cedar Park,cedar-park,Montreal,Quebec,1,772,PromoPay,Promo - Payable in the future,-1118.63,2024-03-01,2024-03-31,1.0,2
+502,9021,62,cdp,0201,Cedar Park,cedar-park,Montreal,Quebec,1,772,freepark,Free Parking,-150.0,2024-03-01,2024-08-31,6.0,2
+502,9021,62,cdp,0201,Cedar Park,cedar-park,Montreal,Quebec,1,772,PromoPay,Promo - Payable in the future,-1635.57,2024-09-02,2024-10-01,1.0,2
+502,9021,62,cdp,0201,Cedar Park,cedar-park,Montreal,Quebec,1,772,freepark,Free Parking,-150.0,2024-09-02,2024-12-01,3.0,2
+502,9022,62,cdp,0202,Cedar Park,cedar-park,Montreal,Quebec,2,1031,PromoPay,Promo - Payable in the future,-1194.18,2023-11-01,2023-11-30,1.0,2
+502,9022,62,cdp,0202,Cedar Park,cedar-park,Montreal,Quebec,2,1031,PromoPay,Promo - Payable in the future,-1920.21,2024-05-01,2024-05-31,1.0,2
+502,9023,62,cdp,0203,Cedar Park,cedar-park,Montreal,Quebec,2,1011,PromoPay,Promo - Payable in the future,-1195.69,2025-02-01,2025-02-28,1.0,2
+502,9023,62,cdp,0203,Cedar Park,cedar-park,Montreal,Quebec,2,1011,freepark,Free Parking,-150.0,2025-02-01,2025-04-30,3.0,2
+502,9024,62,cdp,0204,Cedar Park,cedar-park,Montreal,Quebec,2,1008,PromoPay,Promo - Payable in the future,-1623.09,2024-11-01,2024-11-30,1.0,2
+502,9024,62,cdp,0204,Cedar Park,cedar-park,Montreal,Quebec,2,1008,PromoPay,Promo - Payable in the future,-1578.64,2025-11-01,2025-11-30,1.0,2
+503,9025,63,lkv,0101,Lakeview Residences,lakeview,Ottawa,Ontario,2,1029,PromoPay,Promo - Payable in the future,-2093.26,2024-07-01,2024-07-31,1.0,1
+503,9025,63,lkv,0101,Lakeview Residences,lakeview,Ottawa,Ontario,2,1029,freepark,Free Parking,-150.0,2024-07-01,2024-12-31,6.0,1
+503,9025,63,lkv,0101,Lakeview Residences,lakeview,Ottawa,Ontario,2,1029,PromoPay,Promo - Payable in the future,-2188.31,2025-07-01,2025-07-31,1.0,1
+503,9025,63,lkv,0101,Lakeview Residences,lakeview,Ottawa,Ontario,2,1029,freepark,Free Parking,-150.0,2025-07-01,2025-09-30,3.0,1
+503,9026,63,lkv,0102,Lakeview Residences,lakeview,Ottawa,Ontario,3,1287,PromoPay,Promo - Payable in the future,-1828.27,2025-06-01,2025-06-30,1.0,1
+503,9026,63,lkv,0102,Lakeview Residences,lakeview,Ottawa,Ontario,3,1287,freepark,Free Parking,-150.0,2025-06-01,2025-08-31,3.0,1
+503,9027,63,lkv,0103,Lakeview Residences,lakeview,Ottawa,Ontario,2,967,PromoPay,Promo - Payable in the future,-2323.51,2025-06-28,2025-07-27,1.0,1
+503,9028,63,lkv,0104,Lakeview Residences,lakeview,Ottawa,Ontario,1,721,PromoPay,Promo - Payable in the future,-1500.88,2024-09-01,2024-09-30,1.0,1
+503,9028,63,lkv,0104,Lakeview Residences,lakeview,Ottawa,Ontario,1,721,PromoPay,Promo - Payable in the future,-2012.37,2025-09-01,2025-09-30,1.0,1
+503,9029,63,lkv,0201,Lakeview Residences,lakeview,Ottawa,Ontario,1,717,PromoPay,Promo - Payable in the future,-1229.2,2024-04-01,2024-04-30,1.0,2
+503,9029,63,lkv,0201,Lakeview Residences,lakeview,Ottawa,Ontario,1,717,freepark,Free Parking,-150.0,2024-04-01,2024-09-30,6.0,2
+503,9029,63,lkv,0201,Lakeview Residences,lakeview,Ottawa,Ontario,1,717,freepark,Free Parking,-150.0,2025-04-01,2025-09-30,6.0,2
+503,9031,63,lkv,0203,Lakeview Residences,lakeview,Ottawa,Ontario,2,1015,PromoPay,Promo - Payable in the future,-1818.81,2024-05-01,2024-05-31,1.0,2
+503,9031,63,lkv,0203,Lakeview Residences,lakeview,Ottawa,Ontario,2,1015,freepark,Free Parking,-150.0,2024-05-01,2024-10-31,6.0,2
+503,9031,63,lkv,0203,Lakeview Residences,lakeview,Ottawa,Ontario,2,1015,PromoPay,Promo - Payable in the future,-1922.68,2025-05-01,2025-05-31,1.0,2
+503,9032,63,lkv,0204,Lakeview Residences,lakeview,Ottawa,Ontario,2,983,PromoPay,Promo - Payable in the future,-2198.72,2023-04-01,2023-04-30,1.0,2
+503,9032,63,lkv,0204,Lakeview Residences,lakeview,Ottawa,Ontario,2,983,freepark,Free Parking,-150.0,2023-04-01,2023-09-30,6.0,2
+503,9032,63,lkv,0204,Lakeview Residences,lakeview,Ottawa,Ontario,2,983,freepark,Free Parking,-150.0,2024-04-01,2024-09-30,6.0,2

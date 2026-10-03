@@ -1,0 +1,35 @@
+# Install once: pre-commit install
+repos:
+  - repo: https://github.com/kynan/nbstripout
+    rev: 0.7.1
+    hooks:
+      - id: nbstripout            # strips notebook outputs before commit (no CRM aggregates in git)
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: check-added-large-files
+        args: ["--maxkb=500"]
+      - id: check-merge-conflict
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+
+  - repo: local
+    hooks:
+      - id: block-csv-outside-allowed
+        name: Block CSV files outside data/public and data/synthetic (CRM protection)
+        language: fail
+        entry: "CSV files may only be committed under data/public/ or data/synthetic/."
+        files: '\.csv$'
+        exclude: '^data/(public|synthetic)/'
+      - id: block-env
+        name: Block .env files
+        language: fail
+        entry: ".env files must never be committed."
+        files: '(^|/)\.env$'
+      - id: block-private-paths
+        name: Block private data, outputs and models
+        language: fail
+        entry: "Files under data/private, outputs/private or models must never be committed."
+        files: '^(data/private|outputs/private|models)/'

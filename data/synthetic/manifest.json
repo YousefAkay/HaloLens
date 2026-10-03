@@ -1,0 +1,25 @@
+{
+  "challengeId": "synthetic",
+  "files": [
+    {
+      "path": "listings.csv",
+      "bytes": 7648,
+      "sha256": "33d220716e8b5f7c30a97883d5e4c1e51a6467287b4ce3d5c29b448b1a7f7cdc"
+    },
+    {
+      "path": "lease_history.csv",
+      "bytes": 44047,
+      "sha256": "b0f09a4bbc3cd8ccf8c410bc3d084179e1908a5691d81d4113f04a3c60360bcc"
+    },
+    {
+      "path": "concessions.csv",
+      "bytes": 11898,
+      "sha256": "7aa4b7f1a6fef0f27dbddbf23376bcbb760fac3b09567dc0b09dd05a2d5aadac"
+    },
+    {
+      "path": "asking_history.csv",
+      "bytes": 12740,
+      "sha256": "6eafea6d160ad0f93f276feebc322f3ad50671ef1b7b8effde04fdd4336558ac"
+    }
+  ]
+}
