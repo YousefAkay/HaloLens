@@ -1,8 +1,8 @@
 """Leakage tests for the as-of snapshot and the forecast. Owner: FCT.
 
-Written in F-01 before the implementation (F-02 `make_snapshot`, F-05 `forecast`). Tests that call them are marked
-`expected_until_f02` / `expected_until_f05`: they fail with NotImplementedError today and turn into hard failures the
-moment the function exists, so the task that implements it must remove the marker. Config tests pass now.
+Written in F-01 before the implementation. The `make_snapshot` tests became hard tests in F-02. The `forecast` test
+is marked `expected_until_f05`: it fails with NotImplementedError today and turns into a hard failure the moment
+`forecast` exists, so F-05 must remove the marker.
 
 Policy under test: AGENTS.md Section 9.3. Cutoff for year y is December 31 of y-1; training uses leases with BOTH
 sign_date and lease_start on/before the cutoff; asking months and concession date_from on/before the cutoff;
@@ -24,8 +24,6 @@ from leaselens.contracts import EXTERNAL_COLUMNS, CanonicalTables
 from leaselens.forecast.asof import make_snapshot
 from leaselens.forecast.combine import forecast
 
-expected_until_f02 = pytest.mark.xfail(raises=NotImplementedError, strict=True,
-                                       reason="make_snapshot is implemented in F-02")
 expected_until_f05 = pytest.mark.xfail(raises=NotImplementedError, strict=True,
                                        reason="forecast is implemented in F-05")
 
@@ -145,7 +143,6 @@ def test_cutoff_is_december_31_of_previous_year(cfg):
 # ---------------------------------------------------------------------------
 # make_snapshot (F-02)
 # ---------------------------------------------------------------------------
-@expected_until_f02
 def test_snapshot_keeps_only_leases_signed_and_started_by_the_cutoff(tables, external, cutoff):
     snapshot = make_snapshot(tables, external, cutoff)
     assert snapshot.cutoff == cutoff
@@ -154,7 +151,6 @@ def test_snapshot_keeps_only_leases_signed_and_started_by_the_cutoff(tables, ext
     assert (snapshot.leases["lease_start"] <= cutoff).all()
 
 
-@expected_until_f02
 def test_snapshot_cutoff_day_is_inclusive(tables, external, cutoff):
     """A lease signed and started exactly on the cutoff is knowable at the cutoff."""
     row = tables.leases.head(1).copy()
@@ -166,7 +162,6 @@ def test_snapshot_cutoff_day_is_inclusive(tables, external, cutoff):
     assert len(kept) == len(make_snapshot(tables, external, cutoff).leases) + 1
 
 
-@expected_until_f02
 def test_snapshot_drops_future_concessions_and_asking(tables, external, cutoff):
     snapshot = make_snapshot(tables, external, cutoff)
     assert (snapshot.concessions["date_from"] <= cutoff).all()
@@ -174,20 +169,17 @@ def test_snapshot_drops_future_concessions_and_asking(tables, external, cutoff):
     assert len(snapshot.concessions) > 0 and len(snapshot.asking) > 0
 
 
-@expected_until_f02
 def test_snapshot_rejects_post_cutoff_external_rows(tables, external, cutoff):
     snapshot = make_snapshot(tables, external, cutoff)
     assert set(snapshot.external["series_id"]) == {"test_before"}
     assert (snapshot.external["release_date"] <= cutoff).all()
 
 
-@expected_until_f02
 def test_snapshot_never_uses_listings_for_a_historical_fold(tables, external, cutoff):
     """The listings table is a 2025 snapshot: unusable for any cutoff before the end of the data."""
     assert make_snapshot(tables, external, cutoff).units is None
 
 
-@expected_until_f02
 def test_snapshot_does_not_modify_its_inputs(tables, external, cutoff):
     leases_before, external_before = tables.leases.copy(), external.copy()
     make_snapshot(tables, external, cutoff)
@@ -195,7 +187,6 @@ def test_snapshot_does_not_modify_its_inputs(tables, external, cutoff):
     pd.testing.assert_frame_equal(external, external_before)
 
 
-@expected_until_f02
 def test_appending_future_rows_leaves_the_snapshot_identical(tables, external, cutoff, cfg):
     """Core leakage test: fake rows dated after the cutoff must not change anything inside the snapshot."""
     future = fake_future_tables(tables, cutoff, cfg)

@@ -2,12 +2,8 @@
 
 baselines:
   trailing_window_years: 3        # B1: trailing mean window, years before the cutoff
-  market_anchor_series: rent_cpi  # B2: external series used as the market anchor (series_id family in sources.csv; confirmed with MSR in M-03)
+  market_anchor_series: rent_cpi  # B2: `metric` value in sources.csv used as the market anchor (placeholder until MSR's M-03 fixes the names)
   market_gap_window_years: 3      # B2: years before the cutoff used to learn the internal-minus-market gap
-
-snapshot:
-  use_units_before: data_end      # listings (units) snapshot is 2025 data: kept only for cutoffs on/after data.data_end_date
-  external_date_column: release_date  # external rows are kept when this date is on/before the cutoff (AGENTS.md 9.3)
 
 incentives:
   trend_window_years: 2           # years of discount-share history used for the trend
