@@ -1,0 +1,32 @@
+# Python 3.11. Ranges below are known-compatible; after the first clean install run
+#   pip freeze > requirements.lock.txt
+# and INT pins exact versions here before the final submission.
+
+# Analysis
+pandas>=2.2,<3
+numpy>=1.26,<3
+scipy>=1.11,<2
+scikit-learn>=1.4,<2
+statsmodels>=0.14,<0.15
+matplotlib>=3.8,<4
+pyyaml>=6.0,<7
+
+# Notebook build
+jupyter>=1.0
+ipykernel>=6.29
+jupytext>=1.16,<2
+nbformat>=5.10
+nbclient>=0.10
+
+# App and AI features (optional at runtime)
+streamlit>=1.38,<2
+anthropic>=0.40
+python-dotenv>=1.0,<2
+
+# Quality
+pytest>=8.0,<9
+pre-commit>=3.7
+nbstripout>=0.7
+
+# Local editable install of our package
+-e .

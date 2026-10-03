@@ -1,0 +1,50 @@
+"""Loading, hash verification and data dictionary. Owner: INT."""
+
+import shutil
+
+import pytest
+
+from leaselens.config import data_dir
+from leaselens.contracts import SOURCE_FILES
+from leaselens.io import load_raw, run_qa
+from leaselens.io.load import verify_manifest
+
+
+def test_manifest_hashes_verified(cfg):
+    results = verify_manifest(data_dir(cfg))
+    assert all(results.values())
+
+
+def test_tampered_file_is_rejected(cfg, tmp_path):
+    for item in data_dir(cfg).iterdir():
+        shutil.copy(item, tmp_path / item.name)
+    with open(tmp_path / SOURCE_FILES["leases"], "a", encoding="utf-8") as handle:
+        handle.write("\n")
+    with pytest.raises(ValueError):
+        load_raw(tmp_path)
+
+
+def test_leading_zeros_preserved(raw, tables):
+    assert raw["listings"]["sUnitCode"].str.startswith("0").any()
+    assert tables.leases["unit_code"].str.startswith("0").any()
+    assert tables.leases["unit_id"].map(type).eq(str).all()
+
+
+def test_unsafe_site_key_collides_but_safe_key_does_not(raw):
+    listings = raw["listings"]
+    assert listings.duplicated(["sSite", "sUnitCode"]).any()
+    assert not listings.duplicated(["sPropCode", "sUnitCode"]).any()
+
+
+def test_available_column_dropped_and_types(tables):
+    assert "sAvailable" not in tables.leases.columns
+    assert set(tables.leases["province"]) <= {"QC", "ON"}
+    assert tables.leases["is_renewal"].dtype == bool
+    assert (tables.concessions["credit_amount"] >= 0).all()
+    assert set(tables.concessions["credit_kind"]) <= {"lump", "monthly"}
+    assert (tables.concessions.loc[tables.concessions["charge_code"] == "PromoPay", "credit_kind"] == "lump").all()
+
+
+def test_qa_passes_on_synthetic(raw, tables, cfg):
+    report = run_qa(raw, tables, cfg["data"]["data_end_date"])
+    assert (report["status"] == "pass").all(), report.loc[report["status"] != "pass", "check"].tolist()

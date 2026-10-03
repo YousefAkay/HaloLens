@@ -1,0 +1,20 @@
+# measure.yaml — owned by MSR. INT created the agreed keys; MSR tunes values and adds keys.
+
+pairs:
+  min_gap_years: 0.5              # starter assumption: shorter gaps are usually the same lease recorded twice
+  max_gap_years: 2.5              # starter assumption: longer gaps are too old for a like-for-like comparison
+  sensitivity_min_gap_years: 0.45 # alternative lower bound that admits 6-month leases (sensitivity only)
+
+winsorize:
+  lower_quantile: 0.01            # learned on training pairs only
+  upper_quantile: 0.99
+
+composition:
+  naive_years_start: 2019         # first year shown in the naive vs same-unit comparison
+  strata: [prop_code, beds, is_renewal]
+
+regulation:
+  # Values are filled from data/public/sources.csv (with release dates), never typed from memory.
+  quebec_regime: TAL
+  ontario_regime: ontario_guideline
+  ontario_post_2018_exemption_cutoff: "2018-11-15"  # first residential occupancy after this date may be exempt (verify)

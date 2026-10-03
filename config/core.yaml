@@ -1,0 +1,34 @@
+# core.yaml — owned by INT. Shared settings. Each key lives in exactly one config file.
+
+data:
+  mode: synthetic                 # "synthetic" (tests/demo, committed fixtures) or "real" (CRM in data/private)
+  private_dir: data/private       # sponsor ZIP contents; gitignored
+  synthetic_dir: data/synthetic   # invented fixtures produced by scripts/make_synthetic.py
+  public_dir: data/public         # public-source extracts
+  manifest_file: manifest.json    # SHA-256 hashes checked before every run
+  data_end_date: "2025-12-31"     # last date covered by the sponsor extract (signing/start histories)
+
+outputs:
+  private_dir: outputs/private    # anything derived from CRM; gitignored
+  public_dir: outputs/public      # synthetic or sponsor-approved aggregates only
+  aggregates_file: aggregates.json
+
+forecast_years:
+  target_year: 2026               # the year we forecast
+  backtest_years: [2023, 2024, 2025]
+  selection_years: [2023, 2024]   # champion chosen on these (pre-declared)
+  holdout_year: 2025              # untouched final comparison
+  cutoff_month_day: "12-31"       # cutoff for year y is y-1 + this month-day
+
+headline:
+  price_column: rent_net_all_incentives      # headline measures rent net of all incentives
+  companion_price_column: rent_contract      # always reported alongside
+  segment_keys: [prop_code, beds, is_renewal] # strata for fixed-composition weights
+  weight_window_years: 3                      # years of eligible pairs before the cutoff used for weights
+  change_tolerance_pp: 0.5                    # an unexplained headline move larger than this must be investigated
+
+uncertainty:
+  bootstrap_draws: 500            # unit-cluster bootstrap resamples
+  interval_quantiles: [0.05, 0.95]
+
+random_seed: 2026                 # every random operation uses this seed

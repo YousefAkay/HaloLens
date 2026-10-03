@@ -1,6 +1,6 @@
 # Teammate kickoff — LeaseLens (project  2026)
 
-Follow these steps in order. Takes ~15 minutes. Your track: Partner 1 = **MSR** (Measure & Market), Partner 2 = **FCT** (Incentives & Forecast). Yousef = **INT** (integrator).
+Follow these steps in order. Takes ~15 minutes. Your track: Hamza = **MSR** (Measure & Market), Yousif = **FCT** (Incentives & Forecast). Yousef = **INT** (integrator).
 
 ## 1. Accounts and access
 1. Accept Yousef's GitHub invite to `YousefAkay/HALO` (private repo).

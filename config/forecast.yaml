@@ -1,0 +1,21 @@
+# forecast.yaml — owned by FCT. INT created the agreed keys; FCT tunes values and adds keys.
+
+baselines:
+  trailing_window_years: 3        # B1: trailing mean window, years before the cutoff
+
+incentives:
+  trend_window_years: 2           # years of discount-share history used for the trend
+
+nowcast:
+  method: local_linear_trend      # small state-space / local-trend model on the monthly index
+  min_pairs_per_month: 10         # months with fewer pairs are pooled with neighbours
+
+selection:
+  metric: mean_absolute_error_pp  # champion metric over selection_years
+
+scenarios:
+  # Low / central / high levers. Values set by FCT with justification in docs/assumptions/FCT.md.
+  incentive_intensity_shift_pp: null
+  renewal_share_shift_pp: null
+  met_guideline_applies: [false, true]   # central: post-2018 exemption plausible; alternative: guideline applies
+  include_post_cutoff_quebec_method: false
