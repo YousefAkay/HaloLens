@@ -1,17 +1,19 @@
 # measure.yaml — owned by MSR. INT created the agreed keys; MSR tunes values and adds keys.
 
 pairs:
+  unit_key: [prop_code, unit_code]  # safe matching key (sponsor rule); sSite + sUnitCode merges distinct apartments
+  cross_check_key: unit_id          # hUnit must map one-to-one onto unit_key; a mismatch is an exclusion reason
   min_gap_years: 0.5              # starter assumption: shorter gaps are usually the same lease recorded twice
   max_gap_years: 2.5              # starter assumption: longer gaps are too old for a like-for-like comparison
-  sensitivity_min_gap_years: 0.45 # alternative lower bound that admits 6-month leases (sensitivity only)
+  sensitivity_min_gap_years: 0.45 # alternative lower bound that admits every 6-month lease (sensitivity only)
 
 winsorize:
-  lower_quantile: 0.01            # learned on training pairs only
-  upper_quantile: 0.99
+  lower_quantile: 0.01            # clip the lowest 1% of annualized log growth; learned on training pairs only
+  upper_quantile: 0.99            # clip the highest 1%; same training-only rule
 
 composition:
   naive_years_start: 2019         # first year shown in the naive vs same-unit comparison
-  strata: [prop_code, beds, is_renewal]
+  strata: [prop_code, beds, is_renewal]  # same segments as the headline (core.yaml headline.segment_keys)
 
 regulation:
   # Values are filled from data/public/sources.csv (with release dates), never typed from memory.
