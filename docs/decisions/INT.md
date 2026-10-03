@@ -22,3 +22,5 @@
 - 2026-10-03 — I-01d requirements: `.last_install` (gitignored) records the commit of the last install. A change to requirements.txt since then, or a missing record, triggers the install from preflight.
 - 2026-10-03 — I-01d test output: pytest hides the numpy/pandas "generic timedelta unit" and statsmodels deprecations. The timedelta filter for test modules matches only that message. Warnings from src/leaselens are not hidden.
 - 2026-10-03 — I-01d /next: step 8 merges origin/dev into the task branch before pushing. Append-only logs use merge=union.
+- 2026-10-03 — I-01d preflight: a clean tree not on dev is switched to dev and fast-forwarded to origin/dev automatically. Only uncommitted changes, or local dev commits that origin/dev lacks, stop the run.
+- 2026-10-03 — I-01d permissions: `.claude/settings.json` no longer denies `git merge`; it allows `git merge origin/dev` so /next step 8 can merge dev into the task branch. Pushes to dev or main, force pushes, `--no-verify` and `gh pr merge` stay denied.

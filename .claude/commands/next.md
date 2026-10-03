@@ -21,8 +21,8 @@ You are working on the LeaseLens repo. Follow this routine exactly. AGENTS.md is
 
 ## 2. Sync
 - Re-read AGENTS.md (it may have changed).
-- Step 0 already requires a clean tree on dev. If preflight stopped you on a feature branch, the fix it printed was
-  `git switch dev`; do that yourself and run `/next` again.
+- Preflight (step 0) already switches a clean tree to dev and pulls origin/dev. It stops only for uncommitted changes,
+  or for local dev commits that origin/dev does not have. Those stops name the fix; do not work around them.
 - Run: `git fetch origin`, `git switch dev`, `git pull`.
 
 ## 3. Find the next task

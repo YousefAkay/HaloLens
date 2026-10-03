@@ -462,8 +462,8 @@ The repo is self-directing so nobody has to hand-write task prompts:
 - **`/next`** (`.claude/commands/next.md`): preflight → sync `dev` → run the status script → branch `<prefix><ID>-<name>` →
   build → test → commit `[<TRACK>][<ID>] …` → merge `origin/dev` into the branch → push branch → open PR into `dev` →
   print Handback Report → stop.
-- **Preflight** (`scripts/preflight.py`, run with the project venv): `.track` is valid; the tree is clean and `dev` is
-  up to date; `data/private/` has the four sponsor CSVs and `manifest.json` and passes `load_raw(verify=True)`, otherwise
+- **Preflight** (`scripts/preflight.py`, run with the project venv): `.track` is valid; the tree has no uncommitted changes
+  (otherwise it stops); a clean tree not on `dev` is switched to `dev` and `origin/dev` is pulled automatically; `data/private/` has the four sponsor CSVs and `manifest.json` and passes `load_raw(verify=True)`, otherwise
   it stops with "Unzip project-participants.zip into data/private/"; `.env` exists only at the repo root and is gitignored;
   `gh` is logged in (this one only warns). The script never prints `.env` contents or sponsor rows.
 - **Priority:** a workable board row whose Notes start with `priority` is picked before the other workable rows.

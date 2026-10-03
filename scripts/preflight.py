@@ -76,20 +76,37 @@ def check_track() -> tuple[bool, str]:
     return True, f"track {path.read_text(encoding='utf-8').strip()}"
 
 
+def worktree_action(status_output: str, branch: str) -> str:
+    """'dirty' when anything is uncommitted (untracked files count), 'switch' when the clean tree is not on dev,
+    otherwise 'ok'. A detached HEAD (empty branch name) counts as not on dev."""
+    if status_output.strip():
+        return "dirty"
+    if branch.strip() != "dev":
+        return "switch"
+    return "ok"
+
+
 def check_worktree() -> tuple[bool, str]:
     git("fetch", "--quiet", "origin")
     _, status = git("status", "--porcelain")
-    if status:
-        return False, "Working tree has uncommitted changes. Commit or stash them yourself; nothing was discarded."
     _, branch = git("branch", "--show-current")
-    if branch != "dev":
-        return False, f"You are on '{branch}'. Run: git switch dev"
+    action = worktree_action(status, branch)
+    if action == "dirty":
+        return False, "Uncommitted changes in the working tree. Commit or stash them yourself; nothing was discarded."
+    if action == "switch":
+        code, _ = git("switch", "dev")
+        if code != 0:
+            return False, "Could not switch to dev automatically. Run: git switch dev"
+        print("switched to dev")
     _, counts = git("rev-list", "--left-right", "--count", "dev...origin/dev")
     ahead, behind = (int(part) for part in counts.split())
-    if behind:
-        return False, "dev is behind origin/dev. Run: git pull"
     if ahead:
         return False, "dev has commits that are not on origin/dev. Push them through a PR, or move them to a branch."
+    if behind:
+        code, _ = git("pull", "--ff-only", "--quiet")
+        if code != 0:
+            return False, "dev could not be fast-forwarded to origin/dev. Run: git pull, then fix the reported problem."
+        print("pulled origin/dev")
     return True, "dev clean and up to date"
 
 

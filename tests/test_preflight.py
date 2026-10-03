@@ -50,3 +50,23 @@ def test_requirements_change_detected_from_changed_files():
 
 def test_missing_install_record_always_counts_as_changed():
     assert preflight.requirements_changed(None, [])
+
+
+def test_clean_tree_on_dev_needs_no_action():
+    assert preflight.worktree_action("", "dev") == "ok"
+
+
+def test_clean_tree_on_a_branch_switches_to_dev():
+    assert preflight.worktree_action("", "int/I-01d-next-preflight") == "switch"
+
+
+def test_detached_head_counts_as_not_on_dev():
+    assert preflight.worktree_action("", "") == "switch"
+
+
+def test_modified_file_stops_even_on_a_branch():
+    assert preflight.worktree_action(" M AGENTS.md\n", "int/I-01d-next-preflight") == "dirty"
+
+
+def test_untracked_file_counts_as_uncommitted():
+    assert preflight.worktree_action("?? scratch.txt\n", "dev") == "dirty"
