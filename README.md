@@ -91,7 +91,6 @@ Install and configure:
 ```bash
 pip install -r requirements.txt
 pre-commit install
-git config core.hooksPath .githooks
 ```
 
 ### Add the data
@@ -159,8 +158,9 @@ The CRM extract provided by project is confidential. Under the challenge rules i
 | FCT — Incentives & Forecast | _Yousif_ | Leakage-safe pipeline, incentives, forecasting, backtests, scenarios |
 
 - `main` holds submission-ready work only. `dev` is the integration branch.
-- Every change goes through a pull request from a feature branch (`int/…`, `msr/…`, `fct/…`) into `dev`. Nobody pushes to `dev` or `main` directly; a pre-push hook enforces this.
+- Every change goes through a pull request from a feature branch (`int/…`, `msr/…`, `fct/…`) into `dev`. Nobody pushes to `dev` or `main` directly; a pre-push hook (installed by `pre-commit install`) enforces this.
 - Each file has exactly one owning track. Cross-track changes go through `docs/requests/`.
+- Each teammate's Claude Code works through its track's board in `docs/board/` with the `/next` command.
 - New teammates start with [`TEAMMATE_KICKOFF.md`](TEAMMATE_KICKOFF.md).
 
 ## 7. Reproducibility
