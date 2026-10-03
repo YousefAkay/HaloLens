@@ -154,9 +154,9 @@ The CRM extract provided by project is confidential. Under the challenge rules i
 
 | Track | Owner | Responsibility |
 |---|---|---|
-| INT — Integration & Product | Yousef Yousef | Repo, contracts, data loading, notebook assembly, uncertainty, dashboard |
-| MSR — Measure & Market | _Partner 1_ | Matching, composition, renewals, regulation, public data |
-| FCT — Incentives & Forecast | _Partner 2_ | Leakage-safe pipeline, incentives, forecasting, backtests, scenarios |
+| INT — Integration & Product | Yousef | Repo, contracts, data loading, notebook assembly, uncertainty, dashboard |
+| MSR — Measure & Market | _Hamza_ | Matching, composition, renewals, regulation, public data |
+| FCT — Incentives & Forecast | _Yousif_ | Leakage-safe pipeline, incentives, forecasting, backtests, scenarios |
 
 - `main` holds submission-ready work only. `dev` is the integration branch.
 - Every change goes through a pull request from a feature branch (`int/…`, `msr/…`, `fct/…`) into `dev`. Nobody pushes to `dev` or `main` directly; a pre-push hook enforces this.
