@@ -17,3 +17,8 @@
 - 2026-10-03 — I-13a section 01: the headline definition is written in French, and every number it cites (target year, cutoff, gap bounds, quantiles, weight window, column names) is generated from config/ in a code cell, not typed into Markdown.
 - 2026-10-03 — REQUEST-MSR-01 done: `pydantic>=2,<3` added to requirements.txt (MSR's request, filed in docs/requests/from_MSR.md; that file is MSR's and was not edited).
 - 2026-10-03 — Board: M-03b (verify sources for 2018+ from the draft, priority after M-04) added to the MSR board after M-04. F-05 on the FCT board now depends on M-03b instead of M-03.
+- 2026-10-03 — I-01d preflight is `scripts/preflight.py`. A required check that fails stops the run and prints its exact fix. The gh check only warns. The requirements install runs only when every other check passes.
+- 2026-10-03 — I-01d priority: a workable board row whose Notes start with "priority" is picked before other workable rows; board order breaks ties.
+- 2026-10-03 — I-01d requirements: `.last_install` (gitignored) records the commit of the last install. A change to requirements.txt since then, or a missing record, triggers the install from preflight.
+- 2026-10-03 — I-01d test output: pytest hides the numpy/pandas "generic timedelta unit" and statsmodels deprecations. The timedelta filter for test modules matches only that message. Warnings from src/leaselens are not hidden.
+- 2026-10-03 — I-01d /next: step 8 merges origin/dev into the task branch before pushing. Append-only logs use merge=union.

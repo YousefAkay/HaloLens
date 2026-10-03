@@ -4,6 +4,16 @@ description: Autopilot — pick up the next task on your track's board, build it
 
 You are working on the LeaseLens repo. Follow this routine exactly. AGENTS.md is the rulebook; this is the order of operations.
 
+## 0. Preflight
+- From the repo root, run the project venv interpreter on `scripts/preflight.py`:
+  `.venv\Scripts\python.exe scripts/preflight.py` (Windows) or `.venv/bin/python scripts/preflight.py` (macOS / Linux).
+- Exit code 0: print its one-line `PREFLIGHT: ok …` summary and go on to step 1.
+- Exit code 1: stop. Print every `STOP [...]` line exactly as the script wrote it. Each line gives the fix. Do not work around it.
+- `WARN [gh] …` lines do not stop the run. Print them once.
+- If the script prints `**⚠️ REQUIREMENTS.TXT CHANGED — RUN pip install -r requirements.txt NOW**`, it has already run
+  the install and written `.last_install`. Check that it reported success; if it did not, that is a stop.
+- Never open or print the contents of any `.env` file, and never print sponsor rows.
+
 ## 1. Who am I?
 - Read the file `.track` at the repo root. It contains one word: INT, MSR or FCT.
 - If it is missing or invalid, ask the human once which track they are, write that word to `.track`, and continue.
@@ -11,13 +21,14 @@ You are working on the LeaseLens repo. Follow this routine exactly. AGENTS.md is
 
 ## 2. Sync
 - Re-read AGENTS.md (it may have changed).
-- If you are on a feature branch with an open PR, that's fine: you will start the next task from dev.
-- If the working tree has uncommitted changes, stop and tell the human; do not discard anything.
+- Step 0 already requires a clean tree on dev. If preflight stopped you on a feature branch, the fix it printed was
+  `git switch dev`; do that yourself and run `/next` again.
 - Run: `git fetch origin`, `git switch dev`, `git pull`.
 
 ## 3. Find the next task
 - Run `python scripts/board_status.py --track <TRACK>`. It computes every task's status from git
   (done / in-review / todo) and prints a `NEXT <TRACK>:` line. Do not edit board files to change status.
+  A workable row whose Notes start with "priority" is picked before the other workable rows; board order breaks ties.
 - `NEXT <TRACK>: <ID>` → do that task.
 - `NEXT <TRACK> (synthetic until deps merge): <ID>` → do it against the synthetic fixtures and the contract signatures
   in `src/leaselens/contracts.py`, only if nothing you write would need to change once the dependency lands.
@@ -48,6 +59,10 @@ You are working on the LeaseLens repo. Follow this routine exactly. AGENTS.md is
 
 ## 8. Ship
 - Commit with a subject that starts with `[<TRACK>][<ID>]`, e.g. `[MSR][M-02] Add build_pairs with exclusion audit`.
+- Before pushing: `git fetch origin && git merge origin/dev` on the task branch. Conflicts in `docs/decisions/*.md`,
+  `docs/assumptions/*.md` and `docs/references/*.md` are append-only: keep both sides, dev's lines first (the
+  `merge=union` rule in `.gitattributes` does the same automatically). Any other conflict: stop and tell the human.
+  Then run the tests again.
 - `git push -u origin <branch>`.
 - If the `gh` CLI is available and authenticated: `gh pr create --base dev --title "[<TRACK>][<ID>] <summary>" --body "<Handback Report>"`.
   Otherwise print: `Open the PR: https://github.com/YousefAkay/HALO/compare/dev...<branch>?expand=1`

@@ -11,6 +11,7 @@ Status is never stored in the boards; it is derived:
   in-review  a remote branch <prefix><ID>-... exists and the task is not done
   todo       otherwise
 A task is workable when every dependency is done. "continuous" tasks are never picked.
+Among workable tasks, a row whose Notes start with "priority" is picked first; board order breaks ties.
 
 Usage:
   python scripts/board_status.py                 # all tracks
@@ -28,6 +29,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 TRACKS = {"INT": "int/", "MSR": "msr/", "FCT": "fct/"}
 BOARD_ROW = re.compile(r"^\|\s*([IMF]-\d+[a-z]?)\s*\|(.*)\|\s*$")
+PRIORITY_MARK = "priority"  # a workable row whose Notes start with this is picked before other workable rows
 RECORD_SEPARATOR = "\x1e"  # ends each commit in the `git log --format=%B%x1e` dump
 
 
@@ -98,9 +100,19 @@ def compute(fetch: bool = True) -> dict[str, list[dict]]:
     return boards
 
 
+def is_priority(row: dict) -> bool:
+    """True when the row's Notes start with "priority" (case-insensitive)."""
+    return row["notes"].strip().lower().startswith(PRIORITY_MARK)
+
+
 def next_task(rows: list[dict]) -> tuple[dict | None, dict | None]:
-    """First fully workable task, and first task blocked only by other tracks (workable on synthetic data)."""
-    workable = next((r for r in rows if r["workable"]), None)
+    """First workable task, and first task blocked only by other tracks (workable on synthetic data).
+
+    A workable row marked "priority" beats every other workable row; board order breaks ties.
+    """
+    workable_rows = [r for r in rows if r["workable"]]
+    priority_rows = [r for r in workable_rows if is_priority(r)]
+    workable = next(iter(priority_rows or workable_rows), None)
     own_prefix = rows[0]["id"][0] if rows else ""
     synthetic = next((r for r in rows if r["status"] == "todo" and not r["continuous"] and r["waiting_on"]
                       and all(not d.startswith(own_prefix) for d in r["waiting_on"])), None)

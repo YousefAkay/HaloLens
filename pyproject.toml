@@ -15,3 +15,12 @@ where = ["src"]
 testpaths = ["tests"]
 pythonpath = ["src", "."]
 addopts = "-q"
+# Hide known library deprecations so test output stays readable. Each filter is scoped by the module the
+# warning is attributed to, so warnings raised from our own code (src/leaselens, tests) still show.
+filterwarnings = [
+    "ignore:The 'generic' unit for NumPy timedelta:DeprecationWarning:pandas.*",
+    "ignore:The 'generic' unit for NumPy timedelta:DeprecationWarning:numpy.*",
+    # pandas raises this inside DateOffset arithmetic, which the test helpers use; the warning is attributed to the test
+    "ignore:The 'generic' unit for NumPy timedelta:DeprecationWarning:(test_|conftest).*",
+    "ignore::DeprecationWarning:statsmodels.*",
+]
