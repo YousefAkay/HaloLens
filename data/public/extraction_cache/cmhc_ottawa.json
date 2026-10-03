@@ -1,0 +1,53 @@
+{
+  "url": "https://www.cmhc-schl.gc.ca/professionals/housing-markets-data-and-research/market-reports/rental-market-reports-major-centres",
+  "accessed_date": "2026-10-03",
+  "text_sha256": "605b9c156aa40c61fab25ea74322105c7445ba061fdeb0d379e4ef74689c8d26",
+  "extraction": {
+    "observations": [
+      {
+        "metric": "cmhc_same_sample_rent_growth_pct",
+        "geography": "Ottawa CMA",
+        "segment": "all",
+        "ref_period_start": "2025-10-01",
+        "ref_period_end": "2025-10-31",
+        "value": 3.4,
+        "release_date": "2025-12-11",
+        "location_in_source": "Ottawa section, Purpose-Built Rental Market summary box ('Average 2-Bedroom Rent $1,926, Up by 3.4%') and 'Rent growth slowed' paragraph ('It reached 3.4%')",
+        "notes": "Same-sample change in average 2-bedroom purpose-built rent (Ontario part of Ottawa-Gatineau CMA). The page states 2024 growth only as 'nearly 5%', so no 2024 value is extracted. Turnover vs non-turnover growth rates are not given numerically ('over 5 times the average rate' for 2-bedroom turnover units), so they are not extracted. Release date is the page's 'Date Published'."
+      },
+      {
+        "metric": "cmhc_vacancy_rate_pct",
+        "geography": "Ottawa CMA",
+        "segment": "all",
+        "ref_period_start": "2025-10-01",
+        "ref_period_end": "2025-10-31",
+        "value": 3.0,
+        "release_date": "2025-12-11",
+        "location_in_source": "Ottawa section, Purpose-Built Rental Market summary box 'Vacancy Rate 3.0%'; also Figure 8, 'All units' row, October 2025 column",
+        "notes": "Purpose-built rental apartment vacancy rate. Release date is the page's 'Date Published'."
+      },
+      {
+        "metric": "cmhc_vacancy_rate_pct",
+        "geography": "Ottawa CMA",
+        "segment": "all",
+        "ref_period_start": "2024-10-01",
+        "ref_period_end": "2024-10-31",
+        "value": 2.6,
+        "release_date": "2025-12-11",
+        "location_in_source": "Ottawa section, Figure 8 table, 'All units' row, October 2024 column",
+        "notes": "Vacancy rate as shown in the 2025 report; the original 2024 publication date is not stated on this page. Release date is this page's 'Date Published'."
+      },
+      {
+        "metric": "cmhc_vacancy_rate_pct",
+        "geography": "Ottawa CMA",
+        "segment": "all",
+        "ref_period_start": "2023-10-01",
+        "ref_period_end": "2023-10-31",
+        "value": 2.1,
+        "release_date": "2025-12-11",
+        "location_in_source": "Ottawa section, Figure 8 table, 'All units' row, October 2023 column",
+        "notes": "Vacancy rate as shown in the 2025 report; the original 2023 publication date is not stated on this page. Release date is this page's 'Date Published'."
+      }
+    ]
+  }
+}

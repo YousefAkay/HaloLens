@@ -1,0 +1,31 @@
+{
+  "url": "https://www.tal.gouv.qc.ca/fr/reconduction-du-bail-et-fixation-de-loyer/pourcentages-applicables-aux-criteres-de-fixation-de-loyer",
+  "accessed_date": "2026-10-03",
+  "text_sha256": "ff0e94ab7bb037af42f9ef44d0db1ac22f631314f395e65163eb621df7361cf8",
+  "extraction": {
+    "observations": [
+      {
+        "metric": "tal_renewal_reference_pct",
+        "geography": "QC",
+        "segment": "unheated dwelling, no major work (base rent percentage)",
+        "ref_period_start": "2026-01-01",
+        "ref_period_end": "2026-12-31",
+        "value": 3.1,
+        "release_date": "",
+        "location_in_source": "Table 'Demandes dont l'avis de modification de bail a été donné à compter du 1er janvier 2026', row 'Pourcentage de base pour le loyer', column 2026",
+        "notes": "Release date not stated on page. Column labelled 2026 taken as the lease year. Other rows in the same table: services tied to the tenant (6.7%) and capital expenditures (5%). In the separate table for notices given before 1 Jan 2026, the 2026 column gives electricity 2.9%, gas 13.7%, heating oil/other energy 4.9%, maintenance 5.7%, building services 3.4%, RPA tenant services 6.3%, management 7.2%, net income 5.7%, and capital expenditures 4%."
+      },
+      {
+        "metric": "tal_renewal_reference_pct",
+        "geography": "QC",
+        "segment": "unheated dwelling, no major work (base rent percentage)",
+        "ref_period_start": "2025-01-01",
+        "ref_period_end": "2025-12-31",
+        "value": 4.5,
+        "release_date": "",
+        "location_in_source": "Table 'Demandes dont l'avis de modification de bail a été donné à compter du 1er janvier 2026', row 'Pourcentage de base pour le loyer', column 2025",
+        "notes": "Release date not stated on page. Column labelled 2025 taken as the lease year. The value is shown in the table for notices given from 1 Jan 2026. Other rows in the same table: services tied to the tenant (6%) and capital expenditures (5%). In the table for notices given before 1 Jan 2026, the 2025 column gives electricity 2.9%, gas -5.8%, heating oil/other energy -2.9%, maintenance 6.9%, building services 4.5%, RPA tenant services 5.9%, management 8.2%, net income 6.9%, and capital expenditures 4.7%."
+      }
+    ]
+  }
+}

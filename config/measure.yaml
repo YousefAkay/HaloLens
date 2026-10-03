@@ -20,3 +20,81 @@ regulation:
   quebec_regime: TAL
   ontario_regime: ontario_guideline
   ontario_post_2018_exemption_cutoff: "2018-11-15"  # first residential occupancy after this date may be exempt (verify)
+
+external:
+  sources_file: sources.csv       # verified public observations (under data.public_dir); the only file analysis reads
+  draft_file: sources_draft.csv   # extraction output awaiting human verification; never read by analysis
+  cache_dir: extraction_cache     # cached public page text + LLM answers so extraction reruns without an API key
+  extracted_by_values: [manual, llm]  # allowed provenance tags (contract 7.1); script/API pulls count as manual
+  metrics:                        # allowed `metric` values; anything else is rejected at load time
+    - rent_cpi                    # StatCan rent CPI, annual-average % change (B2 market anchor in forecast.yaml)
+    - rent_cpi_index              # StatCan rent CPI monthly index level (2002=100)
+    - cmhc_same_sample_rent_growth_pct  # CMHC fixed-sample average rent change, % (turnover split if published)
+    - cmhc_vacancy_rate_pct       # CMHC purpose-built vacancy, % — regional market CONTEXT only, never project occupancy
+    - tal_renewal_reference_pct   # Québec TAL reference percentage for an unheated dwelling, %
+    - ontario_guideline_pct       # Ontario rent increase guideline, %
+  statcan:
+    table_id: "18-10-0004-01"     # Consumer Price Index, monthly, not seasonally adjusted
+    product_id: 18100004          # WDS numeric id of the same table
+    rent_member_id: 81            # "Rent" in the Products dimension (from getCubeMetadata)
+    geography_member_ids: {"QC": 11, "ON": 14}  # Quebec, Ontario (quoted: bare ON parses as YAML boolean) in the Geography dimension
+    first_year: 2016              # earliest calendar year pulled (two years before the first pair year, 2018)
+    months_requested: 140         # latest N monthly points requested; covers first_year to the latest release
+    request_timeout_seconds: 60   # WDS calls are slow; fail rather than hang
+  llm:
+    model: claude-opus-5-5        # extraction model (reads PUBLIC pages only)
+    max_tokens: 16000             # room for a full table of observations
+    effort: high                  # careful reading of numeric tables
+    max_page_characters: 400000   # refuse (not truncate) pages longer than this; split the source instead
+  pages:                          # public pages read by the LLM; human verifies every extracted row
+                                  # CMHC: only the latest report is listed; older reports (with their own release
+                                  # dates) must be added for backtest cutoffs to see CMHC values
+    - source_id: ontario_guideline
+      publisher: Government of Ontario
+      url: https://www.ontario.ca/page/rent-increase-guideline
+      metric: ontario_guideline_pct
+      geography: "ON"
+      unit: pct
+      instructions: "Every annual rent increase guideline listed, one row per calendar year it applies to, with the date it was announced as release_date."
+    - source_id: tal_percentages
+      publisher: Tribunal administratif du logement
+      url: https://www.tal.gouv.qc.ca/fr/reconduction-du-bail-et-fixation-de-loyer/pourcentages-applicables-aux-criteres-de-fixation-de-loyer
+      metric: tal_renewal_reference_pct
+      geography: "QC"
+      unit: pct
+      instructions: "Every rent-adjustment percentage the page gives for an unheated dwelling with no major work (the reference or estimated average increase, or the base rent percentage), one row per lease year it applies to (YYYY-01-01 to YYYY-12-31), with the publication date of the page or announcement as release_date. Put any other component (electricity, gas, taxes) in notes, not as rows."
+    - source_id: tal_news_2023
+      publisher: Tribunal administratif du logement
+      url: https://www.tal.gouv.qc.ca/fr/actualites/le-calcul-de-l-ajustement-des-loyers-en-2023
+      metric: tal_renewal_reference_pct
+      geography: "QC"
+      unit: pct
+      instructions: "Every rent-adjustment percentage the page gives for an unheated dwelling with no major work (the reference or estimated average increase, or the base rent percentage), one row per lease year it applies to (YYYY-01-01 to YYYY-12-31), with the publication date of the page or announcement as release_date. Put any other component (electricity, gas, taxes) in notes, not as rows."
+    - source_id: tal_news_2025
+      publisher: Tribunal administratif du logement
+      url: https://www.tal.gouv.qc.ca/fr/actualites/detail?code=le-calcul-de-l-ajustement-des-loyers-en-2025
+      metric: tal_renewal_reference_pct
+      geography: "QC"
+      unit: pct
+      instructions: "Every rent-adjustment percentage the page gives for an unheated dwelling with no major work (the reference or estimated average increase, or the base rent percentage), one row per lease year it applies to (YYYY-01-01 to YYYY-12-31), with the publication date of the page or announcement as release_date. Put any other component (electricity, gas, taxes) in notes, not as rows."
+    - source_id: tal_news_2026
+      publisher: Tribunal administratif du logement
+      url: https://www.tal.gouv.qc.ca/fr/actualites/detail?code=le-calcul-de-l-ajustement-des-loyers-en-2026
+      metric: tal_renewal_reference_pct
+      geography: "QC"
+      unit: pct
+      instructions: "Every rent-adjustment percentage the page gives for an unheated dwelling with no major work (the reference or estimated average increase, or the base rent percentage), one row per lease year it applies to (YYYY-01-01 to YYYY-12-31), with the publication date of the page or announcement as release_date. Put any other component (electricity, gas, taxes) in notes, not as rows."
+    - source_id: cmhc_montreal
+      publisher: CMHC
+      url: https://www.cmhc-schl.gc.ca/professionals/housing-markets-data-and-research/market-reports/rental-market-reports-major-centres
+      metric: cmhc_same_sample_rent_growth_pct
+      geography: Montreal CMA
+      unit: pct
+      instructions: "Same-sample (fixed-sample) average rent change for the Montréal CMA, overall (segment all) and split by turnover vs no turnover (segments turnover, non_turnover) if shown; also the vacancy rate as metric cmhc_vacancy_rate_pct (segment all). Each value refers to the October survey of its year: ref period YYYY-10-01 to YYYY-10-31. Report publication date = release_date."
+    - source_id: cmhc_ottawa
+      publisher: CMHC
+      url: https://www.cmhc-schl.gc.ca/professionals/housing-markets-data-and-research/market-reports/rental-market-reports-major-centres
+      metric: cmhc_same_sample_rent_growth_pct
+      geography: Ottawa CMA
+      unit: pct
+      instructions: "Same-sample (fixed-sample) average rent change for the Ottawa (Ontario part) CMA, overall (segment all) and split by turnover vs no turnover (segments turnover, non_turnover) if shown; also the vacancy rate as metric cmhc_vacancy_rate_pct (segment all). Each value refers to the October survey of its year: ref period YYYY-10-01 to YYYY-10-31. Report publication date = release_date."

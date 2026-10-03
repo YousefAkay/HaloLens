@@ -1,0 +1,75 @@
+{
+  "url": "https://www.cmhc-schl.gc.ca/professionals/housing-markets-data-and-research/market-reports/rental-market-reports-major-centres",
+  "accessed_date": "2026-10-03",
+  "text_sha256": "605b9c156aa40c61fab25ea74322105c7445ba061fdeb0d379e4ef74689c8d26",
+  "extraction": {
+    "observations": [
+      {
+        "metric": "cmhc_same_sample_rent_growth_pct",
+        "geography": "Montreal CMA",
+        "segment": "all",
+        "ref_period_start": "2025-10-01",
+        "ref_period_end": "2025-10-31",
+        "value": 7.2,
+        "release_date": "2025-12-11",
+        "location_in_source": "Montréal section, Purpose-Built Rental Market box 'Average 2-Bedroom Rent $1,346, Up by 7.2%' and text 'Average rents rose despite market easing' (Table 1.1.5)",
+        "notes": "Same-sample average rent change for 2-bedroom purpose-built apartments (not all bedroom types). Release date from 'Date Published: December 11, 2025' at page bottom."
+      },
+      {
+        "metric": "cmhc_same_sample_rent_growth_pct",
+        "geography": "Montreal CMA",
+        "segment": "turnover",
+        "ref_period_start": "2025-10-01",
+        "ref_period_end": "2025-10-31",
+        "value": 17.2,
+        "release_date": "2025-12-11",
+        "location_in_source": "Figure 9: Average change (%) in rent for units that turned over to new tenants and those that didn't, 2-bedroom apartments, Montréal CMA — row 'Turnover units', column 2025",
+        "notes": "2-bedroom apartments only."
+      },
+      {
+        "metric": "cmhc_same_sample_rent_growth_pct",
+        "geography": "Montreal CMA",
+        "segment": "non_turnover",
+        "ref_period_start": "2025-10-01",
+        "ref_period_end": "2025-10-31",
+        "value": 6.0,
+        "release_date": "2025-12-11",
+        "location_in_source": "Figure 9: Average change (%) in rent for units that turned over to new tenants and those that didn't, 2-bedroom apartments, Montréal CMA — row 'Non-turnover units', column 2025",
+        "notes": "2-bedroom apartments only."
+      },
+      {
+        "metric": "cmhc_same_sample_rent_growth_pct",
+        "geography": "Montreal CMA",
+        "segment": "turnover",
+        "ref_period_start": "2024-10-01",
+        "ref_period_end": "2024-10-31",
+        "value": 18.7,
+        "release_date": "2025-12-11",
+        "location_in_source": "Figure 9: Average change (%) in rent for units that turned over to new tenants and those that didn't, 2-bedroom apartments, Montréal CMA — row 'Turnover units', column 2024",
+        "notes": "2-bedroom apartments only. 2024 value as shown in the 2025 report; release_date is this page's publication date, not the original 2024 release."
+      },
+      {
+        "metric": "cmhc_same_sample_rent_growth_pct",
+        "geography": "Montreal CMA",
+        "segment": "non_turnover",
+        "ref_period_start": "2024-10-01",
+        "ref_period_end": "2024-10-31",
+        "value": 4.7,
+        "release_date": "2025-12-11",
+        "location_in_source": "Figure 9: Average change (%) in rent for units that turned over to new tenants and those that didn't, 2-bedroom apartments, Montréal CMA — row 'Non-turnover units', column 2024",
+        "notes": "2-bedroom apartments only. 2024 value as shown in the 2025 report; release_date is this page's publication date, not the original 2024 release."
+      },
+      {
+        "metric": "cmhc_vacancy_rate_pct",
+        "geography": "Montreal CMA",
+        "segment": "all",
+        "ref_period_start": "2025-10-01",
+        "ref_period_end": "2025-10-31",
+        "value": 2.9,
+        "release_date": "2025-12-11",
+        "location_in_source": "Montréal section, Purpose-Built Rental Market box 'Vacancy Rate 2.9%' and text 'Rental market continued to ease in Greater Montréal' (Table 1.1.1)",
+        "notes": "Purpose-built rental apartment vacancy rate. Condominium apartment rental vacancy (2.1%) not included."
+      }
+    ]
+  }
+}
