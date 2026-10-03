@@ -22,6 +22,8 @@ venv/
 
 # ---- Jupyter ----
 .ipynb_checkpoints/
+# Generated notebook: may contain real-data output in real mode. Submission decision deferred to I-14.
+project_analysis.ipynb
 
 # ---- OS / editor ----
 .DS_Store

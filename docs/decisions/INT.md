@@ -7,3 +7,7 @@
 - 2026-10-03 — I-05 build: `scripts/build_notebook.py` concatenates the section files in filename order and runs them in a fresh kernel; the first failing cell fails the build (exit 1).
 - 2026-10-03 — Data mode for the build comes from `core.yaml` by default, with `--synthetic` / `--real` overrides. The mode reaches the notebook through `LEASELENS_DATA_MODE` (read by `load_config` when no mode is passed).
 - 2026-10-03 — Real-mode notebook is written to `outputs/private/` (gitignored, since it holds CRM aggregates); synthetic-mode notebook is written to the repo root as `project_analysis.ipynb`.
+- 2026-10-03 — I-12a number guard: a number in generated text is grounded when a JSON value rounds to it at the precision the text was written with (tolerance = half a unit of the last written digit). Digit runs in JSON strings count as values; booleans never do.
+- 2026-10-03 — Board: I-12a, I-13a, I-09a and I-11a added after I-06; I-11 now waits on I-09 and I-11a, I-12 on I-11a and I-12a. Section 01 is tracked as I-13a.
+- 2026-10-03 — `project_analysis.ipynb` added to `.gitignore` until the I-14 submission decision.
+- 2026-10-03 — `app/` made a package (`app/__init__.py`); pytest `pythonpath` now includes the repo root so tests import `app.*`.
