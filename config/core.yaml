@@ -31,4 +31,9 @@ uncertainty:
   bootstrap_draws: 500            # unit-cluster bootstrap resamples
   interval_quantiles: [0.05, 0.95]
 
+build:
+  notebook_file: project_analysis.ipynb   # generated notebook; repo root in synthetic mode, outputs/private in real mode
+  kernel_name: python3                  # kernel started fresh for each build, so the run is a clean kernel
+  cell_timeout_seconds: 600             # longest a single notebook cell may run before the build fails
+
 random_seed: 2026                 # every random operation uses this seed
