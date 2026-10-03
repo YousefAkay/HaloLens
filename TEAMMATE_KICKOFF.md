@@ -16,36 +16,40 @@ git switch dev                       # we work from dev, never main
 python -m venv .venv
 # Windows: .venv\Scripts\activate     macOS/Linux: source .venv/bin/activate
 pip install -r requirements.txt
-pre-commit install
-git config core.hooksPath .githooks   # blocks accidental pushes to dev/main
+git config --unset-all core.hooksPath   # only matters if you set it earlier; ignore errors
+pre-commit install                       # installs commit checks + the push guard for dev/main
 mkdir -p data/private                 # unzip the 4 CSVs + template.ipynb + manifest.json here
 pytest -q                             # should pass on synthetic data
 ```
 `data/private/` is gitignored. Never move CRM files anywhere else.
 
-## 3. Start your Claude chat (inside the HALO project)
-Open a new chat in the HALO project and paste:
+## 3. Tell the repo who you are (once)
+In the HALO folder, create the file `.track` containing only your track code:
+```powershell
+Set-Content .track MSR      # Hamza
+Set-Content .track FCT      # Yousif
+```
+It's gitignored, so it never leaves your machine.
 
-> I'm on the project hackathon team, track **[MSR or FCT]**. Read `AGENTS.md` and `project_team_plan.md` in this project. You'll act as my planner and reviewer: for each task in my track's list (AGENTS.md Section 10), write me one complete Claude Code prompt; I'll paste Claude Code's Handback Report back to you; you review it against AGENTS.md (ownership, contracts, privacy, definition of done) and either approve or write a fix prompt. I'm newer to Python, so explain key decisions briefly. Start with my first task.
-
-## 4. Start Claude Code (in the repo folder)
+## 4. Work loop: `/next`
 ```bash
-cd HALO
 claude
 ```
-Claude Code reads `CLAUDE.md` → `AGENTS.md` automatically. First message to Claude Code each session:
+Then type:
+```
+/next
+```
+Claude Code reads `AGENTS.md`, works out your next task from your board and git history, builds it on a new branch, runs the tests, pushes the branch, opens a PR into `dev` (or prints the link), prints a Handback Report and stops.
 
-> I'm working for track **[MSR/FCT]**, task **[ID]**. Confirm you've read AGENTS.md and list the files you're allowed to edit before starting.
+You then:
+1. Open the PR if it only printed a link (base must be **dev**).
+2. Tell Yousef it's ready. He reviews and merges.
+3. Type `/next` again right away. If your next task depends on the PR you just opened, the agent picks another task or tells you it's waiting.
 
-Then paste the prompt your Claude chat wrote.
+Other commands: `/status` shows all three boards at a glance.
 
-## 5. The loop (every task)
-1. Claude chat → writes the prompt for task X.
-2. Claude Code → does it on branch `<prefix>/<task-id>-<name>` (created from `dev`), runs tests, prints the **Handback Report**.
-3. You → paste the Handback Report (and any errors) back into the Claude chat.
-4. Claude chat → "approved, open the PR into **dev**" or a fix prompt. Max ~2 fix rounds.
-5. You → open the PR into `dev` (never `main`). Tell Yousef. Yousef reviews and merges.
-6. Before the next task: `git fetch && git switch dev && git pull`.
+## 5. When to use your Claude chat (HALO project)
+Only when the agent stops and asks for a decision, when tests fail and you're stuck, or at the sync points (H4, H8, H11). Paste the Handback Report or the error there.
 
 ## 6. Rules you must not break
 - Only edit files your track owns (AGENTS.md Section 5). Need something changed elsewhere? File a request in `docs/requests/from_<YOUR_TRACK>.md`.

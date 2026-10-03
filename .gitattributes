@@ -1,4 +1,2 @@
 # Keep fixture bytes identical on every OS (their SHA-256 hashes are verified by the loader).
 data/synthetic/* -text
-# Shell hook must keep Unix line endings to run on Windows (Git Bash) and macOS.
-.githooks/* text eol=lf
