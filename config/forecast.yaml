@@ -2,16 +2,34 @@
 
 baselines:
   trailing_window_years: 3        # B1: trailing mean window, years before the cutoff
+  market_anchor_series: rent_cpi  # B2: external series used as the market anchor (series_id family in sources.csv; confirmed with MSR in M-03)
+  market_gap_window_years: 3      # B2: years before the cutoff used to learn the internal-minus-market gap
+
+snapshot:
+  use_units_before: data_end      # listings (units) snapshot is 2025 data: kept only for cutoffs on/after data.data_end_date
+  external_date_column: release_date  # external rows are kept when this date is on/before the cutoff (AGENTS.md 9.3)
 
 incentives:
   trend_window_years: 2           # years of discount-share history used for the trend
+  min_pairs_per_segment: 5        # segments with fewer pairs fall back to their province-wide discount share
 
 nowcast:
   method: local_linear_trend      # small state-space / local-trend model on the monthly index
   min_pairs_per_month: 10         # months with fewer pairs are pooled with neighbours
 
+combine:
+  # Starting weights of the engines in the final blend; re-checked on selection years only (core.yaml forecast_years).
+  renewal_engine_weight: 0.5      # equal start: renewals and turnovers are blended by the fixed pair-share weights, not by this key
+  turnover_engine_weight: 0.5     # same equal start; sums to 1 with renewal_engine_weight
+  shrinkage_strength: 20          # pseudo-pairs pulling thin building x beds cells toward their building mean (F-07)
+
 selection:
   metric: mean_absolute_error_pp  # champion metric over selection_years
+
+leakage_test:
+  # Used only by tests/test_asof_leakage.py: how the fake future rows are built.
+  future_rent_multiplier: 3.0     # fake future rents are this many times the real ones, so any leak moves the forecast visibly
+  future_row_count: 5             # number of fake future leases appended per test
 
 scenarios:
   # Low / central / high levers. Values set by FCT with justification in docs/assumptions/FCT.md.
