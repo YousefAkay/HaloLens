@@ -29,6 +29,8 @@ pydantic>=2,<3
 pytest>=8.0,<9
 pre-commit>=3.7
 nbstripout>=0.7
+# I-09a: validates outputs/public/aggregates_synthetic.json against contracts.AGGREGATES_SCHEMA
+jsonschema>=4.18,<5
 
 # Local editable install of our package
 -e .
