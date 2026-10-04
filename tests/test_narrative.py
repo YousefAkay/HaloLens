@@ -161,6 +161,63 @@ def test_without_a_key_qa_returns_no_error(doc):
     assert result["status"] == "no_key"
 
 
+@pytest.mark.parametrize("mode", ["real", None, "unknown", "Synthetic"])
+def test_no_key_cache_is_never_loaded_outside_exact_synthetic_mode(monkeypatch, mode):
+    question = "What is the net increase?"
+    matching_cache = {question: "Synthetic cached increase: 3.5 %."}
+
+    def forbidden_cache_load():
+        assert question in matching_cache
+        pytest.fail("synthetic cache must not be loaded")
+
+    monkeypatch.setattr(narrative, "load_preset_cache", forbidden_cache_load)
+    aggregates = {} if mode is None else {"mode": mode}
+    result = narrative.ask_analysis(question, aggregates, [], None)
+    assert result == {"status": "no_key", "text": None, "reason": "cache_synthetic_only"}
+
+
+@pytest.mark.parametrize("cached, reason", [
+    ("The increase is 3.5 %.", None),
+    ("The increase is 99.9 %.", "cache_rejected"),
+    (None, "cache_missing"),
+    ("", "cache_missing"),
+    ("   ", "cache_missing"),
+])
+def test_synthetic_cache_requires_nonempty_grounded_exact_answer(monkeypatch, cached, reason):
+    aggregates = {"mode": "synthetic", "headline": {"net_pct": 3.5}}
+    question = "What is the net increase?"
+    cache = {"Unrelated question": "An unrelated answer."}
+    if cached is not None:
+        cache[question] = cached
+    monkeypatch.setattr(narrative, "load_preset_cache", lambda: cache)
+    if reason == "cache_rejected":
+        assert ungrounded_numbers(cached, aggregates) == ["99.9"]
+    result = narrative.ask_analysis(question, aggregates, [], None)
+    assert result["status"] == "no_key"
+    assert result["text"] == (cached if reason is None else None)
+    assert result.get("reason") == reason
+
+
+@pytest.mark.parametrize("client", [None, FakeClient()])
+@pytest.mark.parametrize("topic", ["occupancy", "vacancy", "absorption", "rent-roll"])
+def test_forbidden_topics_bypass_cache_and_api(monkeypatch, client, topic):
+    def forbidden_cache_load():
+        pytest.fail("refused questions must not load the cache")
+
+    monkeypatch.setattr(narrative, "load_preset_cache", forbidden_cache_load)
+    result = narrative.ask_analysis(f"What is the {topic}?", {"mode": "synthetic"}, [], client)
+    assert result == {"status": "refused", "text": narrative.REFUSAL["en"]}
+    if client is not None:
+        assert client.calls == []
+
+
+def test_live_qa_still_returns_guarded_answer(doc):
+    client = FakeClient(text_response("Voir §09 : le classement reste faible."))
+    result = narrative.ask_analysis("Pourquoi le classement est-il faible ?", doc, [], client)
+    assert result == {"status": "ai", "text": "Voir §09 : le classement reste faible."}
+    assert len(client.calls) == 1
+
+
 def test_get_client_is_none_without_a_key(monkeypatch):
     monkeypatch.delenv(narrative.API_KEY_VARIABLE, raising=False)
     monkeypatch.setattr(narrative, "load_dotenv", lambda *args, **kwargs: None)

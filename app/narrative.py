@@ -223,13 +223,19 @@ def section_citation_present(text: str) -> bool:
 
 
 def ask_analysis(question: str, aggregates: dict[str, Any], docs: list[str], client: Any | None) -> dict[str, Any]:
-    """Answer a question with a section citation, or refuse occupancy/vacancy questions without calling the API."""
+    """Answer with a citation; no-key cached answers require synthetic mode and grounded numbers."""
     lang = detect_language(question)
     if FORBIDDEN_TOPIC.search(question):
         return {"status": "refused", "text": REFUSAL[lang]}
     if client is None:
+        if aggregates.get("mode") != "synthetic":
+            return {"status": "no_key", "text": None, "reason": "cache_synthetic_only"}
         cached = load_preset_cache().get(question)
-        return {"status": "no_key", "text": cached or None}
+        if not isinstance(cached, str) or not cached.strip():
+            return {"status": "no_key", "text": None, "reason": "cache_missing"}
+        if ungrounded_numbers(cached, aggregates):
+            return {"status": "no_key", "text": None, "reason": "cache_rejected"}
+        return {"status": "no_key", "text": cached}
     section_lines = "\n".join(f"§{number} {title}" for number, title in SECTION_MAP.items())
     system = (f"Réponds dans la langue de la question ({lang}). Utilise seulement le JSON fourni. Cite toujours au moins "
               f"une section d'appui avec §NN parmi :\n{section_lines}\nN'écris que des nombres présents tels quels dans "
