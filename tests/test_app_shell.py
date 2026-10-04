@@ -6,6 +6,7 @@ The app runs headlessly through Streamlit's AppTest on the synthetic aggregates 
 from __future__ import annotations
 
 import copy
+import html
 import json
 
 import jsonschema
@@ -33,20 +34,25 @@ def test_app_runs_without_exceptions(app):
     assert not app.exception
 
 
-def test_app_shows_the_six_tabs_in_order(app):
-    assert [tab.label for tab in app.tabs] == list(VIEWS) == [
-        "Overview", "Validation", "Scenarios", "By building", "Ask the analysis", "Trust"]
+def test_page_shows_the_six_sections_in_order(app):
+    """One scrolling page (no tabs): the six sections follow the story order and the navigation links to each."""
+    assert list(VIEWS) == ["Answer", "Why", "Validation", "Scenario Lab", "Buildings", "Ask"]
+    assert len(app.tabs) == 0
+    page = "\n".join(element.value for element in app.markdown)
+    anchors = ["answer", "why", "validation", "lab", "buildings", "ask"]
+    positions = [page.index(f'id="{anchor}"') for anchor in anchors]
+    assert positions == sorted(positions) and all(f'href="#{anchor}"' in page for anchor in anchors)
 
 
 def test_headline_comes_from_the_synthetic_json(app):
-    values = {metric.label: metric.value for metric in app.metric}
     document = json.loads(synthetic_path().read_text(encoding="utf-8"))
     headline = document["headline"]["net_pct"]
-    assert values["Headline, net of incentives"] == f"{headline:.1f} %"
+    hero = next(element.value for element in app.markdown if 'class="ll-hero-number"' in element.value)
+    assert f"{headline:.1f}" in hero
 
 
 def test_synthetic_banner_is_shown(app):
-    assert any("SYNTHÉTIQUE" in warning.value for warning in app.warning)
+    assert any("ll-notice" in element.value and "SYNTHÉTIQUE" in element.value for element in app.markdown)
 
 
 def test_app_reads_only_the_aggregates_files_and_no_network_library():
@@ -97,11 +103,10 @@ def test_no_key_qa_view_explains_unavailability_without_rendering_cache(monkeypa
 
     monkeypatch.setattr(narrative, "load_preset_cache", load_cache)
     at = AppTest.from_function(_qa_view, args=(document,), default_timeout=TIMEOUT_SECONDS).run()
-    at.selectbox(key="preset").select(question).run()
-    at.button(key="answer_go").click().run()
+    at.button(key="pill_0").click().run()          # the first preset question, as a pill
     assert not at.exception
-    assert any(streamlit_app.NO_KEY_MESSAGES[reason] == info.value for info in at.info)
-    assert all("SYNTHETIC CACHED TEXT" not in element.value for element in at.markdown)
-    assert not any("Preset answers are not cached" in element.value for element in at.markdown)
-    assert at.selectbox(key="lever_incentive").value == "zero"
-    assert any("precomputed grid" in element.value for element in at.markdown)
+    page = html.unescape(" ".join(element.value for element in at.markdown))
+    assert streamlit_app.NO_KEY_MESSAGES[reason] in page          # a plain paragraph, no info box
+    assert not at.info
+    assert "SYNTHETIC CACHED TEXT" not in page
+    assert "Preset answers are not cached" not in page
