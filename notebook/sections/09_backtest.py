@@ -70,10 +70,10 @@ display(Markdown(
     f"**{cfg['forecast_years']['holdout_year']}** ; règle de coupure retenue : données publiques au **{public_day}**."))
 selection_years = cfg["forecast_years"]["selection_years"]
 holdout_year = cfg["forecast_years"]["holdout_year"]
-summary = summarize_models(backtest_all, cfg).rename(columns={
+model_summary = summarize_models(backtest_all, cfg).rename(columns={
     "rule": "règle", "model": "modèle", "mae_selection_pp": f"EAM sélection ({selection_years[0]}–{selection_years[-1]}) pp",
     "mae_holdout_pp": f"EAM validation ({holdout_year}) pp", "mae_all_pp": "EAM toutes années pp", "n_folds_run": "années calculées"})
-display(summary.round(2))
+display(model_summary.round(2))
 chosen = select_champion(backtest_all, cfg)
 champion = chosen["champion"]
 display(Markdown(f"**Modèle retenu par la règle déclarée : {champion}**"))
@@ -101,7 +101,7 @@ best_holdout = ranking.loc[ranking["mae_holdout_pp"].idxmin()]
 selection_years = chosen["selection_years"]
 display(Markdown(
     f"**Lecture honnête du classement.** La règle de choix a été déclarée **avant** de voir les résultats. B3 et E2 ont été "
-    f"ajoutés **après** le premier backtest réel (tâche F-05b), à cause de la structure réglementaire du TAL et de l'Ontario ; "
+    f"ajoutés **après** le premier backtest réel (après le premier backtest réel), à cause de la structure réglementaire du TAL et de l'Ontario ; "
     f"ils sont soumis à la même règle et ne la modifient pas. Avec seulement **{len(selection_years)} années de sélection**, "
     f"le classement des {top_n} meilleurs modèles ({', '.join(top_models['model'])}) tient dans **{spread_top_models:.2f} point de "
     f"pourcentage** : il est statistiquement faible. **{best_holdout['model']}** a la meilleure erreur sur la validation "
@@ -116,7 +116,7 @@ display(Markdown(
 # données publiques (B2, B3, E2) diffèrent d'un panneau à l'autre.
 
 # %%
-palette = ["#0072B2", "#E69F00", "#009E73", "#CC79A7", "#56B4E9", "#D55E00"]   # Okabe-Ito, un modèle par couleur
+MODEL_PALETTE = ("#0072B2", "#E69F00", "#009E73", "#CC79A7", "#56B4E9", "#D55E00")  # Okabe-Ito, un modèle par couleur (REQUEST-FCT-03 : à déplacer dans contracts.py)
 rules_shown = [rule for rule in ("jan31", "dec31_strict") if (backtest_all["rule"] == rule).any()]
 fig, axes = plt.subplots(1, len(rules_shown), figsize=(5.5 * len(rules_shown), 3.8), sharey=True, squeeze=False)
 model_names = list(dict.fromkeys(backtest_all["model"]))
@@ -128,7 +128,7 @@ for axis, rule in zip(axes[0], rules_shown):
         values = block[block["model"] == name].set_index("year")["error_pp_net"].reindex(years)
         positions = [position + (index - (len(model_names) - 1) / 2) * bar_width for position in range(len(years))]
         # a model that could not run has no bar (never a false zero)
-        axis.bar(positions, values, width=bar_width, color=palette[index % len(palette)],
+        axis.bar(positions, values, width=bar_width, color=MODEL_PALETTE[index % len(MODEL_PALETTE)],
                  label=name if rule == rules_shown[0] else None)
     axis.axhline(0, color="black", linewidth=0.8)
     axis.set_xticks(range(len(years)))

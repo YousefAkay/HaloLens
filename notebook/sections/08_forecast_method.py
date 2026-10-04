@@ -18,7 +18,7 @@
 #
 # **Cible.** Croissance à composition fixe, à unité constante, du loyer net de tous les incitatifs : pour chaque paire de
 # baux consécutifs d'une même unité, log-croissance annualisée du loyer net ; moyenne par segment
-# (immeuble × chambres × renouvellement ou relocation), winsorisée avec des seuils appris sur les données d'entraînement
+# (code de propriété × chambres × renouvellement ou relocation), winsorisée avec des seuils appris sur les données d'entraînement
 # seulement ; agrégation avec des poids fixes (parts de chaque segment parmi les paires admissibles de la fenêtre qui
 # précède la coupure). Ces poids décrivent la composition des transitions de baux observées, **pas** un taux d'occupation.
 
@@ -75,7 +75,7 @@ display(pd.DataFrame({
 # | **E1** moteur combiné | renouvellements : historique du segment + niveau du nowcast ; relocations : + signal des loyers affichés ; rabais prévus par segment | non |
 # | **E2** moteur réglementé | E1, mais les renouvellements québécois sont ancrés sur le TAL ; the Ontario new-build (Ontario) reste exempté au scénario central | oui (TAL, ligne directrice) |
 #
-# **Note de transparence.** B3 et E2 ont été ajoutés après le premier backtest réel (tâche F-05b), à cause de la structure
+# **Note de transparence.** B3 et E2 ont été ajoutés après le premier backtest réel (après le premier backtest réel), à cause de la structure
 # réglementaire TAL / Ontario ; B0, B1, B2 et E1 existaient avant. Cet ajout ne change pas la règle de choix, qui reste celle
 # déclarée au départ.
 
