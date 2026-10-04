@@ -8,6 +8,29 @@
 
 ---
 
+## Pour le jury / For the jury
+
+**Vous avez besoin de / You need:** Python 3.11, 3.12 ou / or 3.13 (testé / tested: 3.11.17, 3.12.15, 3.13.15), les quatre fichiers CSV de project et `manifest.json`, et ce dépôt. / the four project CSV files and `manifest.json`, and this repository.
+
+Quatre commandes, depuis le dossier du dépôt / Four commands, from the repository folder:
+
+```bash
+python -m venv .venv
+.venv\Scripts\activate            # macOS / Linux : source .venv/bin/activate
+pip install -r requirements.txt
+jupyter lab project_analysis.ipynb  # puis / then : Run > Run All Cells (kernel : .venv)
+```
+
+**Où mettre les CSV / Where to put the CSV files:** dans un dossier de votre choix (par exemple `C:\project-data`), avec les 4 fichiers `portfolio_*.csv` et `manifest.json`. Indiquez ce dossier, au choix / Point to that folder, either by setting `DATA_DIR = r"C:\project-data"` at the top of the first cell of the notebook, or with the environment variable `LEASELENS_DATA_DIR`. Sans réglage, le notebook lit `data/private/`. / Without a setting, the notebook reads `data/private/`.
+
+Si un fichier manque, le notebook s'arrête et indique les fichiers attendus. Si un paquet manque, il indique `pip install -r requirements.txt`. Les empreintes SHA-256 sont vérifiées avant toute lecture. / If a file is missing, the notebook stops and lists the expected files. If a package is missing, it asks you to run `pip install -r requirements.txt`. The SHA-256 hashes are checked before any file is read.
+
+**Durée attendue / Expected run time:** environ / about 4 minutes (Python 3.13 : 213 s sur la machine d'essai, hors installation / on the test machine, excluding installation).
+
+**Sorties / Outputs:** les figures sont intégrées au notebook. Les sorties calculées sur vos fichiers restent sur votre machine. / The figures are embedded in the notebook. Outputs computed from your files stay on your machine.
+
+---
+
 ## Contents
 
 1. [The answer](#1-the-answer)
@@ -64,7 +87,7 @@ These compete against simple baselines (last year's growth, trailing average, ma
 ## 3. Quick start
 
 ### Prerequisites
-- Python 3.11
+- Python 3.11, 3.12 or 3.13. Tested with `requirements.txt` on 3.11.17 (pandas 2.3.3, numpy 2.4.6, scipy 1.17.1), 3.12.15 and 3.13.15 (pandas 2.3.3, numpy 2.5.3, scipy 1.18.1, scikit-learn 1.9.1, statsmodels 0.14.6, matplotlib 3.11.2). The full notebook was run top to bottom on 3.13.15 in a fresh venv.
 - Git
 - The sponsor's data package (`project-participants.zip`), obtained privately — it is **not** in this repository
 
@@ -104,7 +127,7 @@ Unzip the sponsor package into `data/private/` (create the folder if needed). It
 | Tests (synthetic data, no CRM needed) | `pytest -q` |
 | Build and execute the notebook on synthetic data | `python scripts/build_notebook.py --synthetic` |
 | Build and execute the notebook on the real data | `python scripts/build_notebook.py --real` |
-| Export aggregate results for the app | `python scripts/export_aggregates.py` |
+| Export aggregate results for the app (real data, or `--synthetic`) | `python scripts/export_aggregates.py --real` |
 | Launch the dashboard | `streamlit run app/streamlit_app.py` |
 
 The notebook can also be opened directly in Jupyter (`project_analysis.ipynb`) and run top to bottom on a clean kernel.
