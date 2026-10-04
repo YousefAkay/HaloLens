@@ -86,6 +86,33 @@ regulation:
     occupancy_quote: "Fresh off the completion of its 303-unit the Ontario new-build multiresidential development at 180 Street St. [...] rentals at the Ontario new-build, which began occupancy last month"
     occupancy_fact: "the Ontario new-build (180, rue Street, Ottawa), projet locatif de 303 logements, a commencé à être occupée en mai 2023 (source, 19 juin 2023), soit après le 15 novembre 2018."
 
+reconcile_market:
+  # Internal same-unit growth vs public market series, per province (QC <-> Montreal CMA, ON <-> Ottawa CMA).
+  # Descriptive history only: it explains how the extract moves relative to the market, it never feeds the forecast.
+  first_year: 2019                # first pair year compared (first year with a full year of prior leases in every public series)
+  context_only_metrics: [cmhc_vacancy_rate_pct]  # listed in the provenance table as regional context; never compared, never a project figure
+  comparisons:                    # one internal cut vs one public series per province; series_id values are in sources.csv
+    - name: cmhc_total
+      label: "SCHL, même échantillon, tous logements"
+      lease_type: all             # all | renewal | turnover
+      beds: null                  # null = every bedroom count
+      series: {QC: cmhc_montreal_same_sample_total_all, "ON": cmhc_ottawa_same_sample_total_all}
+    - name: rent_cpi
+      label: "IPC loyer (StatCan), moyenne annuelle"
+      lease_type: all
+      beds: null
+      series: {QC: statcan_18100004_rent_qc_annual_avg_pct, "ON": statcan_18100004_rent_on_annual_avg_pct}
+    - name: cmhc_2br_turnover
+      label: "SCHL, 2 chambres, logements avec changement de locataire"
+      lease_type: turnover
+      beds: 2                     # CMHC publishes the turnover split for 2-bedroom units only
+      series: {QC: cmhc_montreal_same_sample_2br_turnover, "ON": cmhc_ottawa_same_sample_2br_turnover}
+    - name: cmhc_2br_non_turnover
+      label: "SCHL, 2 chambres, logements sans changement de locataire"
+      lease_type: renewal
+      beds: 2
+      series: {QC: cmhc_montreal_same_sample_2br_non_turnover, "ON": cmhc_ottawa_same_sample_2br_non_turnover}
+
 external:
   sources_file: sources.csv       # verified public observations (under data.public_dir); the only file analysis reads
   draft_file: sources_draft.csv   # extraction output awaiting human verification; never read by analysis
