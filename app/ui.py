@@ -15,9 +15,14 @@ from leaselens.contracts import COLOR_CONTRACT, COLOR_MARKET, COLOR_NAIVE, COLOR
 LANGS = ("en", "fr")
 DEFAULT_LANG = "en"  # one constant: the app opens in this language; the sidebar toggle switches it
 LANG_NAMES = {"en": "English", "fr": "Français"}
-MISSING_KEY = "not_available"  # label shown where the aggregates hold null
 CARD_BORDER_RADIUS_PX = 10  # CSS values live here, named, not scattered in the markup
 BADGE_RADIUS_PX = 12
+BADGE_PADDING = "2px 12px"  # CSS padding of the real/demo badge
+CHIP_PADDING = "2px 10px"  # CSS padding of a "what the AI understood" pill
+CHIP_MARGIN = "0 6px 6px 0"  # CSS margin around a pill
+SMALL_FONT_REM = 0.85  # font size of badges and pills, in rem
+BADGE_GAP_REM = 0.75  # space between the title and the badge, in rem
+BADGE_FONT_WEIGHT = 600  # CSS font weight of the badge text
 
 LABELS: dict[str, dict[str, str]] = {
     "en": {
@@ -250,10 +255,11 @@ def inject_css() -> None:
         div[class*="st-key-kpi_contract"] {{ border-left-color: {COLOR_CONTRACT}; }}
         div[class*="st-key-kpi_effect"] {{ border-left-color: {COLOR_NAIVE}; }}
         div[class*="st-key-kpi_champion"] {{ border-left-color: {COLOR_MARKET}; }}
-        .ll-badge {{ display:inline-block; padding:2px 12px; border-radius:{BADGE_RADIUS_PX}px; color:white; font-size:0.85rem;
-                    font-weight:600; vertical-align:middle; margin-left:0.75rem; }}
-        .ll-chip {{ display:inline-block; padding:2px 10px; margin:0 6px 6px 0; border-radius:{BADGE_RADIUS_PX}px;
-                   border:1px solid {COLOR_NAIVE}; font-size:0.85rem; }}
+        .ll-badge {{ display:inline-block; padding:{BADGE_PADDING}; border-radius:{BADGE_RADIUS_PX}px; color:white;
+                    font-size:{SMALL_FONT_REM}rem; font-weight:{BADGE_FONT_WEIGHT}; vertical-align:middle;
+                    margin-left:{BADGE_GAP_REM}rem; }}
+        .ll-chip {{ display:inline-block; padding:{CHIP_PADDING}; margin:{CHIP_MARGIN}; border-radius:{BADGE_RADIUS_PX}px;
+                   border:1px solid {COLOR_NAIVE}; font-size:{SMALL_FONT_REM}rem; }}
         </style>""",
         unsafe_allow_html=True)
 

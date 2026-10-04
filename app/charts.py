@@ -23,6 +23,9 @@ BAR_HEIGHT_PX = 26  # per bar, for charts whose height follows the number of row
 ANSWER_ROW_PX = 46  # per row of the answer chart, so the three labels stay readable
 AXIS_ALLOWANCE_PX = 80  # Streamlit fits the whole figure, axes included, into the height: the plot needs this much extra
 LABEL_LIMIT_PX = 260  # axis labels are cut after this width
+INTERVAL_STROKE_PX = 6  # thickness of the bootstrap interval line
+TICK_THICKNESS_PX = 3  # thickness of the raw-value tick on the building chart
+TICK_INSET_PX = 8  # the tick is this much shorter than a bar, so it stays inside the bar's row
 MIN_CHART_HEIGHT_PX = 120
 CHAMPION_STAR = "★"
 NUMERIC_SETTINGS = {"max_gap", "quantiles", "years"}  # variants whose setting is shown next to the label
@@ -151,7 +154,7 @@ def bootstrap_band(doc: dict[str, Any], lang: str) -> alt.Chart | None:
     frame = pd.DataFrame(rows)
     order = list(frame["label"])
     y = alt.Y("label:N", sort=order, title=None)
-    interval = alt.Chart(frame).mark_rule(strokeWidth=6).encode(
+    interval = alt.Chart(frame).mark_rule(strokeWidth=INTERVAL_STROKE_PX).encode(
         y=y, x=alt.X("lower:Q", title=t("chart_axis_pct", lang)), x2="upper:Q", color=alt.Color("color:N", scale=None),
         tooltip=["label:N", alt.Tooltip("lower:Q", format=".2f"), alt.Tooltip("upper:Q", format=".2f")])
     points = alt.Chart(frame).mark_point(shape="diamond", size=MARKER_SIZE, filled=True, color="black").encode(
@@ -197,6 +200,6 @@ def building_chart(doc: dict[str, Any], lang: str) -> alt.Chart | None:
                alt.Tooltip("net_pct_shrunk:Q", format=".2f"), alt.Tooltip("net_pct_raw:Q", format=".2f")]
     bars = alt.Chart(cells).mark_bar(color=COLOR_NET).encode(
         y=y, x=alt.X("net_pct_shrunk:Q", title=t("bd_axis", lang)), tooltip=tooltip)
-    ticks = alt.Chart(cells).mark_tick(color=COLOR_NAIVE, thickness=3, size=BAR_HEIGHT_PX - 8).encode(
+    ticks = alt.Chart(cells).mark_tick(color=COLOR_NAIVE, thickness=TICK_THICKNESS_PX, size=BAR_HEIGHT_PX - TICK_INSET_PX).encode(
         y=y, x="net_pct_raw:Q", tooltip=tooltip)
     return alt.layer(bars, ticks).properties(height=_height(len(cells)))
