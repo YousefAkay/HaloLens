@@ -567,3 +567,105 @@ def test_province_split_works_on_engine_results_too(cfg):
     result = run_forecast(tables, cfg)
     split = headline_by_province(result, province_map(tables)).set_index("province")
     assert split.loc["all", "net_pct"] == pytest.approx(result.headline_net_pct)
+
+
+# ---------------------------------------------------------------------------
+# Sensitivity of the headline to one assumption at a time (F-10)
+# ---------------------------------------------------------------------------
+def sensitivity_inputs(cfg, discounts=True):
+    tables = engine_tables(discount_by_year={2023: 0.03, 2024: 0.05} if discounts else None)
+    return tables, regulated_rows()
+
+
+def run_sensitivity(cfg, champion="B0_last_year", external=None):
+    from leaselens.forecast.scenarios import sensitivity_table
+    tables, regulated = sensitivity_inputs(cfg)
+    return sensitivity_table(tables, regulated if external is None else external, cfg, champion=champion, year=2025)
+
+
+def test_sensitivity_table_lists_one_row_per_variant_sorted_by_absolute_change(cfg):
+    from leaselens.forecast.scenarios import SENSITIVITY_COLUMNS
+    table = run_sensitivity(cfg)
+    assert list(table.columns) == SENSITIVITY_COLUMNS
+    assert table["abs_delta_pp"].dropna().is_monotonic_decreasing
+    assert not table.duplicated(["assumption", "variant", "setting", "model"]).any()
+    expected_groups = {"information_rule", "gap_bounds", "winsorization", "weight_window", "met_applicability",
+                       "incentive_intensity", "renewal_mix", "model_choice"}
+    assert set(table["assumption"]) == expected_groups
+    assert (table["delta_pp"].abs() - table["abs_delta_pp"]).abs().max() < 1e-12
+
+
+def test_each_row_is_the_variant_minus_the_base_of_the_same_model(cfg):
+    table = run_sensitivity(cfg).dropna(subset=["headline_net_pct"])
+    assert ((table["headline_net_pct"] - table["base_net_pct"]) - table["delta_pp"]).abs().max() < 1e-9
+    champion_rows = table[(table["model"] == "B0_last_year") & (table["assumption"] != "model_choice")]
+    assert champion_rows["base_net_pct"].nunique() == 1            # one champion base for all champion rows
+
+
+def test_a_variant_changes_exactly_one_key_and_matches_a_manual_rerun(cfg):
+    from leaselens.forecast.asof import snapshot_for_year
+    from leaselens.forecast.baselines import last_year
+    tables, regulated = sensitivity_inputs(cfg)
+    table = run_sensitivity(cfg)
+    shorter = {**cfg, "headline": {**cfg["headline"], "weight_window_years": cfg["headline"]["weight_window_years"] - 1}}
+    expected = last_year(snapshot_for_year(tables, regulated, 2025, shorter), shorter).headline_net_pct
+    row = table[(table["assumption"] == "weight_window")
+                & (table["setting"] == str(cfg["headline"]["weight_window_years"] - 1))].iloc[0]
+    assert row["headline_net_pct"] == pytest.approx(expected)
+
+
+def test_the_input_config_is_never_modified(cfg):
+    import copy
+    before = copy.deepcopy(cfg)
+    run_sensitivity(cfg)
+    assert cfg == before
+
+
+def test_information_rule_cannot_move_a_model_that_ignores_public_data_but_moves_e2(cfg):
+    table = run_sensitivity(cfg)
+    rule = table[table["assumption"] == "information_rule"].set_index("model")
+    assert rule.loc["B0_last_year", "delta_pp"] == pytest.approx(0.0)
+    assert abs(rule.loc["E2_regulated", "delta_pp"]) > 0                 # the TAL rate of the target year comes out in January
+
+
+def test_regulatory_levers_are_the_e2_scenario_deltas(cfg):
+    from leaselens.forecast.scenarios import scenario_table
+    table = run_sensitivity(cfg).set_index("variant")
+    tables, regulated = sensitivity_inputs(cfg)
+    scenarios = scenario_table(run_regulated(tables, cfg), cfg).set_index("scenario")
+    for variant in ("met_guideline_applies", "incentives_deeper", "incentives_shallower", "more_renewals", "fewer_renewals"):
+        assert table.loc[variant, "delta_pp"] == pytest.approx(scenarios.loc[variant, "delta_net_pp"])
+        assert table.loc[variant, "model"] == "E2_regulated"
+
+
+def test_model_choice_rows_compare_each_model_with_the_champion(cfg):
+    from leaselens.forecast.asof import snapshot_for_year
+    from leaselens.forecast.baselines import trailing_mean
+    tables, regulated = sensitivity_inputs(cfg)
+    table = run_sensitivity(cfg).set_index("variant")
+    direct = trailing_mean(snapshot_for_year(tables, regulated, 2025, cfg), cfg).headline_net_pct
+    assert table.loc["B1_trailing_mean", "headline_net_pct"] == pytest.approx(direct)
+    assert table.loc["B1_trailing_mean", "delta_pp"] == pytest.approx(direct - table.loc["B1_trailing_mean", "base_net_pct"])
+    assert "B0_last_year" not in table.index                              # the champion is not compared with itself
+
+
+def test_a_champion_that_is_e2_adds_no_duplicate_information_rule_row(cfg):
+    table = run_sensitivity(cfg, champion="E2_regulated")
+    assert (table[table["assumption"] == "information_rule"]["model"] == "E2_regulated").all()
+    assert len(table[table["assumption"] == "information_rule"]) == 1
+
+
+def test_variants_that_cannot_run_keep_their_row_with_the_reason(cfg):
+    table = run_sensitivity(cfg, external=empty_external())
+    e2_rows = table[table["model"] == "E2_regulated"]
+    assert len(e2_rows) > 0 and e2_rows["headline_net_pct"].isna().all() and e2_rows["note"].ne("").all()
+    assert table[table["model"] == "B0_last_year"]["headline_net_pct"].notna().any()   # champion variants still run
+    assert table["abs_delta_pp"].isna().iloc[-len(e2_rows):].all()
+
+
+def test_sensitivity_table_runs_on_the_synthetic_fixtures_with_the_champion_pipeline(raw, cfg):
+    from leaselens.forecast.scenarios import sensitivity_table
+    from leaselens.io import canonicalize
+    table = sensitivity_table(canonicalize(raw), regulated_rows({y: 2.0 for y in range(2019, 2027)},
+                                                                {y: 2.5 for y in range(2019, 2027)}), cfg)
+    assert len(table) > 10 and table["delta_pp"].notna().sum() > 5
