@@ -264,7 +264,7 @@ Original source names are kept in a mapping (`dictionary.py`) shown in notebook 
 | external | MSR | `market.registry.load_external(path) -> DataFrame`; `market.registry.as_of(external, cutoff) -> DataFrame` |
 | asking signal | MSR | `market.asking.turnover_signal(snapshot, cfg) -> DataFrame` (segment, expected log growth for turnovers) |
 | regulation | MSR | `market.regulation.applicability_matrix(cfg) -> DataFrame` |
-| snapshot | FCT | `forecast.asof.make_snapshot(tables, external, cutoff) -> Snapshot` |
+| snapshot | FCT | `forecast.asof.make_snapshot(tables, external, cutoff, external_cutoff=None) -> Snapshot` (external filtered on `external_cutoff` when given, default = `cutoff`; REQUEST-INT-01) |
 | incentives | FCT | `incentives.engine.forecast_discount(snapshot, cfg) -> DataFrame` (segment, d0, d1) |
 | concession links | FCT | `incentives.linking.link_concessions(concessions, leases, cfg) -> DataFrame[LINKS]` |
 | forecast | FCT | `forecast.combine.forecast(snapshot, cfg) -> ForecastResult` |
@@ -313,7 +313,8 @@ def backtest(leases, target_year) -> BacktestResult            # delegates to ru
 - Cutoff for forecasting year y = December 31 of y−1. 2026 → 2025-12-31.
 - Training uses leases with **both** `sign_date` and `lease_start` ≤ cutoff.
 - Asking: months ≤ cutoff. Concessions: `date_from` ≤ cutoff. Listings snapshot is 2025 data: never used for historical folds.
-- External data: `release_date` ≤ cutoff. Québec's December 17 2025 method change and January 19 2026 percentage are post-cutoff → separate labelled scenario only.
+- External data: `release_date` ≤ external cutoff = January 31 of the target year (mentor-approved 2026-10-03), applied identically in backtests. CRM cutoff stays Dec 31 of y−1. The Dec-31 strict version is reported as sensitivity.
+- Québec's December 17 2025 method change is noted when comparing TAL 2026 with earlier years.
 - Any threshold, weight, quantile or model is fit on training data only.
 - Test: appending fake future rows must not change the forecast (FCT `test_asof_leakage.py`).
 
