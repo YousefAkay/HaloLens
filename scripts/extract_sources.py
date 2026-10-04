@@ -7,6 +7,7 @@ Usage (from the repo root):
     python scripts/extract_sources.py llm       # public pages in measure.yaml external.pages, read by Claude
     python scripts/extract_sources.py promote   # copy draft rows with verified_by filled into sources.csv
     python scripts/extract_sources.py all       # statcan + llm
+    python scripts/extract_sources.py --watch   # live re-check of StatCan + every page → sources_watch.csv
 
 Workflow: extraction writes draft rows with an empty `verified_by`. A human opens each `url`, checks the value
 and release date at `location_in_source`, writes their name in `verified_by` (and fixes or deletes wrong rows),
@@ -14,6 +15,14 @@ then runs `promote`. Analysis code only ever reads sources.csv.
 
 The LLM step needs ANTHROPIC_API_KEY (in .env). Without it, cached answers in data/public/extraction_cache/
 are reused, and pages with no cached answer are skipped with a message.
+
+Watcher (task M-11): `--watch` re-pulls StatCan and re-reads every configured page live (never from the cache,
+which would only repeat what is already known), keeps the observations whose period is not yet in sources.csv
+and writes them to data/public/sources_watch.csv (same columns as sources.csv, `verified_by` empty, notes
+prefixed with `[watch: <status>]`). It prints the series released after the external cutoff of the target year
+('new since cutoff'): those cannot enter the target-year forecast, only a scenario. Without an API key the pages
+are skipped with a message and only StatCan is checked. Nothing is promoted automatically: copy checked rows into
+sources_draft.csv, fill `verified_by`, then run `promote`.
 """
 
 from __future__ import annotations
@@ -32,7 +41,7 @@ from pathlib import Path
 import pandas as pd
 from pydantic import BaseModel
 
-from leaselens.config import load_config
+from leaselens.config import external_cutoff_for, load_config
 from leaselens.contracts import EXTERNAL_COLUMNS, MONTHS_PER_YEAR, PERCENT
 from leaselens.market.registry import DATE_COLUMNS, OBSERVATION_KEY, load_external, parse_external, validate_external
 
@@ -41,6 +50,7 @@ STATCAN_TABLE_URL = "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid={pid}
 STATCAN_PUBLISHER = "Statistics Canada"
 USER_AGENT = "LeaseLens-research/1.0 (project  2026; public data extraction)"
 SKIPPED_HTML_TAGS = {"script", "style", "noscript", "svg"}
+PERIOD_KEY = ["series_id", "geography", "metric", "ref_period_start", "ref_period_end"]  # one observed period
 
 SYSTEM_PROMPT = """You extract published statistics from a public web page into structured rows.
 Rules:
@@ -260,8 +270,11 @@ def extraction_rows(page: dict, extraction: PageExtraction, accessed: str) -> pd
     return pd.DataFrame(rows, columns=EXTERNAL_COLUMNS)
 
 
-def extract_pages(cfg: dict, only: list[str] | None = None) -> pd.DataFrame:
-    """Fetch each configured public page (or only the `only` source_ids), extract with Claude or the cache."""
+def extract_pages(cfg: dict, only: list[str] | None = None, use_cache: bool = True) -> pd.DataFrame:
+    """Fetch each configured public page (or only the `only` source_ids), extract with Claude or the cache.
+
+    With `use_cache=False` (the watcher) the cache is neither read nor written: a page is read live or skipped.
+    """
     from dotenv import load_dotenv
 
     load_dotenv(Path(cfg["_root"]) / ".env")
@@ -283,17 +296,21 @@ def extract_pages(cfg: dict, only: list[str] | None = None) -> pd.DataFrame:
                 print(f"{page['source_id']}: page too long ({len(text)} characters); split the source; skipped")
                 continue
             extraction = ask_claude(page, text, cfg)
-            cache_file.write_text(json.dumps({
-                "url": page["url"], "accessed_date": date.today().isoformat(),
-                "text_sha256": hashlib.sha256(text.encode()).hexdigest(),
-                "extraction": extraction.model_dump()}, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+            if use_cache:
+                cache_file.write_text(json.dumps({
+                    "url": page["url"], "accessed_date": date.today().isoformat(),
+                    "text_sha256": hashlib.sha256(text.encode()).hexdigest(),
+                    "extraction": extraction.model_dump()}, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
             accessed = date.today().isoformat()
-        elif cache_file.exists():
+        elif use_cache and cache_file.exists():
             cached = json.loads(cache_file.read_text(encoding="utf-8"))
             extraction, accessed = PageExtraction.model_validate(cached["extraction"]), cached["accessed_date"]
             print(f"{page['source_id']}: no API key, using cached answer from {accessed}")
-        else:
+        elif use_cache:
             print(f"{page['source_id']}: no API key and no cached answer; skipped")
+            continue
+        else:
+            print(f"{page['source_id']}: no ANTHROPIC_API_KEY; skipped (the watcher reads pages live, never the cache)")
             continue
         rows = extraction_rows(page, extraction, accessed)
         print(f"{page['source_id']}: {len(rows)} draft rows")
@@ -320,12 +337,95 @@ def promote(cfg: dict) -> int:
     return len(combined) - len(sources)
 
 
+# ---------------------------------------------------------------------------
+# Watcher: what the official pages publish that sources.csv does not have yet
+# ---------------------------------------------------------------------------
+def watch_rows(candidates: pd.DataFrame, sources: pd.DataFrame) -> pd.DataFrame:
+    """Candidate observations whose period (PERIOD_KEY) is not in `sources`, tagged in `notes`; all-string output.
+
+    Status (prefix `[watch: <status>]` in notes): `new_release` = released after the latest release of its series in
+    sources.csv, or a series sources.csv does not have; `missing_period` = an older release that fills a gap;
+    `release_date_unknown` = the page gave no release date (cannot be placed in time until a human finds it).
+    """
+    candidates, sources = as_csv_text(candidates), as_csv_text(sources)
+    known = pd.MultiIndex.from_frame(sources[PERIOD_KEY])
+    fresh = candidates[~pd.MultiIndex.from_frame(candidates[PERIOD_KEY]).isin(known)]
+    fresh = fresh.drop_duplicates(PERIOD_KEY, keep="last").copy()
+    latest = fresh["series_id"].map(sources.groupby("series_id")["release_date"].max()).fillna("")
+    status = pd.Series("missing_period", index=fresh.index)
+    status[fresh["release_date"] > latest] = "new_release"  # ISO strings compare in date order; "" < any date
+    status[fresh["release_date"] == ""] = "release_date_unknown"
+    fresh["notes"] = ("[watch: " + status + "] " + fresh["notes"]).str.strip()
+    return fresh[EXTERNAL_COLUMNS].sort_values(["series_id", "ref_period_start"]).reset_index(drop=True)
+
+
+def series_summary(rows: pd.DataFrame) -> pd.DataFrame:
+    """Per series: row count, periods covered and latest release (all-string watch rows)."""
+    return (rows.groupby("series_id")
+                .agg(rows=("series_id", "size"), first_period=("ref_period_start", "min"),
+                     last_period=("ref_period_end", "max"), latest_release=("release_date", "max"))
+                .reset_index())
+
+
+def new_since_cutoff(watched: pd.DataFrame, cutoff: pd.Timestamp) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Series summaries of (rows released after `cutoff`, undated rows whose period ends after `cutoff`).
+
+    An undated row about a period after the cutoff may well be new (e.g. next year's guideline on a page that
+    states no announcement date); it is listed separately so a human finds its release date before any use.
+    """
+    released = pd.to_datetime(watched["release_date"].replace("", None))
+    period_end = pd.to_datetime(watched["ref_period_end"].replace("", None))
+    return (series_summary(watched[released > cutoff]),
+            series_summary(watched[released.isna() & (period_end > cutoff)]))
+
+
+def watch(cfg: dict, only: list[str] | None = None) -> pd.DataFrame:
+    """Live re-check of StatCan and every configured page; write sources_watch.csv and print what is new."""
+    folder = public_dir(cfg)
+    frames = []
+    try:
+        frames.append(extract_statcan(cfg))
+    except OSError as error:
+        print(f"StatCan: fetch failed ({error}); skipped")
+    frames.append(extract_pages(cfg, only, use_cache=False))
+    frames = [frame for frame in frames if len(frame)]
+    candidates = pd.concat(frames, ignore_index=True) if frames else empty_external()
+    watched = watch_rows(candidates, load_external(folder / cfg["external"]["sources_file"]))
+    path = folder / cfg["external"]["watch_file"]
+    watched.to_csv(path, index=False)
+    print(f"Watch: {len(candidates)} observations read, {len(watched)} not in "
+          f"{cfg['external']['sources_file']} -> {path}")
+    target_year = cfg["forecast_years"]["target_year"]
+    cutoff = external_cutoff_for(target_year, cfg)
+    late, undated = new_since_cutoff(watched, cutoff)
+    if late.empty:
+        print(f"new since cutoff ({cutoff.date()}, external cutoff for {target_year}): none")
+    for row in late.itertuples(index=False):
+        print(f"new since cutoff ({cutoff.date()}): {row.series_id}: {row.rows} rows, periods "
+              f"{row.first_period} to {row.last_period}, latest release {row.latest_release}")
+    if len(late):
+        print(f"These were released after the {target_year} external cutoff: scenario use only, not the forecast.")
+    for row in undated.itertuples(index=False):
+        print(f"possibly new since cutoff ({cutoff.date()}), release date unknown: {row.series_id}: {row.rows} "
+              f"rows, periods {row.first_period} to {row.last_period}; find the release date on the source")
+    if len(watched):
+        print("Human verification required: copy checked rows into the draft, fill verified_by, run promote.")
+    return watched
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("step", choices=["statcan", "llm", "promote", "all"])
-    parser.add_argument("--only", nargs="+", help="llm step: limit to these source_id values")
+    parser.add_argument("step", nargs="?", choices=["statcan", "llm", "promote", "all"])
+    parser.add_argument("--only", nargs="+", help="llm step / --watch: limit to these source_id values")
+    parser.add_argument("--watch", action="store_true",
+                        help="live re-check of StatCan and every page; new observations -> sources_watch.csv")
     args = parser.parse_args(argv)
+    if args.watch == bool(args.step):
+        parser.error("give exactly one of: a step, or --watch")
     cfg = load_config()
+    if args.watch:
+        watch(cfg, args.only)
+        return 0
     if args.step == "promote":
         print(f"Promoted {promote(cfg)} verified rows into {cfg['external']['sources_file']}")
         return 0

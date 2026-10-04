@@ -203,6 +203,82 @@ def test_promote_copies_only_verified_rows(tmp_path):
 
 
 # ---------------------------------------------------------------------------
+# Source watcher (--watch)
+# ---------------------------------------------------------------------------
+def test_watch_rows_keeps_unknown_periods_and_tags_status():
+    script = load_script()
+    sources = parse_external(pd.DataFrame([observation(series_id="cpi", release_date="2022-01-19")]))
+    candidates = pd.DataFrame([
+        observation(series_id="cpi", release_date="2022-01-19"),  # already known period → dropped
+        observation(series_id="cpi", ref_period_start="2022-01-01", ref_period_end="2022-12-31",
+                    release_date="2023-01-17"),
+        observation(series_id="cpi", ref_period_start="2020-01-01", ref_period_end="2020-12-31",
+                    release_date="2021-01-19"),
+        observation(series_id="brand_new", release_date="2020-01-01"),
+        observation(series_id="undated", release_date=""),
+    ], columns=EXTERNAL_COLUMNS)
+    watched = script.watch_rows(candidates, sources)
+    assert list(watched.columns) == EXTERNAL_COLUMNS
+    status = dict(zip(watched["series_id"] + "@" + watched["ref_period_start"],
+                      watched["notes"].str.extract(r"\[watch: (\w+)\]")[0]))
+    assert status == {"brand_new@2021-01-01": "new_release", "cpi@2020-01-01": "missing_period",
+                      "cpi@2022-01-01": "new_release", "undated@2021-01-01": "release_date_unknown"}
+
+
+def test_new_since_cutoff_lists_only_series_released_after_cutoff():
+    script = load_script()
+    watched = script.as_csv_text(pd.DataFrame([
+        observation(series_id="late", ref_period_start="2025-01-01", ref_period_end="2025-12-31",
+                    release_date="2026-03-01"),
+        observation(series_id="late", ref_period_start="2026-01-01", ref_period_end="2026-12-31",
+                    release_date="2026-04-01"),
+        observation(series_id="on_time", release_date="2026-01-31"),
+        observation(series_id="undated", release_date=""),
+        observation(series_id="undated", ref_period_start="2027-01-01", ref_period_end="2027-12-31",
+                    release_date=""),
+    ], columns=EXTERNAL_COLUMNS))
+    late, undated = script.new_since_cutoff(watched, pd.Timestamp("2026-01-31"))
+    assert late.to_dict("records") == [{"series_id": "late", "rows": 2, "first_period": "2025-01-01",
+                                        "last_period": "2026-12-31", "latest_release": "2026-04-01"}]
+    assert undated.to_dict("records") == [{"series_id": "undated", "rows": 1, "first_period": "2027-01-01",
+                                           "last_period": "2027-12-31", "latest_release": ""}]
+
+
+def test_watch_without_key_skips_pages_and_never_touches_cache(tmp_path, monkeypatch, capsys):
+    script = load_script()
+    root = tmp_path / "repo"
+    shutil.copytree(repo_root() / "config", root / "config")
+    cfg = load_config(root=root, mode="synthetic")
+    public = root / cfg["data"]["public_dir"]
+    public.mkdir(parents=True)
+    write_csv([observation()], public / cfg["external"]["sources_file"])
+    cache_dir = public / cfg["external"]["cache_dir"]
+    cache_dir.mkdir()
+    (cache_dir / f"{cfg['external']['pages'][0]['source_id']}.json").write_text("{}", encoding="utf-8")
+
+    def no_network(*args, **kwargs):
+        raise OSError("offline test")
+
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.setattr(script, "statcan_post", no_network)
+    monkeypatch.setattr(script, "page_text", no_network)
+    watched = script.watch(cfg)
+    out = capsys.readouterr().out
+    assert watched.empty
+    assert "no ANTHROPIC_API_KEY" in out and "new since cutoff" in out
+    assert list(pd.read_csv(public / cfg["external"]["watch_file"]).columns) == EXTERNAL_COLUMNS
+    assert (cache_dir / f"{cfg['external']['pages'][0]['source_id']}.json").read_text(encoding="utf-8") == "{}"
+
+
+def test_watch_flag_and_step_are_exclusive():
+    script = load_script()
+    with pytest.raises(SystemExit):
+        script.main(["statcan", "--watch"])
+    with pytest.raises(SystemExit):
+        script.main([])
+
+
+# ---------------------------------------------------------------------------
 # reconcile_market: internal same-unit growth vs public series
 # ---------------------------------------------------------------------------
 RECONCILE_YEAR = 2024

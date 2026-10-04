@@ -122,6 +122,7 @@ reconcile_market:
 external:
   sources_file: sources.csv       # verified public observations (under data.public_dir); the only file analysis reads
   draft_file: sources_draft.csv   # extraction output awaiting human verification; never read by analysis
+  watch_file: sources_watch.csv   # --watch output: live-read observations not yet in sources_file; never read by analysis
   cache_dir: extraction_cache     # cached public page text + LLM answers so extraction reruns without an API key
   extracted_by_values: [manual, llm]  # allowed provenance tags (contract 7.1); script/API pulls count as manual
   metrics:                        # allowed `metric` values; anything else is rejected at load time
