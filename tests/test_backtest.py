@@ -387,14 +387,14 @@ def test_french_date_helpers_write_dates_from_values_not_literals(cfg):
     assert french_date("2024-08-01") == "1 août 2024" and french_date("2024-02-29").startswith("29 février")
 
 
-def test_sections_08_09_10_11b_type_no_dates_years_or_figures_in_markdown():
+def test_sections_08_09_10_11a_11b_type_no_dates_years_or_figures_in_markdown():
     """Numbers, dates and years in the notebook text must come from code (f-strings), not from typed Markdown."""
     import re
 
     import jupytext
     from leaselens.config import repo_root
     allowed = re.compile(r"`[^`]*`|\\bB[0-3]\\b|\\bE[12]\\b|F-05b|estimate_2026|\\|[-| ]+\\||section \\d+")
-    for name in ("08_forecast_method", "09_backtest", "10_forecast_2026", "11b_scenarios"):
+    for name in ("08_forecast_method", "09_backtest", "10_forecast_2026", "11a_uncertainty", "11b_scenarios"):
         notebook = jupytext.read(repo_root() / "notebook" / "sections" / f"{name}.py")
         for cell in notebook.cells:
             if cell.cell_type != "markdown":
