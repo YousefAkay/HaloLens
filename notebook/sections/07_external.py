@@ -9,7 +9,7 @@
 #
 # **Entrée :** `data/public/sources.csv`, un registre de séries publiques extraites avec l'aide de Claude,
 # contrôlées contre les pages officielles, et vérifiées par un humain sur un échantillon nommé (voir
-# docs/assumptions/MSR.md, M-03) (SCHL, IPC loyer de Statistique Canada, pourcentages du TAL, ligne directrice de
+# docs/assumptions/MSR.md) (SCHL, IPC loyer de Statistique Canada, pourcentages du TAL, ligne directrice de
 # l'Ontario). Chaque ligne porte sa source (URL et
 # emplacement), sa période de référence et sa **date de publication**. Il y a aussi les paires admissibles de la
 # section 4.
