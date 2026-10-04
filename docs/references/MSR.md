@@ -66,6 +66,13 @@ for every entry below: 2026-10-03.
   Government of Ontario, CMHC report page) and returned structured observations into `data/public/sources_draft.csv`.
   Page text and answers are cached in `data/public/extraction_cache/`. A human checked every value against its
   official page (`verified_by`) before it was copied to `sources.csv`. Analysis code never reads the draft file.
+- **Claude API source watcher** (Anthropic, `claude-opus-5-5`, `python scripts/extract_sources.py --watch`, task
+  M-11): re-reads the official **public pages only** (TAL, Government of Ontario, CMHC, StatCan WDS) live, never from
+  the cache, and writes observations not yet in `sources.csv` to `data/public/sources_watch.csv` with an empty
+  `verified_by`. Nothing is used before a human checks it and promotes it into `sources.csv`; the watch file is only
+  counted in section 07.6. Page checked in the live run of 2026-10-04: Government of Ontario, *Rent increase
+  guideline*, https://www.ontario.ca/page/rent-increase-guideline (accessed 2026-10-04; StatCan WDS was unavailable
+  that day, so it was not checked).
 - **Claude** (chat, HALO project): planned tasks, wrote task prompts and reviewed Handback Reports. It never received
   CRM rows.
 - **Web search** (Claude Code web tools, 2026-10-03): looked for an official first-occupancy source for the Ontario new-build; result
