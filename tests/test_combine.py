@@ -669,3 +669,72 @@ def test_sensitivity_table_runs_on_the_synthetic_fixtures_with_the_champion_pipe
     table = sensitivity_table(canonicalize(raw), regulated_rows({y: 2.0 for y in range(2019, 2027)},
                                                                 {y: 2.5 for y in range(2019, 2027)}), cfg)
     assert len(table) > 10 and table["delta_pp"].notna().sum() > 5
+
+
+# ---------------------------------------------------------------------------
+# Province split for every model (a champion without segment forecasts must not crash anything downstream)
+# ---------------------------------------------------------------------------
+PORTFOLIO_ONLY_MODELS = {"B1_trailing_mean", "B2_market_anchor", "B3_tal_anchor"}   # no per-segment forecast
+
+
+def snapshot_for_every_model(cfg):
+    from leaselens.forecast.asof import snapshot_for_year
+    from tests.test_baselines import market_rows
+    tables = engine_tables(discount_by_year={2023: 0.03, 2024: 0.05})
+    return tables, snapshot_for_year(tables, market_rows(), 2025, cfg)
+
+
+@pytest.mark.parametrize("model", ["B0_last_year", "B1_trailing_mean", "B2_market_anchor", "B3_tal_anchor",
+                                   "E1_engine_blend", "E2_regulated"])
+def test_province_split_works_for_every_model(model, cfg):
+    from leaselens.evaluate.backtest import all_models
+    from leaselens.forecast.scenarios import PROVINCE_COLUMNS, headline_by_province
+    tables, snapshot = snapshot_for_every_model(cfg)
+    result = all_models()[model](snapshot, cfg)
+    split = headline_by_province(result, province_map(tables))
+    assert list(split.columns) == PROVINCE_COLUMNS
+    assert split.iloc[-1]["province"] == "all"
+    if model in PORTFOLIO_ONLY_MODELS:
+        assert list(split["province"]) == ["all"]                          # no honest split exists for these models
+        assert split.loc[0, "weight_share"] == 1.0
+        assert split.loc[0, "net_pct"] == pytest.approx(result.headline_net_pct)
+        assert split.loc[0, "contract_pct"] == pytest.approx(result.headline_contract_pct)
+    else:
+        assert list(split["province"]) == ["ON", "QC", "all"]
+        assert split.loc[split["province"] == "all", "net_pct"].iloc[0] == pytest.approx(result.headline_net_pct)
+
+
+def test_the_fallback_row_counts_the_segments_of_the_model(cfg):
+    from leaselens.forecast.baselines import trailing_mean
+    from leaselens.forecast.scenarios import headline_by_province
+    tables, snapshot = snapshot_for_every_model(cfg)
+    result = trailing_mean(snapshot, cfg)
+    assert headline_by_province(result, province_map(tables)).loc[0, "n_segments"] == len(result.segments)
+
+
+@pytest.mark.parametrize("champion", ["B1_trailing_mean", "B3_tal_anchor"])
+def test_the_export_survives_a_champion_without_segment_forecasts(champion, tables, cfg, monkeypatch):
+    """If the champion ever changes to a portfolio-only model, the aggregates still build, validate and say 'no split'."""
+    from jsonschema import Draft202012Validator, FormatChecker
+
+    import leaselens.export.aggregates as exporter
+    from leaselens.config import repo_root
+    from leaselens.contracts import AGGREGATES_SCHEMA
+    from leaselens.evaluate.backtest import all_models
+    from leaselens.forecast.asof import snapshot_for_year
+    from leaselens.market.registry import load_external
+
+    def forced_pipeline(tables_, external_, cfg_, table=None):
+        return {"champion": champion}
+
+    def forced_forecast(tables_, external_, cfg_, year=None, table=None):
+        year = cfg_["forecast_years"]["target_year"] if year is None else year
+        return all_models()[champion](snapshot_for_year(tables_, external_, year, cfg_), cfg_)
+
+    monkeypatch.setattr(exporter, "champion_pipeline", forced_pipeline)
+    monkeypatch.setattr(exporter, "champion_forecast", forced_forecast)
+    document = exporter.build_aggregates(tables, load_external(repo_root() / "data" / "public" / "sources.csv"), cfg)
+    assert document["headline"]["model"] == champion
+    assert document["headline"]["provinces"] == {"QC": {"net_pct": None, "contract_pct": None},
+                                                 "ON": {"net_pct": None, "contract_pct": None}}
+    assert list(Draft202012Validator(AGGREGATES_SCHEMA, format_checker=FormatChecker()).iter_errors(document)) == []
