@@ -128,6 +128,16 @@ def test_validate_flags_bad_rows(tmp_path, cfg, overrides, expected):
     assert any(expected in problem for problem in validate_external(table, cfg))
 
 
+def test_validate_allows_announced_ahead_metrics(tmp_path, cfg):
+    """A guideline published before the year it applies to is valid; the same dates on rent CPI are not."""
+    assert "ontario_guideline_pct" in cfg["external"]["announced_ahead_metrics"]
+    ahead = observation(metric="ontario_guideline_pct", release_date="2020-08-31")
+    assert validate_external(load_external(write_csv([ahead], tmp_path / "ahead.csv")), cfg) == []
+    early = observation(release_date="2020-08-31")
+    problems = validate_external(load_external(write_csv([early], tmp_path / "early.csv")), cfg)
+    assert any("released before" in problem for problem in problems)
+
+
 def test_validate_flags_duplicate_observations(tmp_path, cfg):
     table = load_external(write_csv([observation(), observation(value="9.9")], tmp_path / "sources.csv"))
     assert any("duplicate" in problem for problem in validate_external(table, cfg))

@@ -65,9 +65,11 @@ def validate_external(external: pd.DataFrame, cfg: dict) -> list[str]:
 
     Checks: `metric` and `extracted_by` use the values allowed in `cfg["external"]`; every row is verified
     (`verified_by` non-empty) and has a `url`; reference periods are ordered; nothing is released before its
-    reference period starts; no duplicate observation key.
+    reference period starts, except metrics listed in `cfg["external"]["announced_ahead_metrics"]` (rules
+    published before the year they apply to); no duplicate observation key.
     """
     settings = cfg["external"]
+    announced_ahead = external["metric"].isin(settings.get("announced_ahead_metrics", []))
     problems = []
     unknown_metrics = sorted(set(external["metric"]) - set(settings["metrics"]))
     if unknown_metrics:
@@ -79,7 +81,8 @@ def validate_external(external: pd.DataFrame, cfg: dict) -> list[str]:
         "rows without verified_by": external["verified_by"] == "",
         "rows without url": external["url"] == "",
         "rows with ref_period_end before ref_period_start": external["ref_period_end"] < external["ref_period_start"],
-        "rows released before their reference period starts": external["release_date"] < external["ref_period_start"],
+        "rows released before their reference period starts": (
+            (external["release_date"] < external["ref_period_start"]) & ~announced_ahead),
         "duplicate observations": external.duplicated(OBSERVATION_KEY, keep=False),
     }
     for label, failed in checks.items():
