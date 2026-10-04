@@ -172,7 +172,8 @@ button[data-baseweb="tab"][aria-selected="true"] {{ color:var(--accent-text); fo
 /* Streamlit widgets: quiet */
 .stButton > button {{ border:none; background:var(--surface); color:var(--ink); border-radius:{CONTROL_RADIUS_PX}px; font-size:16px; padding:6px 14px; }}
 .stButton > button:hover {{ background:var(--surface); color:var(--accent-text); text-decoration:underline; }}
-.st-key-pills .stButton > button {{ border-radius:999px; padding:5px 16px; }}
+.st-key-pills .stButton > button {{ border-radius:999px; padding:5px 16px; height:auto; white-space:normal; text-align:left; }}
+.st-key-pills .stButton > button p {{ white-space:normal; text-align:left; }}
 .st-key-copilot_go .stButton > button, .st-key-reset_lab .stButton > button {{ background:transparent; padding:0; color:var(--accent-text); text-decoration:underline; }}
 .stTextInput input {{ background:var(--surface); border:none; border-radius:{CONTROL_RADIUS_PX}px; font-size:17px; }}
 [data-testid="stSegmentedControl"] button, [data-testid="stButtonGroup"] button, button[data-testid="stBaseButton-segmented_control"] {{

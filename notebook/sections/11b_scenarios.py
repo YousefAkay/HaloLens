@@ -24,13 +24,14 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 from leaselens.config import cutoff_for
+from leaselens.contracts import COLOR_MARKET, COLOR_NAIVE, COLOR_NET
 from leaselens.evaluate.backtest import french_date, headline_table
 from leaselens.forecast.asof import snapshot_for_year
 from leaselens.forecast.combine import forecast_regulated
 from leaselens.forecast.scenarios import scenario_table
 from leaselens.incentives.engine import discount_share
 from leaselens.market.registry import load_external
-from leaselens.market.regulation import applicability_matrix
+from leaselens.market.regulation import EXEMPTION_SCENARIO, applicability_matrix
 from leaselens.measure.pairs import build_pairs
 
 if external is None:
@@ -59,7 +60,7 @@ pairs_all = build_pairs(tables.leases, cfg)
 renewal_share = pairs_all[pairs_all["eligible"]].groupby("year")["is_renewal"].mean()
 renewal_swing_pp = 100 * renewal_share.diff().abs().dropna()
 
-met_entries = [entry for entry in cfg["regulation"]["buildings"] if entry.get("scenario") == "ontario_post_2018_exemption"]
+met_entries = [entry for entry in cfg["regulation"]["buildings"] if entry.get("scenario") == EXEMPTION_SCENARIO]
 met_names = [entry["building"] for entry in met_entries]
 matrix = applicability_matrix(cfg, tables.leases)
 met_first_years = matrix.loc[matrix["building"].isin(met_names), "first_lease_year"].dropna()
@@ -132,10 +133,10 @@ fig, axis = plt.subplots(figsize=(7, 3.6))
 order = ["low", "incentives_deeper", "more_renewals", "met_guideline_applies", "central", "fewer_renewals",
          "incentives_shallower", "high"]
 shown = by_name.loc[[name for name in order if name in by_name.index]]["headline_net_pct"].dropna()
-colors = ["#0072B2" if name == "central" else "#999999" for name in shown.index]
+colors = [COLOR_NET if name == "central" else COLOR_NAIVE for name in shown.index]
 axis.barh([labels[name] for name in shown.index][::-1], shown.values[::-1], color=colors[::-1])
 if b3["note"] == "":
-    axis.axvline(b3["net_pct"], color="#D55E00", linestyle="--", label="cas de stress B3")
+    axis.axvline(b3["net_pct"], color=COLOR_MARKET, linestyle="--", label="cas de stress B3")
     axis.legend(fontsize=8, frameon=False)
 axis.axvline(0, color="black", linewidth=0.8)
 axis.set_xlabel(f"Hausse nette {target_year} (%)")
@@ -177,7 +178,8 @@ def variant_fr(row):
     setting = row["setting"]
     labels = {
         "strict_dec31": "coupure stricte (même date que le CRM)",
-        "include_six_month_leases": f"baux courts inclus (borne basse {setting} an)",
+        "include_six_month_leases": (f"baux courts inclus (borne basse {setting} {'ans' if float(setting) >= 2 else 'an'})"
+                                     if row["variant"] == "include_six_month_leases" else ""),
         "max_gap": f"écart maximal {setting} ans", "quantiles": f"quantiles {setting}",
         "years": f"{setting} ans", "met_guideline_applies": "ligne directrice applicable",
         "incentives_deeper": f"concessions plus profondes ({float(setting):+.1f} pp)" if row["variant"] == "incentives_deeper" else "",
@@ -207,15 +209,15 @@ display(sensitivities[["libellé", "headline_net_pct", "base_net_pct", "delta_pp
 # %%
 ran = sensitivities.dropna(subset=["delta_pp"])
 fig, axis = plt.subplots(figsize=(8, max(3.5, 0.32 * len(ran))))
-palette_models = {champion: "#0072B2", "E2_regulated": "#E69F00"}
+palette_models = {champion: COLOR_NET, "E2_regulated": COLOR_MARKET}
 ordered = ran.iloc[::-1]
-axis.barh(ordered["libellé"], ordered["delta_pp"], color=[palette_models.get(model, "#999999") for model in ordered["model"]])
+axis.barh(ordered["libellé"], ordered["delta_pp"], color=[palette_models.get(model, COLOR_NAIVE) for model in ordered["model"]])
 axis.axvline(0, color="black", linewidth=0.8)
 axis.set_xlabel("Écart de la hausse nette par rapport au cas de base du même modèle (pp)")
 axis.set_title("Sensibilités, une hypothèse à la fois (pas des intervalles de prédiction)")
 for model, color in palette_models.items():
     axis.barh([], [], color=color, label=f"modèle {model}")
-axis.barh([], [], color="#999999", label="autre modèle (choix du modèle)")
+axis.barh([], [], color=COLOR_NAIVE, label="autre modèle (choix du modèle)")
 axis.legend(fontsize=8, frameon=False, loc="lower right")
 plt.tight_layout()
 plt.show()

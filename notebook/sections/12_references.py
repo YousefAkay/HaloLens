@@ -31,12 +31,14 @@
 # ### 12.2 Outils d'IA
 # - **Claude (clavardage, projet HALO)** : planification des tâches, rédaction des instructions de travail et revue des
 #   rapports de fin de tâche.
-# - **Claude Code** : implémentation du code, des tests et des sections du notebook dans le dépôt local ; chaque
-#   changement a été relu par un humain avant fusion.
+# - **Claude Code** : implémentation du code, des tests et des sections du notebook dans le dépôt local ; revues
+#   automatiques avant fusion (`/review-pr`) ; chaque changement a été relu par un humain avant fusion.
 # - **API Claude** : (1) extraction de valeurs à partir de **pages publiques** (TAL, gouvernement de l'Ontario, SCHL),
 #   chaque valeur étant ensuite contrôlée contre sa page officielle par Claude, puis vérifiée par un humain sur un échantillon nommé (`docs/assumptions/MSR.md`) avant d'entrer dans
-#   `data/public/sources.csv` ; (2) récit du tableau de bord, produit à partir d'un JSON d'**agrégats** seulement et
-#   contrôlé par un garde-fou qui rejette tout nombre absent de ce JSON.
+#   `data/public/sources.csv` ; (2) veille des sources (`scripts/extract_sources.py --watch`, pages publiques
+#   seulement) : les nouvelles valeurs détectées attendent une vérification humaine et n'entrent jamais seules dans la
+#   prévision (section 7.6) ; (3) copilote de scénarios et questions-réponses du tableau de bord, à partir des
+#   **résultats agrégés** seulement et contrôlés par un garde-fou qui rejette tout nombre absent de ces résultats.
 #
 # Les modèles exacts et les détails d'usage par volet figurent dans les fichiers de références ci-dessous.
 
@@ -57,7 +59,7 @@ approval_label = french_date(references_cfg["sponsor_approval_date"])
 # %%
 display(Markdown(
     "**Aucune donnée du CRM n'a été envoyée à une API.** L'API Claude n'a reçu que des pages publiques (extraction "
-    "des sources) et un JSON d'agrégats (récit du tableau de bord) : aucune ligne de bail, aucun code de logement, "
+    "et veille des sources) et des résultats agrégés (copilote et questions-réponses du tableau de bord) : aucune ligne de bail, aucun code de logement, "
     "aucune valeur `hUnit`. Les sessions Claude Code ont travaillé sur les fichiers réels dans le dépôt local, avec "
     f"l'approbation du commanditaire et du mentor ({approval_label}), en n'affichant que des comptes et des agrégats. "
     "Les fichiers du CRM restent dans `data/private/` (exclu de Git) et ne font partie d'aucun livrable."))

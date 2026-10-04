@@ -604,7 +604,7 @@ def test_a_provider_failure_shows_a_short_message_and_keeps_the_levers(monkeypat
 def test_the_preset_questions_are_pills_and_the_occupancy_pill_is_refused(monkeypatch, lang):
     at = ask_app(monkeypatch, lang=lang)
     pills = [button for button in at.button if str(button.key).startswith("pill_")]
-    assert [button.label for button in pills] == list(narrative.PRESET_QUESTIONS) + [t("example_occupancy", lang)]
+    assert [button.label for button in pills] == streamlit_app._pills(lang)  # English labels in English, French in French
     at.button(key=f"pill_{len(pills) - 1}").click().run()
     assert not at.exception
     assert narrative.REFUSAL[narrative.detect_language(t("example_occupancy", lang))] in text_of(at)

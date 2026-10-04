@@ -177,7 +177,7 @@ display(matrix.assign(lease_type=matrix["lease_type"].map(LEASE_TYPE_FR))[
 # Le scénario central suppose que les renouvellements de the Ontario new-build ne sont pas plafonnés par la ligne directrice. Les
 # preuves ci-dessous viennent de sources indépendantes : la loi, un fait public sur l'immeuble (presse spécialisée) et
 # ce que montrent les baux de l'extrait (agrégats seulement). Étape qui transforme les données : pour chaque
-# renouvellement admissible de the Ontario new-build, la hausse du loyer contractuel sur 12 mois (loyer / loyer précédent − 1) est
+# renouvellement admissible de the Ontario new-build, la hausse du loyer contractuel non annualisée (loyer / loyer précédent − 1) est
 # comparée à la ligne directrice de son année ; un renouvellement est « au-dessus » s'il la dépasse de plus de
 # `regulation.exemption_evidence.above_reference_tolerance_pp` point (arrondi au cent).
 
@@ -215,7 +215,7 @@ display(Markdown(
 
 # %% [markdown]
 # #### Effet du scénario the Ontario new-build sur la prévision
-# Étape qui transforme les données : on prend la prévision réglementée de FCT pour l'année visée (`forecast_regulated`,
+# Étape qui transforme les données : on prend la prévision réglementée (modèle E2, section 8) pour l'année visée (`forecast_regulated`,
 # baux coupés à la date de coupure, données publiques à la date d'information) et son tableau de scénarios
 # (`scenario_table`, section 11b). On lit l'écart entre le scénario central (exemption) et le scénario où la ligne
 # directrice s'applique aux renouvellements de the Ontario new-build. Les poids décrivent le mix des transitions de baux observées,

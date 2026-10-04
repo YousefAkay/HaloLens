@@ -15,3 +15,10 @@ What: raise the lower bound of `streamlit` (now `>=1.38,<2`) to the version the 
 Why: a fresh `pip install -r requirements.txt` resolves to the newest 1.x and works, but an older pinned environment inside the declared range could crash at the tabs.
 Blocking: no
 Workaround in place: none
+
+## REQUEST-FCT-03 → INT   status: open
+File: src/leaselens/contracts.py
+What: add a named model palette (for example `MODEL_PALETTE`, the six Okabe-Ito colours now defined as `MODEL_PALETTE` at the top of notebook section 09.2, one colour per model) next to `COLOR_NET`, `COLOR_CONTRACT`, `COLOR_NAIVE`, `COLOR_MARKET`.
+Why: section 09.2 draws up to six models side by side and the four contract colours are not enough; today the palette is one named constant in the section.
+Blocking: no
+Workaround in place: `MODEL_PALETTE` in notebook/sections/09_backtest.py (REQUEST-FCT-03 comment)

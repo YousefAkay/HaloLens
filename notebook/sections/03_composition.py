@@ -105,8 +105,8 @@ else:
     largest = complete.loc[complete["composition_pp"].abs().idxmax()]
     display(Markdown(
         f"En **{int(latest['year'])}**, la médiane naïve donne **{latest['naive_contract_pct']:.1f} %**, la hausse "
-        f"contractuelle à unité constante **{latest['same_unit_contract_pct']:.1f} %** et la hausse nette des "
-        f"de toutes les concessions **{latest['same_unit_net_pct']:.1f} %**. L'effet de composition le plus fort de la période "
+        f"contractuelle à unité constante **{latest['same_unit_contract_pct']:.1f} %** et la hausse nette de "
+        f"toutes les concessions **{latest['same_unit_net_pct']:.1f} %**. L'effet de composition le plus fort de la période "
         f"est observé en **{int(largest['year'])}** ({largest['composition_pp']:+.1f} points de log) : la médiane "
         f"annuelle mesure alors surtout le changement de mix, pas la hausse des loyers. "
         f"C'est pourquoi la définition retenue compare chaque unité à elle-même, à poids de segment fixes."))

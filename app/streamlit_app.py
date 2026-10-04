@@ -356,7 +356,19 @@ def _render_answer(question: str, result: dict[str, Any] | None, failed: bool, l
 
 
 def _pills(lang: str) -> list[str]:
-    return list(narrative.PRESET_QUESTIONS) + [t("example_occupancy", lang)]
+    """Chip labels in the page language: the preset questions, then the occupancy example."""
+    presets = narrative.PRESET_QUESTIONS_EN if lang == "en" else narrative.PRESET_QUESTIONS
+    return list(presets) + [t("example_occupancy", lang)]
+
+
+def _pill_question(index: int, lang: str) -> str:
+    """The question a chip sends: always the FRENCH preset at that index (the cached answers are keyed on it).
+
+    The occupancy example is not a preset: it is sent as displayed.
+    """
+    if index < len(narrative.PRESET_QUESTIONS):
+        return narrative.PRESET_QUESTIONS[index]
+    return _pills(lang)[index]
 
 
 def ask_analysis_view(doc: dict[str, Any], lang: str = DEFAULT_LANG) -> None:
@@ -371,15 +383,17 @@ def ask_analysis_view(doc: dict[str, Any], lang: str = DEFAULT_LANG) -> None:
             for offset, column in enumerate(st.columns(PILL_COLUMNS)):
                 index = start + offset
                 if index < len(questions) and column.button(questions[index], key=f"pill_{index}"):
-                    clicked = questions[index]
+                    clicked = _pill_question(index, lang)
                     st.session_state["preset"] = clicked
+                    st.session_state["preset_shown"] = questions[index]
     free = st.text_input(t("ask_free", lang), key="free_question")
     answer_clicked = st.button(t("ask_answer", lang), key="answer_go")
     chosen = clicked or free or st.session_state.get("preset", "")
     if chosen and (clicked or answer_clicked):
         with st.spinner(t("ask_spinner", lang)):
             result, failed = _safe(narrative.ask_analysis, chosen, doc, _notes(), client)
-        _render_answer(chosen, result, failed, lang)
+        shown = st.session_state.get("preset_shown", chosen) if chosen == st.session_state.get("preset") else chosen
+        _render_answer(shown, result, failed, lang)
 
 
 # ---------------------------------------------------------------------------

@@ -7,8 +7,10 @@
 # %% [markdown]
 # ## 7. Données externes et dates de publication
 #
-# **Entrée :** `data/public/sources.csv`, un registre de séries publiques vérifiées à la main (SCHL, IPC loyer de
-# Statistique Canada, pourcentages du TAL, ligne directrice de l'Ontario). Chaque ligne porte sa source (URL et
+# **Entrée :** `data/public/sources.csv`, un registre de séries publiques extraites avec l'aide de Claude,
+# contrôlées contre les pages officielles, et vérifiées par un humain sur un échantillon nommé (voir
+# docs/assumptions/MSR.md, M-03) (SCHL, IPC loyer de Statistique Canada, pourcentages du TAL, ligne directrice de
+# l'Ontario). Chaque ligne porte sa source (URL et
 # emplacement), sa période de référence et sa **date de publication**. Il y a aussi les paires admissibles de la
 # section 4.
 # **Opération :** charger et valider le registre, présenter la provenance de chaque série, puis comparer la hausse à
@@ -29,7 +31,7 @@ from IPython.display import Markdown, display
 from leaselens.config import external_cutoff_for
 from leaselens.contracts import COLOR_CONTRACT, COLOR_MARKET, COLOR_NET
 from leaselens.market.reconcile_market import provenance_table, reconcile, reconcile_summary
-from leaselens.market.registry import as_of, load_external, validate_external
+from leaselens.market.registry import as_of, load_external, load_watch, validate_external, watch_summary
 from leaselens.market.regulation import EXEMPTION_SCENARIO, applicability_matrix
 from leaselens.measure.labels import french_date, french_month, french_month_day
 from leaselens.measure.pairs import build_pairs
@@ -66,8 +68,8 @@ display(Markdown(
 # %% [markdown]
 # ### 7.2 Provenance des séries
 # Une ligne par série : éditeur, géographie, couverture, dernière date de publication, mode d'extraction (`manual` =
-# saisie ou téléchargement officiel, `llm` = lu par un modèle sur une page publique puis vérifié à la main) et rôle
-# dans l'analyse.
+# saisie ou téléchargement officiel, `llm` = lu par un modèle sur une page publique puis contrôlé contre la page
+# officielle (échantillon vérifié par un humain)) et rôle dans l'analyse.
 
 # %%
 provenance = provenance_table(external, cfg)
@@ -100,7 +102,7 @@ display(provenance.assign(role=provenance["role"].map(ROLE_FR),
 # %%
 pairs = build_pairs(tables.leases, cfg)
 comparison = reconcile(pairs, external, cfg)
-summary = reconcile_summary(comparison)
+market_summary = reconcile_summary(comparison)
 main_rows = comparison[comparison["lease_type"] == "all"].dropna(subset=["internal_contract_pct", "market_pct"])
 display(main_rows[["label", "province", "geography", "year", "n_pairs", "internal_contract_pct", "internal_net_pct",
                    "market_pct", "gap_contract_pp", "gap_net_pp", "release_date"]].rename(columns={
@@ -172,20 +174,20 @@ matrix = applicability_matrix(cfg, tables.leases)
 met_years = matrix.loc[matrix["building"].isin(met_buildings), "first_lease_year"].dropna()
 met_first_year = f"{int(met_years.min())}" if len(met_years) else "non observé"
 lines = []
-for row in summary.itertuples():
+for row in market_summary.itertuples():
     direction = "plus vite" if row.mean_gap_contract_pp > 0 else "moins vite"
     lines.append(f"- **{row.province}, {row.label}** ({row.geography}, {row.n_years} année(s) comparables) : "
                  f"l'extrait progresse en moyenne **{abs(row.mean_gap_contract_pp):.1f} points {direction}** que le "
                  f"marché en loyer contractuel (écart absolu moyen {row.mean_abs_gap_contract_pp:.1f} points ; "
                  f"{row.mean_gap_net_pp:+.1f} points en loyer net de toutes les concessions).")
-turnover = summary[summary["comparison"] == "cmhc_2br_turnover"]
+turnover = market_summary[market_summary["comparison"] == "cmhc_2br_turnover"]
 if not turnover.empty and (turnover["mean_gap_contract_pp"] < 0).all():
     lines.append("- Les relocations de l'extrait progressent nettement moins que les logements « avec changement de "
                  "locataire » de la SCHL. Explication plausible : chez la SCHL, un changement de locataire rattrape "
                  "souvent plusieurs années de hausses encadrées pendant un long bail. Dans l'extrait, les paires "
                  f"admissibles relient des baux consécutifs séparés de moins de {cfg['pairs']['max_gap_years']} ans, "
                  "donc le rattrapage est faible.")
-few_years = summary["n_years"] < len(cfg["forecast_years"]["backtest_years"])
+few_years = market_summary["n_years"] < len(cfg["forecast_years"]["backtest_years"])
 if few_years.any():
     lines.append(f"- {int(few_years.sum())} comparaison(s) ont moins d'années communes que les années de backtest "
                  f"(premier bail de the Ontario new-build dans l'extrait : {met_first_year}) : ce sont des indications, pas des "
@@ -194,3 +196,31 @@ display(Markdown("\n".join(lines) if lines else "Pas assez d'années communes po
 display(Markdown(
     "Le taux d'inoccupation de la SCHL figure dans le registre comme **contexte du marché régional** seulement. Ce "
     "n'est jamais un taux d'occupation ou d'inoccupation de project, que cet extrait ne permet pas de mesurer."))
+
+# %% [markdown]
+# ### 7.6 Veille des sources publiques (IA)
+# **Entrée :** `data/public/sources_watch.csv`, écrit par la veille `python scripts/extract_sources.py --watch`. La
+# veille relit seulement des pages publiques officielles (TAL, gouvernement de l'Ontario, SCHL, Statistique Canada),
+# en extrait les valeurs avec l'API Claude et écrit des **candidats** à vérifier par un humain.
+# **Opération :** compter les lignes de veille, par statut (`new_release` = publiée après la dernière publication
+# connue de la série, `missing_period` = période manquante d'une publication plus ancienne, `release_date_unknown` =
+# date de publication non indiquée par la page), et compter celles qui sont postérieures à la date d'information de
+# l'année visée. Aucune donnée n'est transformée : le fichier de veille n'est jamais utilisé par la prévision.
+# **Pourquoi :** montrer comment le registre est tenu à jour sans laisser une valeur non vérifiée entrer dans la
+# prévision. Seules les lignes recopiées dans `sources.csv` après vérification sont utilisées.
+# **Vérification :** comptes seulement, calculés ci-dessous à partir du fichier.
+#
+# Limites de la veille :
+# - elle détecte les **nouvelles périodes**, pas les révisions de périodes déjà connues ;
+# - une page qui n'a pas pu être lue signifie « **non vérifié** », pas « aucun changement » ;
+# - `verified_by` indique qui a vérifié une valeur ; ce n'est pas une preuve en soi.
+
+# %%
+watch = load_watch(Path(cfg["_root"]) / cfg["data"]["public_dir"] / cfg["external"]["watch_file"])
+watch_counts = watch_summary(watch, info_date)
+status_text = ", ".join(f"`{status}` : **{count}**" for status, count in watch_counts["by_status"].items())
+display(Markdown(
+    f"Lignes de veille en attente de vérification : **{watch_counts['n_rows']}** ({status_text}). "
+    f"Lignes postérieures à la date d'information de {target_year} ({french_date(info_date)}) : "
+    f"**{watch_counts['n_after_cutoff']}**. Ces lignes peuvent alimenter un **scénario** seulement, jamais la "
+    f"prévision de {target_year}."))

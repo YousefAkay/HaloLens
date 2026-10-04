@@ -29,6 +29,7 @@ import pandas as pd
 from leaselens.config import cutoff_for, external_cutoff_for
 from leaselens.evaluate.backtest import (backtest_both_rules, champion_backtest, champion_forecast, champion_pipeline,
                                          french_date, french_day_month, headline_table, tables_from_leases)
+from leaselens.contracts import COLOR_NAIVE, COLOR_NET
 from leaselens.evaluate.metrics import TOLERANCE_PP
 from leaselens.forecast.asof import snapshot_for_year
 from leaselens.forecast.baselines import rate_logs_by_year, to_pct
@@ -121,7 +122,7 @@ else:
 # ### 10.4 Les autres modèles pour l'année cible
 #
 # **Opération :** la même prévision pour tous les modèles, avec la règle de coupure publique retenue et la sensibilité
-# stricte. L'étendue (minimum–maximum) porte sur B0, B1, E1 et E2. B2 et B3 sont montrés à part : B2 dépend de l'IPC, B3 suppose que
+# stricte. L'étendue (minimum–maximum) porte sur les modèles listés dans `config/forecast.yaml` (`headline_range`) ; les autres sont montrés à part : B2 dépend de l'IPC, B3 suppose que
 # l'écart contractuel → net de l'an dernier se répète en entier.
 
 # %%
@@ -129,20 +130,22 @@ headlines = headline_table(tables, external, cfg)
 display(headlines.rename(columns={"rule": "règle", "model": "modèle", "net_pct": "net %", "contract_pct": "contractuel %",
                                   "median_net_pct": "médiane net %", "median_contract_pct": "médiane contractuelle %"}).round(2))
 jan31 = headlines[headlines["rule"] == "jan31"].set_index("model")
-range_models = ["B0_last_year", "B1_trailing_mean", "E1_engine_blend", "E2_regulated"]
+range_models = list(cfg["headline_range"]["models"])
 range_net = jan31.loc[range_models, "net_pct"].dropna()
+range_codes = [name.split("_")[0] for name in range_net.index]
+range_names = ", ".join(range_codes[:-1]) + " et " + range_codes[-1] if len(range_codes) > 1 else range_codes[0]
 display(Markdown(
-    f"**Étendue de la hausse nette {target_year} sur {', '.join(range_net.index)} : de {range_net.min():.2f} % "
+    f"**Étendue de la hausse nette {target_year} sur {range_names} : de {range_net.min():.2f} % "
     f"({range_net.idxmin()}) à {range_net.max():.2f} % ({range_net.idxmax()}).** Le modèle retenu ({champion}) donne "
     f"{final.headline_net_pct:.2f} %."))
 
 fig, axis = plt.subplots(figsize=(7, 3.2))
 shown = jan31["net_pct"].dropna()
-colors = ["#0072B2" if name == champion else "#999999" for name in shown.index]
+colors = [COLOR_NET if name == champion else COLOR_NAIVE for name in shown.index]
 axis.barh(shown.index[::-1], shown.values[::-1], color=colors[::-1])
 axis.axvline(0, color="black", linewidth=0.8)
 axis.set_xlabel(f"Hausse nette {target_year} (%)")
-axis.set_title(f"Hausse nette {target_year} par modèle (public au {public_day} ; modèle retenu en bleu)")
+axis.set_title(f"Hausse nette {target_year} par modèle (public au {public_day} ; modèle retenu en orange)")
 plt.tight_layout()
 plt.show()
 
