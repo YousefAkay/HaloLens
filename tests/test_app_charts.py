@@ -506,3 +506,27 @@ def test_the_script_runs_from_outside_the_repository_without_a_pythonpath(tmp_pa
                                timeout=TIMEOUT_SECONDS)
     assert "ModuleNotFoundError" not in completed.stderr, completed.stderr[-400:]
     assert completed.returncode == 0, completed.stderr[-400:]
+
+
+def test_the_chart_drawing_sizes_are_named_constants():
+    source = (repo_root() / "app" / "charts.py").read_text(encoding="utf-8")
+    import re
+    for pattern in (r"strokeWidth=\d", r"thickness=\d", r"size=[A-Z_]+ - \d", r"size=\d"):
+        assert not re.search(pattern, source), pattern
+    for name in ("INTERVAL_STROKE_PX", "TICK_THICKNESS_PX", "TICK_INSET_PX"):
+        assert re.search(rf"^{name} = \d+", source, re.MULTILINE), name
+
+
+def test_no_app_constant_is_defined_and_never_used():
+    import ast
+    import re
+    texts = {path.name: path.read_text(encoding="utf-8") for path in (repo_root() / "app").glob("*.py")}
+    everything = "\n".join(texts.values()) + "\n".join(
+        path.read_text(encoding="utf-8") for path in (repo_root() / "tests").glob("test_app*.py"))
+    for name in ("ui.py", "charts.py", "streamlit_app.py"):
+        tree = ast.parse(texts[name])
+        constants = [node.targets[0].id for node in tree.body
+                     if isinstance(node, ast.Assign) and isinstance(node.targets[0], ast.Name)
+                     and node.targets[0].id.isupper()]
+        for constant in constants:
+            assert len(re.findall(rf"\b{constant}\b", everything)) >= 2, f"{name}: {constant} is never used"
