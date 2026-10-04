@@ -89,3 +89,46 @@ def validate_external(external: pd.DataFrame, cfg: dict) -> list[str]:
         if failed.any():
             problems.append(f"{int(failed.sum())} {label}")
     return problems
+
+
+WATCH_STATUSES = ["new_release", "missing_period", "release_date_unknown"]  # tags written by extract_sources --watch
+WATCH_STATUS_PATTERN = r"^\[watch: (\w+)\]"
+
+
+def load_watch(path) -> pd.DataFrame:
+    """Read data/public/sources_watch.csv (watcher candidates) as an all-string EXTERNAL table.
+
+    The watch file is unverified and may have empty release dates, so it is never typed with `parse_external`
+    and never passed to `as_of`: it is only counted (`watch_summary`). A missing file gives an empty table.
+    """
+    path = Path(path)
+    if not path.exists():
+        return pd.DataFrame(columns=EXTERNAL_COLUMNS, dtype=str)
+    watch = pd.read_csv(path, dtype=str, keep_default_na=False)
+    missing = [column for column in EXTERNAL_COLUMNS if column not in watch.columns]
+    if missing:
+        raise ValueError(f"Watch file is missing contract columns: {missing}")
+    return watch[EXTERNAL_COLUMNS]
+
+
+def watch_status(watch: pd.DataFrame) -> pd.Series:
+    """Status tag of each watch row, read from the `[watch: <status>]` prefix of `notes` ("" when absent)."""
+    return watch["notes"].str.extract(WATCH_STATUS_PATTERN, expand=False).fillna("")
+
+
+def watch_after_cutoff(watch: pd.DataFrame, cutoff: pd.Timestamp) -> pd.Series:
+    """True for watch rows that are after `cutoff`: released after it, or undated with a period ending after it.
+
+    Same rule as the watcher's 'new since cutoff' report: an undated row about a later period may be new.
+    """
+    released = pd.to_datetime(watch["release_date"].replace("", None))
+    period_end = pd.to_datetime(watch["ref_period_end"].replace("", None))
+    return (released > cutoff) | (released.isna() & (period_end > cutoff))
+
+
+def watch_summary(watch: pd.DataFrame, cutoff: pd.Timestamp) -> dict:
+    """Counts only: watch rows, rows per status (every WATCH_STATUSES key present) and rows after `cutoff`."""
+    status = watch_status(watch)
+    return {"n_rows": len(watch),
+            "by_status": {name: int((status == name).sum()) for name in WATCH_STATUSES},
+            "n_after_cutoff": int(watch_after_cutoff(watch, pd.Timestamp(cutoff)).sum())}

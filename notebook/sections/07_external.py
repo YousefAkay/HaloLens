@@ -29,7 +29,7 @@ from IPython.display import Markdown, display
 from leaselens.config import external_cutoff_for
 from leaselens.contracts import COLOR_CONTRACT, COLOR_MARKET, COLOR_NET
 from leaselens.market.reconcile_market import provenance_table, reconcile, reconcile_summary
-from leaselens.market.registry import as_of, load_external, validate_external
+from leaselens.market.registry import as_of, load_external, load_watch, validate_external, watch_summary
 from leaselens.market.regulation import EXEMPTION_SCENARIO, applicability_matrix
 from leaselens.measure.labels import french_date, french_month, french_month_day
 from leaselens.measure.pairs import build_pairs
@@ -194,3 +194,31 @@ display(Markdown("\n".join(lines) if lines else "Pas assez d'années communes po
 display(Markdown(
     "Le taux d'inoccupation de la SCHL figure dans le registre comme **contexte du marché régional** seulement. Ce "
     "n'est jamais un taux d'occupation ou d'inoccupation de project, que cet extrait ne permet pas de mesurer."))
+
+# %% [markdown]
+# ### 7.6 Veille des sources publiques (IA)
+# **Entrée :** `data/public/sources_watch.csv`, écrit par la veille `python scripts/extract_sources.py --watch`. La
+# veille relit seulement des pages publiques officielles (TAL, gouvernement de l'Ontario, SCHL, Statistique Canada),
+# en extrait les valeurs avec l'API Claude et écrit des **candidats** à vérifier par un humain.
+# **Opération :** compter les lignes de veille, par statut (`new_release` = publiée après la dernière publication
+# connue de la série, `missing_period` = période manquante d'une publication plus ancienne, `release_date_unknown` =
+# date de publication non indiquée par la page), et compter celles qui sont postérieures à la date d'information de
+# l'année visée. Aucune donnée n'est transformée : le fichier de veille n'est jamais utilisé par la prévision.
+# **Pourquoi :** montrer comment le registre est tenu à jour sans laisser une valeur non vérifiée entrer dans la
+# prévision. Seules les lignes recopiées dans `sources.csv` après vérification sont utilisées.
+# **Vérification :** comptes seulement, calculés ci-dessous à partir du fichier.
+#
+# Limites de la veille :
+# - elle détecte les **nouvelles périodes**, pas les révisions de périodes déjà connues ;
+# - une page qui n'a pas pu être lue signifie « **non vérifié** », pas « aucun changement » ;
+# - `verified_by` indique qui a vérifié une valeur ; ce n'est pas une preuve en soi.
+
+# %%
+watch = load_watch(Path(cfg["_root"]) / cfg["data"]["public_dir"] / cfg["external"]["watch_file"])
+watch_counts = watch_summary(watch, info_date)
+status_text = ", ".join(f"`{status}` : **{count}**" for status, count in watch_counts["by_status"].items())
+display(Markdown(
+    f"Lignes de veille en attente de vérification : **{watch_counts['n_rows']}** ({status_text}). "
+    f"Lignes postérieures à la date d'information de {target_year} ({french_date(info_date)}) : "
+    f"**{watch_counts['n_after_cutoff']}**. Ces lignes peuvent alimenter un **scénario** seulement, jamais la "
+    f"prévision de {target_year}."))
