@@ -125,3 +125,27 @@ def building_beds_forecast(result: ForecastResult, cfg: dict) -> pd.DataFrame:
                         "contract_pct_shrunk": table["contract_shrunk_log"].map(to_pct),
                         "building_net_pct": table["building_net_log"].map(to_pct)})
     return out.reset_index(drop=True)
+
+
+def headline_by_province(result: ForecastResult, province_of: pd.Series) -> pd.DataFrame:
+    """The headline split by province, with the same fixed weights (renormalized inside each province). Aggregates only.
+
+    `province_of` maps prop_code to province (QC, ON). Works on any ForecastResult whose segment table has either
+    `g_net` / `g_contract` (engines) or `mean_log_net` / `mean_log_contract` (baselines B0); segments without a
+    forecast are left out and the rest renormalized, as in the headline itself. Columns: province, weight_share (of the
+    total frozen weight), n_segments, net_pct, contract_pct. A final `all` row repeats the portfolio aggregation.
+    """
+    segments = result.segments
+    net, contract = ("g_net", "g_contract") if "g_net" in segments.columns else ("mean_log_net", "mean_log_contract")
+    total_weight = float(segments["weight"].sum())
+    usable = segments.assign(province=segments["prop_code"].map(province_of)).dropna(subset=[net, contract])
+
+    def aggregate(label, group):
+        weight = float(group["weight"].sum())
+        return {"province": label, "weight_share": weight / total_weight, "n_segments": len(group),
+                "net_pct": to_pct(float((group["weight"] * group[net]).sum() / weight)),
+                "contract_pct": to_pct(float((group["weight"] * group[contract]).sum() / weight))}
+
+    rows = [aggregate(province, group) for province, group in usable.groupby("province", sort=True)]
+    rows.append(aggregate("all", usable))
+    return pd.DataFrame(rows)

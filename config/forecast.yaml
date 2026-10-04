@@ -42,7 +42,8 @@ anchors:
   ontario_geography: "ON"                 # geography code of the guideline rows (and the province of the alternative Met scenario); quoted because bare ON parses as a YAML boolean
   gap_window_years: 3                     # training years before the target used to learn gap = actual renewal log growth - log(1 + rate)
   min_pairs_per_gap_year: 5               # a province-year with fewer eligible renewal pairs is skipped when learning the gap
-  tal_method_change_year: 2026            # first lease year under the TAL method of Dec 17 2025; gap learned on older years is flagged, not adjusted
+  tal_method_change_year: 2026            # first lease year under the new TAL method; gap learned on older years is flagged, not adjusted
+  tal_method_announced: "2025-12-17"      # date of the TAL method change (AGENTS.md 9.3); quoted in notebook text, which reads it from here
 
 selection:
   metric: mean_absolute_error_pp  # champion metric over selection_years

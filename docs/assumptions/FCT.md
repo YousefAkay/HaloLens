@@ -24,3 +24,6 @@ Append one bullet per entry, newest last.
 - F-07: the Ontario new-build alternative scenario learns its gap from only two years of renewals (2024-25) because the building was first leased in 2023; its anchor is much less certain than the Québec one.
 - F-07: Scenario lever sizes come from the real history, counts and means only: the mean discount share rose 2.1 pp and 3.4 pp in the last two years (lever 2.0 pp); the renewal share of eligible pairs moved about 3 pp a year on average with a peak near 7 pp (lever 5.0 pp). Both are judgment values; the levers are scenarios, not prediction intervals.
 - F-07: B3's net forecast rests on last year's contract-to-net spread persisting; after a year of deepening discounts that spread is large, and B3's net is mechanically low.
+- F-08: Each section guards `external` (loads the verified public sources if an earlier section did not) and recomputes the backtest table if section 09 has not run, so every section can run standalone after the shared setup cell. Section 06 (MSR) already assigns `external`.
+- F-08: The notebook prints decimals with a point (as the other sections do); a French decimal comma is a presentation choice INT can apply globally later.
+- F-08: The vacancy, occupancy and absorption figures from this extract are never computed or quoted; the "poids" describe the mix of observed lease transitions only.
