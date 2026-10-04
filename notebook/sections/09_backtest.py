@@ -101,7 +101,7 @@ best_holdout = ranking.loc[ranking["mae_holdout_pp"].idxmin()]
 selection_years = chosen["selection_years"]
 display(Markdown(
     f"**Lecture honnête du classement.** La règle de choix a été déclarée **avant** de voir les résultats. B3 et E2 ont été "
-    f"ajoutés **après** le premier backtest réel (après le premier backtest réel), à cause de la structure réglementaire du TAL et de l'Ontario ; "
+    f"ajoutés **après** le premier backtest réel, à cause de la structure réglementaire du TAL et de l'Ontario ; "
     f"ils sont soumis à la même règle et ne la modifient pas. Avec seulement **{len(selection_years)} années de sélection**, "
     f"le classement des {top_n} meilleurs modèles ({', '.join(top_models['model'])}) tient dans **{spread_top_models:.2f} point de "
     f"pourcentage** : il est statistiquement faible. **{best_holdout['model']}** a la meilleure erreur sur la validation "
