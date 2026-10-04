@@ -23,9 +23,15 @@ nowcast:
   trend_damping: 0.8              # per-month factor on the fitted slope when projecting (1 = undamped); keeps 12-month projections from running away
 
 combine:
-  # Starting weights of the engines in the final blend; re-checked on selection years only (core.yaml forecast_years).
-  renewal_engine_weight: 0.5      # equal start: renewals and turnovers are blended by the fixed pair-share weights, not by this key
-  turnover_engine_weight: 0.5     # same equal start; sums to 1 with renewal_engine_weight
+  # Weights are untuned starting values. They may only be re-examined on the selection years (core.yaml forecast_years), never on the 2025 holdout.
+  # Within an engine the weights are renormalized over the components that exist for the segment (for example no asking-rent signal).
+  history_window_years: 3         # years before the cutoff of segment pair history used by the history component
+  min_pairs_history: 5            # a segment-window with fewer pairs uses its province x renewal-flag pool, then the portfolio x renewal-flag pool
+  renewal_history_weight: 0.5     # renewals: segment's own recent contractual growth
+  renewal_nowcast_weight: 0.5     # renewals: portfolio-wide level from the monthly nowcast (F-04)
+  turnover_history_weight: 0.3    # turnovers: segment's own recent contractual growth
+  turnover_signal_weight: 0.4     # turnovers: asking-rent signal from MSR (leading indicator, highest weight)
+  turnover_nowcast_weight: 0.3    # turnovers: portfolio-wide level from the monthly nowcast
   shrinkage_strength: 20          # pseudo-pairs pulling thin building x beds cells toward their building mean (F-07)
 
 selection:

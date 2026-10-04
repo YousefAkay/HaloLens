@@ -16,10 +16,12 @@ import pandas as pd
 from leaselens.contracts import Snapshot
 from leaselens.forecast.baselines import frozen_weights, target_year_for, training_pairs
 
-# Pooling levels: the segment itself, then its province pool when the cell is too thin
+# Pooling levels: the segment itself, then its province pool, then the whole portfolio when the cell is too thin
 BASE_KEYS = ["prop_code", "beds"]          # d0: the previous lease can be a renewal or a turnover, so renewal is pooled
 BASE_FALLBACK_KEYS = ["province"]
 NEW_FALLBACK_KEYS = ["province", "is_renewal"]
+PORTFOLIO_KEYS: list[str] = []             # d0: every lease
+PORTFOLIO_NEW_KEYS = ["is_renewal"]        # d1: every lease with the same renewal flag
 TREND_DEGREE = 1                           # straight-line trend; with one usable year the trend is flat
 
 
@@ -35,7 +37,7 @@ def net_log_growth(contract_log_growth: float, d0: float, d1: float) -> float:
 
 
 def _yearly_cells(leases: pd.DataFrame, keys: list[str]) -> pd.DataFrame:
-    """Mean discount share and lease count per group and lease-start year."""
+    """Mean discount share and lease count per group and lease-start year (all leases when `keys` is empty)."""
     frame = leases.assign(year=leases["lease_start"].dt.year, discount=discount_share(leases))
     frame = frame.dropna(subset=["discount"])
     return frame.groupby(keys + ["year"], observed=True).agg(
@@ -75,9 +77,10 @@ def forecast_discount(snapshot: Snapshot, cfg: dict) -> pd.DataFrame:
     - d0: discount share of all leases of the (prop_code, beds) pool starting in the last year before the target
       year, because the previous lease of a future pair may be either a renewal or a turnover.
     A cell with fewer than `min_leases_per_cell` leases is ignored; the segment then uses the pool of its province
-    (d1: province x renewal flag, d0: province). Raises ValueError if no usable history exists at all.
+    (d1: province x renewal flag, d0: province) and, failing that, the whole portfolio (d1: same renewal flag, d0: all
+    leases). Raises ValueError if no usable history exists at all.
     Columns: segment keys, d0, d1, n_leases_d0 (leases behind d0), n_leases_d1 (latest-year leases of the segment),
-    d1_source ("segment" or "province_pool").
+    d1_source ("segment", "province_pool" or "portfolio_pool").
     """
     keys = list(cfg["headline"]["segment_keys"])
     target = target_year_for(snapshot.cutoff)
@@ -92,8 +95,10 @@ def forecast_discount(snapshot: Snapshot, cfg: dict) -> pd.DataFrame:
 
     new_cells = _yearly_cells(leases, keys)
     new_fallback = _yearly_cells(leases, NEW_FALLBACK_KEYS)
+    new_portfolio = _yearly_cells(leases, PORTFOLIO_NEW_KEYS)
     base_cells = _yearly_cells(leases, BASE_KEYS)
     base_fallback = _yearly_cells(leases, BASE_FALLBACK_KEYS)
+    base_portfolio = _yearly_cells(leases, PORTFOLIO_KEYS)
 
     rows = []
     for _, segment in segments.iterrows():
@@ -102,9 +107,14 @@ def forecast_discount(snapshot: Snapshot, cfg: dict) -> pd.DataFrame:
         if np.isnan(d1):
             d1 = _trend(_lookup(new_fallback, NEW_FALLBACK_KEYS, segment), trend_years, target, cfg)
             d1_source = "province_pool"
+        if np.isnan(d1):
+            d1 = _trend(_lookup(new_portfolio, PORTFOLIO_NEW_KEYS, segment), trend_years, target, cfg)
+            d1_source = "portfolio_pool"
         d0 = _trend(_lookup(base_cells, BASE_KEYS, segment), base_year, target, cfg)
         if np.isnan(d0):
             d0 = _trend(_lookup(base_fallback, BASE_FALLBACK_KEYS, segment), base_year, target, cfg)
+        if np.isnan(d0):
+            d0 = _trend(base_portfolio, base_year, target, cfg)
         if np.isnan(d0) or np.isnan(d1):
             raise ValueError(f"No usable discount history for segment {tuple(segment[keys])} before {snapshot.cutoff.date()}")
         base = _lookup(base_cells, BASE_KEYS, segment)
