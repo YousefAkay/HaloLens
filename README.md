@@ -50,14 +50,16 @@ Si un fichier manque, le notebook s'arrête et indique les fichiers attendus. Si
 
 | | Value |
 |---|---|
-| **2026 headline** | _filled at final build from `aggregates.json`_ |
+| **2026 headline** | See **section 00** of the submitted notebook `project_analysis.ipynb` (executed; the figures are computed from the CRM files and are not written in this README) |
 | Definition | Fixed-composition same-unit growth in rent net of all incentives |
-| Contractual companion | _filled at final build_ |
-| Scenario range (low / central / high) | _filled at final build_ |
-| Forecast as of | 2025-12-31 (no 2026 information used) |
-| Backtest error, 2023 / 2024 / 2025 (pp) | _filled at final build_ |
+| Contractual companion | Section 00 of the notebook |
+| Scenario range (low / central / high) | Section 00 and section 11b of the notebook |
+| Forecast as of | 2025-12-31 for CRM data; public data released by 2026-01-31 (no 2026 CRM information used) |
+| Backtest error, 2023 / 2024 / 2025 (pp) | Section 09 of the notebook |
 
-Every figure above is produced by `project_analysis.ipynb`; none is typed by hand.
+Every figure is produced by `project_analysis.ipynb`; none is typed by hand, and this README carries no real figure.
+
+**Modèle entraîné / Trained model:** none. The champion (B0) is a transparent rule; all parameters live in `config/*.yaml`.
 
 ## 2. Method in one page
 
@@ -134,7 +136,16 @@ The notebook can also be opened directly in Jupyter (`project_analysis.ipynb`) a
 
 ### Optional: AI features
 
-Two features call the Claude API: extracting public-source values into `data/public/sources_draft.csv`, and writing the dashboard's bilingual evidence card. To enable them, copy `.env.example` to `.env` and set `ANTHROPIC_API_KEY`. Without a key both features fall back to cached outputs; **the notebook and forecast never need a key.**
+Three features call the Claude API, always on public pages or on aggregates, never on CRM rows: extracting public-source values into `data/public/sources_draft.csv`, the source watcher (`python scripts/extract_sources.py --watch`, public pages only), and the dashboard's scenario copilot and Q&A over the aggregates, with a number guard that rejects any figure not in the results. To enable them, copy `.env.example` to `.env` and set `ANTHROPIC_API_KEY`. Without a key the dashboard keeps its scenario dropdowns and, in the synthetic demo only, validated cached answers; **the notebook and forecast never need a key.**
+
+### Run the dashboard on real data
+
+```bash
+python scripts/export_aggregates.py --real     # writes outputs/private/aggregates.json (gitignored)
+streamlit run app/streamlit_app.py             # choose "Real (outputs/private)" in the sidebar
+```
+
+Demo mode (the default, synthetic data) works without any data or key: `streamlit run app/streamlit_app.py`.
 
 ## 4. Repository layout
 
@@ -213,11 +224,11 @@ As required by the challenge rules:
 
 | Tool | Use |
 |---|---|
-| Claude (Anthropic), chat | Planning, method design, code review, drafting documentation |
-| Claude Code (Anthropic) | Implementing code from reviewed prompts, running tests |
-| Claude API (Anthropic) | Extracting values from public web pages into a draft source table, verified by hand; writing the dashboard's bilingual narrative from aggregate results, with an automated check that every number matches the results |
+| Claude (Anthropic), chat | Planning and review of the method and the tasks |
+| Claude Code (Anthropic) | Implementation, tests, and an AI pre-merge review of every pull request |
+| Claude API (Anthropic) | (1) Extracting values from public web pages into a draft source table, verified by hand; (2) the source watcher, which re-reads the official pages (public pages only); (3) the dashboard's scenario copilot and Q&A over the aggregates, with a number guard that rejects any figure absent from the results |
 
-No CRM records were sent to the Claude API. The forecast itself is produced by the documented statistical method, not by an AI model.
+**No CRM data was sent to any API.** The API receives only public pages, the aggregates file (counts and percentages, no unit-level field by schema), committed notes with real-data numbers removed, and the user's question. The forecast itself is produced by the documented statistical method, not by an AI model.
 
 ## 10. Acknowledgements
 
