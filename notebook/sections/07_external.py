@@ -7,8 +7,10 @@
 # %% [markdown]
 # ## 7. Données externes et dates de publication
 #
-# **Entrée :** `data/public/sources.csv`, un registre de séries publiques vérifiées à la main (SCHL, IPC loyer de
-# Statistique Canada, pourcentages du TAL, ligne directrice de l'Ontario). Chaque ligne porte sa source (URL et
+# **Entrée :** `data/public/sources.csv`, un registre de séries publiques extraites avec l'aide de Claude,
+# contrôlées contre les pages officielles, et vérifiées par un humain sur un échantillon nommé (voir
+# docs/assumptions/MSR.md, M-03) (SCHL, IPC loyer de Statistique Canada, pourcentages du TAL, ligne directrice de
+# l'Ontario). Chaque ligne porte sa source (URL et
 # emplacement), sa période de référence et sa **date de publication**. Il y a aussi les paires admissibles de la
 # section 4.
 # **Opération :** charger et valider le registre, présenter la provenance de chaque série, puis comparer la hausse à
@@ -66,8 +68,8 @@ display(Markdown(
 # %% [markdown]
 # ### 7.2 Provenance des séries
 # Une ligne par série : éditeur, géographie, couverture, dernière date de publication, mode d'extraction (`manual` =
-# saisie ou téléchargement officiel, `llm` = lu par un modèle sur une page publique puis vérifié à la main) et rôle
-# dans l'analyse.
+# saisie ou téléchargement officiel, `llm` = lu par un modèle sur une page publique puis contrôlé contre la page
+# officielle (échantillon vérifié par un humain)) et rôle dans l'analyse.
 
 # %%
 provenance = provenance_table(external, cfg)
@@ -100,7 +102,7 @@ display(provenance.assign(role=provenance["role"].map(ROLE_FR),
 # %%
 pairs = build_pairs(tables.leases, cfg)
 comparison = reconcile(pairs, external, cfg)
-summary = reconcile_summary(comparison)
+market_summary = reconcile_summary(comparison)
 main_rows = comparison[comparison["lease_type"] == "all"].dropna(subset=["internal_contract_pct", "market_pct"])
 display(main_rows[["label", "province", "geography", "year", "n_pairs", "internal_contract_pct", "internal_net_pct",
                    "market_pct", "gap_contract_pp", "gap_net_pp", "release_date"]].rename(columns={
@@ -172,20 +174,20 @@ matrix = applicability_matrix(cfg, tables.leases)
 met_years = matrix.loc[matrix["building"].isin(met_buildings), "first_lease_year"].dropna()
 met_first_year = f"{int(met_years.min())}" if len(met_years) else "non observé"
 lines = []
-for row in summary.itertuples():
+for row in market_summary.itertuples():
     direction = "plus vite" if row.mean_gap_contract_pp > 0 else "moins vite"
     lines.append(f"- **{row.province}, {row.label}** ({row.geography}, {row.n_years} année(s) comparables) : "
                  f"l'extrait progresse en moyenne **{abs(row.mean_gap_contract_pp):.1f} points {direction}** que le "
                  f"marché en loyer contractuel (écart absolu moyen {row.mean_abs_gap_contract_pp:.1f} points ; "
                  f"{row.mean_gap_net_pp:+.1f} points en loyer net de toutes les concessions).")
-turnover = summary[summary["comparison"] == "cmhc_2br_turnover"]
+turnover = market_summary[market_summary["comparison"] == "cmhc_2br_turnover"]
 if not turnover.empty and (turnover["mean_gap_contract_pp"] < 0).all():
     lines.append("- Les relocations de l'extrait progressent nettement moins que les logements « avec changement de "
                  "locataire » de la SCHL. Explication plausible : chez la SCHL, un changement de locataire rattrape "
                  "souvent plusieurs années de hausses encadrées pendant un long bail. Dans l'extrait, les paires "
                  f"admissibles relient des baux consécutifs séparés de moins de {cfg['pairs']['max_gap_years']} ans, "
                  "donc le rattrapage est faible.")
-few_years = summary["n_years"] < len(cfg["forecast_years"]["backtest_years"])
+few_years = market_summary["n_years"] < len(cfg["forecast_years"]["backtest_years"])
 if few_years.any():
     lines.append(f"- {int(few_years.sum())} comparaison(s) ont moins d'années communes que les années de backtest "
                  f"(premier bail de the Ontario new-build dans l'extrait : {met_first_year}) : ce sont des indications, pas des "
