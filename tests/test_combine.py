@@ -527,3 +527,43 @@ def test_regulated_forecast_runs_when_the_synthetic_fixtures_get_tal_rows(raw, c
     assert np.isfinite(result.headline_net_pct)
     assert scenario_table(result, cfg)["headline_net_pct"].notna().sum() >= 7
     assert building_beds_forecast(result, cfg)["net_pct_shrunk"].notna().all()
+
+
+# ---------------------------------------------------------------------------
+# Headline split by province
+# ---------------------------------------------------------------------------
+def province_map(tables) -> pd.Series:
+    return tables.leases.drop_duplicates("prop_code").set_index("prop_code")["province"]
+
+
+def test_province_split_covers_every_province_and_repeats_the_headline(cfg):
+    from leaselens.forecast.baselines import last_year
+    from leaselens.forecast.scenarios import headline_by_province
+    tables = engine_tables()
+    result = last_year(make_snapshot(tables, empty_external(), CUTOFF), cfg)
+    split = headline_by_province(result, province_map(tables)).set_index("province")
+    assert set(split.index) == {"QC", "ON", "all"}
+    assert split.loc[["QC", "ON"], "weight_share"].sum() == pytest.approx(1.0)
+    assert split.loc["all", "net_pct"] == pytest.approx(result.headline_net_pct)
+    assert split.loc["all", "contract_pct"] == pytest.approx(result.headline_contract_pct)
+
+
+def test_province_split_gives_each_province_its_own_growth(cfg):
+    from leaselens.forecast.baselines import last_year
+    from leaselens.forecast.scenarios import headline_by_province
+    fast = annual_leases({year: 0.10 for year in range(2020, 2026)}, units=[u for u in ENGINE_UNITS if u[0] == "aaa"])
+    flat = annual_leases({year: 0.0 for year in range(2020, 2026)}, units=[u for u in ENGINE_UNITS if u[0] == "bbb"])
+    tables = tables_from(pd.concat([fast, flat], ignore_index=True))
+    result = last_year(make_snapshot(tables, empty_external(), CUTOFF), cfg)
+    split = headline_by_province(result, province_map(tables)).set_index("province")
+    assert split.loc["QC", "net_pct"] == pytest.approx(10.0, abs=0.1)        # aaa is the Québec building
+    assert split.loc["ON", "net_pct"] == pytest.approx(0.0, abs=0.1)
+    assert split.loc["QC", "weight_share"] == pytest.approx(0.5)
+
+
+def test_province_split_works_on_engine_results_too(cfg):
+    from leaselens.forecast.scenarios import headline_by_province
+    tables = engine_tables()
+    result = run_forecast(tables, cfg)
+    split = headline_by_province(result, province_map(tables)).set_index("province")
+    assert split.loc["all", "net_pct"] == pytest.approx(result.headline_net_pct)

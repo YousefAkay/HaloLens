@@ -12,7 +12,8 @@ from typing import Callable
 import numpy as np
 import pandas as pd
 from leaselens.config import cutoff_for
-from leaselens.contracts import BacktestResult, CanonicalTables, ForecastResult, Snapshot
+from leaselens.contracts import (ASKING_COLUMNS, CONCESSIONS_COLUMNS, EXTERNAL_COLUMNS, UNITS_COLUMNS, BacktestResult,
+                                 CanonicalTables, ForecastResult, Snapshot)
 from leaselens.evaluate.metrics import absolute_error_pp, mean_absolute_error_pp, signed_error_pp
 from leaselens.forecast.asof import snapshot_for_year
 from leaselens.forecast.baselines import (BASELINES, frozen_weights, headline_summary, to_pct, training_pairs,
@@ -201,3 +202,93 @@ def select_champion(table: pd.DataFrame, cfg: dict) -> dict:
     ranking = pd.concat([eligible, ranking[~ranking["eligible"]]], ignore_index=True)
     return {"champion": eligible["model"].iloc[0], "rule": RULE_JAN31, "metric": metric,
             "selection_years": list(selection), "holdout_year": holdout, "ranking": ranking}
+
+
+# ---------------------------------------------------------------------------
+# Champion pipeline: the one path behind estimate_2026() and backtest() (notebook section 10)
+# ---------------------------------------------------------------------------
+def empty_external() -> pd.DataFrame:
+    """An external table with the contract columns and no rows (models that need public data then report a reason)."""
+    return pd.DataFrame(columns=EXTERNAL_COLUMNS).astype(
+        {"release_date": "datetime64[ns]", "ref_period_start": "datetime64[ns]", "ref_period_end": "datetime64[ns]",
+         "accessed_date": "datetime64[ns]", "value": float})
+
+
+def tables_from_leases(leases: pd.DataFrame, asking: pd.DataFrame) -> CanonicalTables:
+    """CanonicalTables from the two tables the sponsor signatures receive; concessions and listings are left empty.
+
+    No model uses them: the incentive engine works from the lease rows (contract vs net rent) and listings are never
+    used for historical folds.
+    """
+    return CanonicalTables(leases=leases, concessions=pd.DataFrame(columns=CONCESSIONS_COLUMNS), asking=asking,
+                           units=pd.DataFrame(columns=UNITS_COLUMNS))
+
+
+def champion_pipeline(tables: CanonicalTables, external: pd.DataFrame | None, cfg: dict,
+                      table: pd.DataFrame | None = None) -> dict:
+    """Run the pre-declared champion rule: backtest every model, select_champion, return that model's forecaster.
+
+    `table` may carry an already computed Jan-31 backtest table (from `backtest_all_models`) to avoid recomputing it.
+    Returns the `select_champion` dict plus `forecaster`. The rule is fixed in advance (core.yaml selection years,
+    forecast.yaml selection metric); nothing here looks at the holdout year.
+    """
+    external = empty_external() if external is None else external
+    table = backtest_all_models(tables, external, cfg) if table is None else table
+    chosen = select_champion(table, cfg)
+    return {**chosen, "forecaster": all_models()[chosen["champion"]]}
+
+
+def champion_forecast(tables: CanonicalTables, external: pd.DataFrame | None, cfg: dict,
+                      year: int | None = None, table: pd.DataFrame | None = None) -> ForecastResult:
+    """The champion model's ForecastResult for `year` (default: the target year) under the agreed Jan-31 information date."""
+    external = empty_external() if external is None else external
+    year = cfg["forecast_years"]["target_year"] if year is None else year
+    pipeline = champion_pipeline(tables, external, cfg, table)
+    return pipeline["forecaster"](snapshot_for_year(tables, external, year, cfg), cfg)
+
+
+def champion_backtest(tables: CanonicalTables, external: pd.DataFrame | None, target_year: int, cfg: dict,
+                      table: pd.DataFrame | None = None) -> BacktestResult:
+    """One backtest fold of the champion model (same fold code as `run_backtest`), reporting the Dec-31 sensitivity too.
+
+    For 2023 and 2024 this is a selection fold (the champion was chosen on those years by a rule declared in advance);
+    2025 is the out-of-sample holdout.
+    """
+    external = empty_external() if external is None else external
+    pipeline = champion_pipeline(tables, external, cfg, table)
+    result = _fold(pipeline["forecaster"], tables, external, target_year, cfg)
+    if cfg["forecast_years"]["external_cutoff_strict_sensitivity"]:
+        strict = _fold(pipeline["forecaster"], tables, external, target_year, cfg, strict=True)
+        result.coverage[SENSITIVITY_KEY] = {
+            "forecast_net_pct": strict.forecast.headline_net_pct,
+            "forecast_contract_pct": strict.forecast.headline_contract_pct,
+            "error_pp_net": strict.error_pp_net, "error_pp_contract": strict.error_pp_contract}
+    result.coverage["champion"] = pipeline["champion"]
+    return result
+
+
+def headline_table(tables: CanonicalTables, external: pd.DataFrame | None, cfg: dict,
+                   year: int | None = None) -> pd.DataFrame:
+    """Headline of every model for `year` (default: the target year) under the Jan-31 rule and the Dec-31 sensitivity.
+
+    Columns: rule ("jan31" / "dec31_strict"), model, net_pct, contract_pct, median_net_pct, median_contract_pct, note
+    (the reason when a model cannot run, with NaN values). Aggregates only.
+    """
+    external = empty_external() if external is None else external
+    year = cfg["forecast_years"]["target_year"] if year is None else year
+    rules = [(False, RULE_JAN31)] + ([(True, RULE_DEC31)] if cfg["forecast_years"]["external_cutoff_strict_sensitivity"] else [])
+    rows = []
+    for strict, rule in rules:
+        snapshot = snapshot_for_year(tables, external, year, cfg, strict=strict)
+        for name, forecaster in all_models().items():
+            row = {"rule": rule, "model": name, "net_pct": np.nan, "contract_pct": np.nan, "median_net_pct": np.nan,
+                   "median_contract_pct": np.nan, "note": ""}
+            try:
+                result = forecaster(snapshot, cfg)
+            except ValueError as problem:
+                row["note"] = str(problem)
+            else:
+                row.update(net_pct=result.headline_net_pct, contract_pct=result.headline_contract_pct,
+                           median_net_pct=result.median_net_pct, median_contract_pct=result.median_contract_pct)
+            rows.append(row)
+    return pd.DataFrame(rows)
