@@ -15,11 +15,76 @@ composition:
   naive_years_start: 2019         # first year shown in the naive vs same-unit comparison
   strata: [prop_code, beds, is_renewal]  # same segments as the headline (core.yaml headline.segment_keys)
 
+renewals:
+  min_pairs_per_cell: 5           # a year x province x lease-type cell with fewer eligible pairs shows its count only (growth too noisy to read)
+
 regulation:
-  # Values are filled from data/public/sources.csv (with release dates), never typed from memory.
+  # Reference percentages come from data/public/sources.csv (with release dates), never typed from memory.
+  # The matrix below is a reading of public rules for scenario design. It is never a legal determination.
   quebec_regime: TAL
   ontario_regime: ontario_guideline
-  ontario_post_2018_exemption_cutoff: "2018-11-15"  # first residential occupancy after this date may be exempt (verify)
+  ontario_post_2018_exemption_cutoff: "2018-11-15"  # RTA s.6.1: units first occupied as residential after this date are exempt from the guideline
+  quebec_new_building_years: 5    # Civil Code art. 1955 (lease clause F): no TAL rent fixing for 5 years after the building is ready for habitation
+  reference_metrics:              # public series compared with renewal growth, per province (never cross-applied)
+    QC: tal_renewal_reference_pct # TAL reference % for an unheated dwelling: a benchmark used when the TAL fixes rent, not a ceiling
+    "ON": ontario_guideline_pct   # Ontario guideline: legal ceiling on renewal increases for non-exempt units (quoted: bare ON is a YAML boolean)
+  regimes:                        # rule text shown in section 06 (French: notebook language); one entry per province x lease type
+    QC:
+      renewal:
+        rule: "Hausse négociée ; le locataire peut la refuser et le TAL fixe alors le loyer avec sa méthode de calcul."
+        reference_metric: tal_renewal_reference_pct
+        binding: false            # the TAL percentage guides a fixing decision; it does not cap an accepted increase
+      turnover:
+        rule: "Loyer du nouveau locataire fixé par le locateur ; il doit déclarer le plus bas loyer des 12 derniers mois (section G du bail) et le nouveau locataire peut demander au TAL de le fixer."
+        reference_metric: ""
+        binding: false
+    "ON":
+      renewal:
+        rule: "Hausse limitée par la ligne directrice annuelle, sauf logements exemptés (première occupation résidentielle après le 15 novembre 2018)."
+        reference_metric: ontario_guideline_pct
+        binding: true             # the guideline caps renewal increases unless the unit is exempt
+      turnover:
+        rule: "Aucun plafond au changement de locataire (déréglementation à la vacance)."
+        reference_metric: ""
+        binding: false
+  buildings:                      # public facts from the sponsor brief: building name as in the extract and its province
+    - building: Building
+      province: QC
+      scenario: none
+    - building: Building
+      province: QC
+      scenario: none
+    - building: Building
+      province: QC
+      scenario: quebec_new_building   # phase 3 only (first leases in 2025); phases 1-2 are older
+    - building: Building
+      province: QC
+      scenario: quebec_new_building   # first leased in 2023 per the extract
+    - building: Building
+      province: QC
+      scenario: quebec_new_building   # first leased in 2024 per the extract
+    - building: the Ontario new-build
+      province: "ON"
+      scenario: ontario_post_2018_exemption  # first leased in 2023, after the Nov 15 2018 cutoff
+  scenarios:                      # what each scenario changes, for renewals only (turnovers are never capped by these rules)
+    quebec_new_building:
+      central: "Méthode du TAL comme référence (clause F non vérifiée)."
+      alternative: "Clause F possible : pas de fixation par le TAL pendant 5 ans, hausse au renouvellement non encadrée."
+      central_reference: true     # central keeps the TAL reference line
+      alternative_reference: false
+    ontario_post_2018_exemption:
+      central: "Exemption post-15 novembre 2018 plausible : la ligne directrice ne plafonne pas les renouvellements."
+      alternative: "La ligne directrice s'applique aux renouvellements."
+      central_reference: false    # matches forecast.yaml scenarios.met_guideline_applies[0] (central = exempt)
+      alternative_reference: true
+  post_cutoff_note: "Québec : le pourcentage du TAL pour 2026 (publié le 19 janvier 2026) est connu à la date d'information du 31 janvier 2026 et sert donc d'intrant à la prévision 2026. Il est calculé avec la nouvelle méthode annoncée le 17 décembre 2025 (« pourcentage de base ») : il ne se compare pas directement aux « estimations moyennes » des années antérieures. Avec la coupure stricte du 31 décembre 2025 (sensibilité), il ne serait pas connu."
+  exemption_evidence:             # section 06 evidence block for the Ontario post-2018 exemption scenario (the Ontario new-build)
+    above_reference_tolerance_pp: 0.05  # a renewal counts as above the guideline only if its 12-month increase exceeds it by more than this (cent rounding)
+    law_url: https://www.ontario.ca/page/rent-increase-guideline  # states the exemption; legal text: RTA 2006 s.6.1 (ontario.ca/laws/statute/06r17)
+    law_quote: "new buildings, additions to existing buildings and most new basement apartments that are occupied for the first time for residential purposes after November 15, 2018 are exempt from rent control."
+    occupancy_url: https://source.ca/project-doubles-down-on-ottawa-with-2nd-downtown-multires-tower  # source, Danny Kucharsky, 2023-06-19 (accessed 2026-10-03)
+    occupancy_quote: "Fresh off the completion of its 303-unit the Ontario new-build multiresidential development at 180 Street St. [...] rentals at the Ontario new-build, which began occupancy last month"
+    occupancy_fact: "the Ontario new-build (180, rue Street, Ottawa), projet locatif de 303 logements, a commencé à être occupée en mai 2023 (source, 19 juin 2023), soit après le 15 novembre 2018."
 
 external:
   sources_file: sources.csv       # verified public observations (under data.public_dir); the only file analysis reads
