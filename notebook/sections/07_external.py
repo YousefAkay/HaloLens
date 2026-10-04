@@ -30,7 +30,8 @@ from leaselens.config import external_cutoff_for
 from leaselens.contracts import COLOR_CONTRACT, COLOR_MARKET, COLOR_NET
 from leaselens.market.reconcile_market import provenance_table, reconcile, reconcile_summary
 from leaselens.market.registry import as_of, load_external, validate_external
-from leaselens.measure.labels import french_date, french_month
+from leaselens.market.regulation import EXEMPTION_SCENARIO, applicability_matrix
+from leaselens.measure.labels import french_date, french_month, french_month_day
 from leaselens.measure.pairs import build_pairs
 
 ROLE_FR = {"compared": "comparée (7.3)", "context_only": "contexte régional seulement",
@@ -42,8 +43,8 @@ LEASE_TYPE_FR = {"all": "tous", "renewal": "renouvellement", "turnover": "reloca
 # Étape qui transforme les données : le registre est lu avec des dates typées et des valeurs numériques. Il remplace
 # la variable partagée `external` (jusqu'ici `None`), que les sections suivantes utilisent. Les données publiques ne
 # servent à prévoir l'année *y* que si elles sont publiées au plus tard à la date d'information de *y* (règle approuvée
-# par le mentor, date affichée ci-dessous) ; ce filtre est appliqué par `as_of` lors de chaque prévision et de chaque
-# backtest.
+# par le mentor, dates affichées ci-dessous à partir de `config/core.yaml`) ; ce filtre est appliqué par `as_of` lors de
+# chaque prévision et de chaque backtest.
 
 # %%
 external = load_external(Path(cfg["_root"]) / cfg["data"]["public_dir"] / cfg["external"]["sources_file"])
@@ -51,7 +52,12 @@ problems = validate_external(external, cfg)
 target_year = cfg["forecast_years"]["target_year"]
 info_date = external_cutoff_for(target_year, cfg)
 usable = as_of(external, info_date)
+info_day = french_month_day(cfg["forecast_years"]["external_cutoff_month_day"])
+cutoff_day = french_month_day(cfg["forecast_years"]["cutoff_month_day"])
 display(Markdown(
+    f"**Date d'information :** une donnée publique sert à prévoir l'année *y* si elle est publiée au plus tard le "
+    f"**{info_day} de *y***. Les baux restent coupés au **{cutoff_day} précédent** ; la version stricte (publication "
+    f"au plus tard le {cutoff_day} précédent) est une sensibilité.\n\n"
     f"Registre : **{len(external)}** observations, **{external['series_id'].nunique()}** séries. "
     f"Validation : {'**aucun problème**' if not problems else '; '.join(problems)}. "
     f"Observations publiées au plus tard le {french_date(info_date)} (utilisables pour {target_year}) : "
@@ -145,14 +151,14 @@ plt.show()
 # Les cellules ont la même règle de taille minimale.
 
 # %%
-split_beds = sorted({str(comparison_cfg["beds"]) for comparison_cfg in cfg["reconcile_market"]["comparisons"]
-                     if comparison_cfg["lease_type"] != "all"})
-display(Markdown(f"Nombre de chambres comparé : **{', '.join(split_beds)}**."))
+split_beds = ", ".join(sorted({str(comparison_cfg["beds"]) for comparison_cfg in cfg["reconcile_market"]["comparisons"]
+                                if comparison_cfg["lease_type"] != "all" and comparison_cfg["beds"] is not None}))
+display(Markdown(f"Nombre de chambres comparé (`reconcile_market.comparisons`) : **{split_beds}**."))
 split_rows = comparison[comparison["lease_type"] != "all"].dropna(subset=["internal_contract_pct", "market_pct"])
 display(split_rows.assign(lease_type=split_rows["lease_type"].map(LEASE_TYPE_FR))[
     ["province", "lease_type", "year", "n_pairs", "internal_contract_pct", "internal_net_pct", "market_pct",
      "gap_contract_pp", "release_date"]].rename(columns={
-        "province": "province", "lease_type": "type de bail", "year": "année", "n_pairs": "paires",
+        "province": "province", "lease_type": "type de bail", "year": "année", "n_pairs": f"paires ({split_beds} ch.)",
         "internal_contract_pct": "interne, loyer contractuel (%)", "internal_net_pct": "interne, loyer net (%)",
         "market_pct": "SCHL (%)", "gap_contract_pp": "écart, loyer contractuel (pts)", "release_date": "publiée le"}).round(2))
 
@@ -160,9 +166,11 @@ display(split_rows.assign(lease_type=split_rows["lease_type"].map(LEASE_TYPE_FR)
 # ### 7.5 Lecture
 
 # %%
-met_buildings = [entry["building"] for entry in cfg["regulation"]["buildings"] if entry["province"] == "ON"]
-met_starts = tables.leases.loc[tables.leases["building"].isin(met_buildings), "lease_start"]
-met_first_year = f"{met_starts.min().year}" if len(met_starts) else "non observé"
+met_buildings = [entry["building"] for entry in cfg["regulation"]["buildings"]
+                 if entry.get("scenario") == EXEMPTION_SCENARIO]
+matrix = applicability_matrix(cfg, tables.leases)
+met_years = matrix.loc[matrix["building"].isin(met_buildings), "first_lease_year"].dropna()
+met_first_year = f"{int(met_years.min())}" if len(met_years) else "non observé"
 lines = []
 for row in summary.itertuples():
     direction = "plus vite" if row.mean_gap_contract_pp > 0 else "moins vite"
