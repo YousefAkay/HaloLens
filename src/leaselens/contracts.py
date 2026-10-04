@@ -147,6 +147,8 @@ class BacktestResult:
 AGGREGATES_SCHEMA_VERSION = 1
 INFORMATION_RULES = ("jan31", "dec31_strict")  # jan31: public data by January 31 of the target year; dec31_strict: sensitivity
 MODES = ("synthetic", "real")
+LEVER_LABELS = ("minus", "zero", "plus", "none")  # scenario lever settings: minus or plus one step, zero, or not a lever
+MET_LABELS = ("exempt", "guideline", "none")  # Met central (exempt) or alternative (guideline applies), or not a lever
 
 _NUMBER = {"type": ["number", "null"]}
 _COUNT = {"type": "integer", "minimum": 0}
@@ -160,7 +162,8 @@ AGGREGATES_SCHEMA = {
     "type": "object",
     "additionalProperties": False,
     "required": ["schema_version", "mode", "target_year", "as_of", "definition", "headline", "companions",
-                 "backtest", "coverage", "scenarios", "sources", "note"],
+                 "backtest", "coverage", "scenarios", "sources", "scenario_grid", "building_beds", "sensitivity",
+                 "note"],
     "properties": {
         "schema_version": {"const": AGGREGATES_SCHEMA_VERSION},
         "mode": {"enum": list(MODES)},
@@ -237,6 +240,49 @@ AGGREGATES_SCHEMA = {
                 "type": "object", "additionalProperties": False,
                 "required": ["series_id", "publisher", "release_date", "url"],
                 "properties": {"series_id": _TEXT, "publisher": _TEXT, "release_date": _DATE, "url": _TEXT},
+            },
+        },
+        # Scenario grid (I-12): E2 under every lever combination and both information rules, plus the champion's
+        # base headline per rule (its levers are "none": scenario levers act on the E2 segments only).
+        "scenario_grid": {
+            "type": "array",
+            "items": {
+                "type": "object", "additionalProperties": False,
+                "required": ["model", "information_rule", "incentive_shift", "renewal_shift", "met_regime",
+                             "headline_net_pct", "headline_contract_pct"],
+                "properties": {
+                    "model": _TEXT, "information_rule": {"enum": list(INFORMATION_RULES)},
+                    "incentive_shift": {"enum": list(LEVER_LABELS)}, "renewal_shift": {"enum": list(LEVER_LABELS)},
+                    "met_regime": {"enum": list(MET_LABELS)},
+                    "headline_net_pct": _NUMBER, "headline_contract_pct": _NUMBER,
+                },
+            },
+        },
+        # Building x beds (I-12): forecast per building and bedroom count; building names only, never unit identifiers.
+        "building_beds": {
+            "type": "array",
+            "items": {
+                "type": "object", "additionalProperties": False,
+                "required": ["building", "beds", "n_pairs", "net_pct_raw", "net_pct_shrunk", "contract_pct_raw",
+                             "contract_pct_shrunk"],
+                "properties": {
+                    "building": _TEXT, "beds": {"type": "integer"}, "n_pairs": _COUNT,
+                    "net_pct_raw": _NUMBER, "net_pct_shrunk": _NUMBER,
+                    "contract_pct_raw": _NUMBER, "contract_pct_shrunk": _NUMBER,
+                },
+            },
+        },
+        # One-assumption-at-a-time sensitivities (F-10): deltas are relative to the base of the same model.
+        "sensitivity": {
+            "type": "array",
+            "items": {
+                "type": "object", "additionalProperties": False,
+                "required": ["assumption", "variant", "setting", "model", "headline_net_pct", "base_net_pct",
+                             "delta_pp", "note"],
+                "properties": {
+                    "assumption": _TEXT, "variant": _TEXT, "setting": _TEXT, "model": _TEXT,
+                    "headline_net_pct": _NUMBER, "base_net_pct": _NUMBER, "delta_pp": _NUMBER, "note": _TEXT,
+                },
             },
         },
         "note": _TEXT,
