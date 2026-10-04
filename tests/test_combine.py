@@ -302,3 +302,228 @@ def test_forecast_runs_on_the_synthetic_fixtures_at_every_backtest_fold(raw, cfg
         result = run_forecast(synthetic, cfg, cutoff_for(year, cfg))
         assert np.isfinite(result.headline_net_pct) and np.isfinite(result.headline_contract_pct)
         assert result.target_year == year
+
+
+# ---------------------------------------------------------------------------
+# E2_regulated: Québec renewals anchored on the TAL percentage; Ontario (the Ontario new-build) exempt unless the guideline applies
+# ---------------------------------------------------------------------------
+from tests.test_baselines import GUIDELINE_PCT, TAL_PCT, regulated_rows   # noqa: E402
+
+PERCENT_OF_RATE = 100
+
+
+def run_regulated(tables, cfg, strict=False, met_guideline_applies=False, external=None):
+    from leaselens.forecast.asof import snapshot_for_year
+    from leaselens.forecast.combine import forecast_regulated
+    external = regulated_rows() if external is None else external
+    snapshot = snapshot_for_year(tables, external, 2025, cfg, strict=strict)
+    return forecast_regulated(snapshot, cfg, met_guideline_applies=met_guideline_applies)
+
+
+def qc_gap() -> float:
+    return float(np.mean([np.log1p(CONSTANT_GROWTH[y]) - np.log1p(TAL_PCT[y] / PERCENT_OF_RATE) for y in (2022, 2023, 2024)]))
+
+
+def test_qc_renewals_are_anchored_on_the_target_years_tal_rate_plus_the_training_gap(cfg):
+    result = run_regulated(engine_tables(), cfg)
+    segments = result.segments.set_index("prop_code")
+    expected = np.log1p(TAL_PCT[2025] / PERCENT_OF_RATE) + qc_gap()
+    assert result.model_name == "E2_regulated"
+    assert segments.loc["aaa", "g_contract"] == pytest.approx(expected, abs=2e-3)
+    assert segments.loc["aaa", "g_source"] == "tal_anchor"
+    anchor = result.components["regulatory_anchors"]["QC"]
+    assert anchor["rate_year"] == 2025 and anchor["rate_pct"] == pytest.approx(TAL_PCT[2025]) and anchor["gap_years"] == [2022, 2023, 2024]
+
+
+def test_ontario_renewals_keep_the_e1_blend_in_the_central_scenario(cfg):
+    e1 = run_forecast(engine_tables(), cfg)
+    e2 = run_regulated(engine_tables(), cfg)
+    on_e1 = e1.segments.set_index("prop_code").loc["bbb", "g_contract"]
+    on_e2 = e2.segments.set_index("prop_code").loc["bbb"]
+    assert on_e2["g_source"] == "blend" and on_e2["g_contract"] == pytest.approx(on_e1)
+
+
+def test_met_guideline_scenario_anchors_ontario_renewals_on_the_guideline_plus_its_gap(cfg):
+    central = run_regulated(engine_tables(), cfg)
+    alternative = run_regulated(engine_tables(), cfg, met_guideline_applies=True)
+    gap = np.log1p(CONSTANT_GROWTH[2024]) - np.log1p(GUIDELINE_PCT[2024] / PERCENT_OF_RATE)
+    expected = np.log1p(GUIDELINE_PCT[2025] / PERCENT_OF_RATE) + gap
+    on_alt = alternative.segments.set_index("prop_code").loc["bbb"]
+    assert on_alt["g_source"] == "guideline_anchor" and on_alt["g_contract"] == pytest.approx(expected, abs=2e-3)
+    assert alternative.headline_contract_pct < central.headline_contract_pct          # guideline 1.5% < history 3%
+    # the central result already carries the alternative's number for the scenario table
+    assert central.segments.set_index("prop_code").loc["bbb", "g_contract_met_alt"] == pytest.approx(on_alt["g_contract"])
+
+
+def test_strict_rule_falls_back_to_the_latest_released_tal_year(cfg):
+    jan31 = run_regulated(engine_tables(), cfg)
+    strict = run_regulated(engine_tables(), cfg, strict=True)
+    assert strict.components["regulatory_anchors"]["QC"]["rate_year"] == 2024     # the 2025 rate came out Jan 15, 2025
+    assert strict.headline_contract_pct != jan31.headline_contract_pct
+
+
+def test_turnovers_and_the_incentive_engine_are_identical_to_e1(cfg):
+    leases = pd.concat([annual_leases(CONSTANT_GROWTH, units=ENGINE_UNITS).assign(is_renewal=True),
+                        annual_leases(CONSTANT_GROWTH, units=[("ccc", "QC", f"{i:04d}") for i in range(UNITS_PER_PROP)])
+                        .assign(is_renewal=False)], ignore_index=True)
+    tables = tables_from(leases)
+    from leaselens.forecast.asof import snapshot_for_year
+    from leaselens.forecast.combine import forecast
+    snapshot = snapshot_for_year(tables, regulated_rows(), 2025, cfg)
+    e1, e2 = forecast(snapshot, cfg).segments, run_regulated(tables, cfg).segments
+    turnover = ~e1["is_renewal"].astype(bool)
+    pd.testing.assert_frame_equal(e1.loc[turnover, ["prop_code", "g_contract", "d0", "d1", "g_net"]].reset_index(drop=True),
+                                  e2.loc[turnover, ["prop_code", "g_contract", "d0", "d1", "g_net"]].reset_index(drop=True))
+
+
+def test_e2_needs_a_released_tal_rate(cfg):
+    with pytest.raises(ValueError, match="rate"):
+        run_regulated(engine_tables(), cfg, external=empty_external())
+
+
+def test_e2_ignores_leases_and_rates_after_the_cutoffs(cfg):
+    tables = engine_tables()
+    truncated = tables_from(tables.leases[tables.leases["lease_start"] <= CUTOFF])
+    later = pd.concat([regulated_rows(), regulated_rows(tal={2025: 50.0}).assign(
+        release_date=pd.Timestamp("2025-03-01"))], ignore_index=True)       # after the Jan-31 window
+    base = run_regulated(tables, cfg)
+    assert run_regulated(truncated, cfg, external=later).headline_net_pct == base.headline_net_pct
+
+
+def test_e2_without_ontario_segments_does_not_need_the_guideline(cfg):
+    qc_only = tables_from(annual_leases(CONSTANT_GROWTH, units=[u for u in ENGINE_UNITS if u[1] == "QC"]))
+    result = run_regulated(qc_only, cfg, external=regulated_rows(guideline={}))
+    assert "ON" not in result.components["regulatory_anchors"]
+    assert result.segments["g_contract_met_alt"].notna().all()
+
+
+# ---------------------------------------------------------------------------
+# Scenarios and per building x beds forecasts
+# ---------------------------------------------------------------------------
+@pytest.fixture(scope="module")
+def regulated_result(cfg):
+    """E2 on hand-made leases with discounts of 3% (2023) and 5% (2024): d0 = 5%, trend d1 = 7%."""
+    return run_regulated(engine_tables(discount_by_year={2023: 0.03, 2024: 0.05}), cfg)
+
+
+def row_of(table: pd.DataFrame, name: str) -> pd.Series:
+    return table.set_index("scenario").loc[name]
+
+
+def test_central_scenario_equals_the_forecast_headline(regulated_result, cfg):
+    from leaselens.forecast.scenarios import SCENARIO_COLUMNS, scenario_table
+    table = scenario_table(regulated_result, cfg)
+    assert list(table.columns) == SCENARIO_COLUMNS
+    central = row_of(table, "central")
+    assert central["headline_net_pct"] == pytest.approx(regulated_result.headline_net_pct)
+    assert central["headline_contract_pct"] == pytest.approx(regulated_result.headline_contract_pct)
+    assert central["delta_net_pp"] == pytest.approx(0.0)
+
+
+def test_deeper_incentives_lower_net_growth_and_leave_contract_growth_alone(regulated_result, cfg):
+    from leaselens.forecast.scenarios import scenario_table
+    table = scenario_table(regulated_result, cfg)
+    deeper, shallower, central = (row_of(table, n) for n in ("incentives_deeper", "incentives_shallower", "central"))
+    assert deeper["headline_net_pct"] < central["headline_net_pct"] < shallower["headline_net_pct"]
+    assert deeper["headline_contract_pct"] == pytest.approx(central["headline_contract_pct"])
+
+
+def test_renewal_mix_scenarios_move_toward_the_segment_with_more_growth(regulated_result, cfg):
+    from leaselens.forecast.scenarios import scenario_table
+    segments = regulated_result.segments
+    renewals_grow_more = (segments.loc[segments["is_renewal"], "g_contract"].mean()
+                          > segments.loc[~segments["is_renewal"], "g_contract"].mean())
+    table = scenario_table(regulated_result, cfg)
+    more, fewer = row_of(table, "more_renewals"), row_of(table, "fewer_renewals")
+    if segments["is_renewal"].all():                       # only renewals in the fixture: the mix cannot move
+        assert more["headline_net_pct"] == pytest.approx(fewer["headline_net_pct"])
+    else:
+        assert (more["headline_net_pct"] > fewer["headline_net_pct"]) == renewals_grow_more
+
+
+def test_reweighting_keeps_the_weights_summing_to_one_and_stays_in_bounds():
+    from leaselens.forecast.scenarios import _reweight
+    weights = pd.Series([0.3, 0.3, 0.2, 0.2])
+    is_renewal = pd.Series([True, True, False, False])
+    for shift in (-0.05, 0.0, 0.05, 0.9, -0.9):
+        moved = _reweight(weights, is_renewal, shift)
+        assert moved.sum() == pytest.approx(1.0) and (moved >= 0).all()
+    assert _reweight(weights, is_renewal, 0.1)[is_renewal].sum() == pytest.approx(0.7)
+    assert _reweight(weights, pd.Series([True] * 4), 0.1).equals(weights)
+
+
+def test_shallower_incentives_cannot_push_the_discount_below_zero(cfg):
+    from leaselens.forecast.scenarios import scenario_table
+    table = scenario_table(run_regulated(engine_tables(), cfg), cfg)          # no discounts at all: d1 = 0 already
+    assert row_of(table, "incentives_shallower")["headline_net_pct"] == pytest.approx(row_of(table, "central")["headline_net_pct"])
+    assert row_of(table, "incentives_deeper")["headline_net_pct"] < row_of(table, "central")["headline_net_pct"]
+
+
+def test_met_scenario_matches_the_alternative_forecast(regulated_result, cfg):
+    from leaselens.forecast.scenarios import scenario_table
+    alternative = run_regulated(engine_tables(discount_by_year={2023: 0.03, 2024: 0.05}), cfg, met_guideline_applies=True)
+    table = scenario_table(regulated_result, cfg)
+    assert row_of(table, "met_guideline_applies")["headline_net_pct"] == pytest.approx(alternative.headline_net_pct)
+    assert row_of(table, "met_guideline_applies")["headline_net_pct"] < row_of(table, "central")["headline_net_pct"]
+
+
+def test_low_and_high_bracket_the_central_and_every_single_lever(regulated_result, cfg):
+    from leaselens.forecast.scenarios import scenario_table
+    table = scenario_table(regulated_result, cfg).set_index("scenario")
+    assert table.loc["low", "headline_net_pct"] <= table["headline_net_pct"].drop(["low", "high"]).min() + 1e-9
+    assert table.loc["high", "headline_net_pct"] >= table["headline_net_pct"].drop(["low", "high"]).max() - 1e-9
+    assert table.loc["low", "headline_net_pct"] < table.loc["central", "headline_net_pct"] < table.loc["high", "headline_net_pct"]
+    assert table.loc["low", "delta_net_pp"] < 0 < table.loc["high", "delta_net_pp"]
+
+
+def test_scenarios_on_an_e1_result_leave_the_met_rows_empty_but_still_give_low_and_high(cfg):
+    from leaselens.forecast.scenarios import scenario_table
+    table = scenario_table(run_forecast(engine_tables(), cfg), cfg).set_index("scenario")
+    assert np.isnan(table.loc["met_guideline_applies", "headline_net_pct"])
+    assert np.isfinite(table.loc["low", "headline_net_pct"]) and not table.loc["low", "met_guideline_applies"]
+
+
+def test_incentive_shift_is_capped_at_the_maximum_discount_share(regulated_result, cfg):
+    from leaselens.forecast.scenarios import evaluate_scenario
+    huge = evaluate_scenario(regulated_result.segments, cfg, incentive_shift_pp=1000.0)
+    capped_d1 = cfg["incentives"]["max_discount_share"]
+    segments = regulated_result.segments
+    expected = (segments["weight"] * (segments["g_contract"] + np.log1p(-capped_d1) - np.log1p(-segments["d0"]))).sum()
+    assert huge["headline_net_pct"] == pytest.approx(100 * np.expm1(expected))
+
+
+def test_building_beds_forecast_has_one_row_per_cell_and_unit_weights(regulated_result, cfg):
+    from leaselens.forecast.scenarios import building_beds_forecast
+    table = building_beds_forecast(regulated_result, cfg)
+    assert len(table) == regulated_result.segments[["prop_code", "beds"]].drop_duplicates().shape[0]
+    assert table["weight"].sum() == pytest.approx(1.0)
+    assert {"net_pct_raw", "net_pct_shrunk", "contract_pct_raw", "contract_pct_shrunk", "building_net_pct"} <= set(table.columns)
+
+
+def test_shrinkage_pulls_thin_cells_toward_the_building_mean_and_leaves_thick_cells_alone(cfg):
+    from leaselens.forecast.scenarios import building_beds_forecast
+    from leaselens.contracts import ForecastResult
+    segments = pd.DataFrame({"prop_code": ["aaa", "aaa", "aaa"], "beds": [1, 2, 3], "is_renewal": [True, True, True],
+                             "weight": [0.5, 0.25, 0.25], "n_pairs_window": [1000, 1, 0],
+                             "g_net": [0.02, 0.10, 0.10], "g_contract": [0.02, 0.10, 0.10]})
+    result = ForecastResult(2025, CUTOFF, 0, 0, 0, 0, segments)
+    table = building_beds_forecast(result, cfg).set_index("beds")
+    building_log = 0.5 * 0.02 + 0.25 * 0.10 + 0.25 * 0.10
+    assert table.loc[1, "net_pct_shrunk"] == pytest.approx(table.loc[1, "net_pct_raw"], abs=0.1)       # n = 1000: ~raw
+    assert table.loc[3, "net_pct_shrunk"] == pytest.approx(100 * np.expm1(building_log))               # n = 0: the building mean
+    assert table.loc[2, "net_pct_raw"] > table.loc[2, "net_pct_shrunk"] > table.loc[2, "building_net_pct"]
+
+
+def test_regulated_forecast_runs_when_the_synthetic_fixtures_get_tal_rows(raw, cfg):
+    """Smoke test: E2, its scenarios and the building table on the committed synthetic fixtures (aggregates only)."""
+    from leaselens.forecast.asof import snapshot_for_year
+    from leaselens.forecast.combine import forecast_regulated
+    from leaselens.forecast.scenarios import building_beds_forecast, scenario_table
+    from leaselens.io import canonicalize
+    tal = {year: 2.0 for year in range(2019, 2027)}
+    guideline = {year: 2.5 for year in range(2019, 2027)}
+    snapshot = snapshot_for_year(canonicalize(raw), regulated_rows(tal, guideline), 2025, cfg)
+    result = forecast_regulated(snapshot, cfg)
+    assert np.isfinite(result.headline_net_pct)
+    assert scenario_table(result, cfg)["headline_net_pct"].notna().sum() >= 7
+    assert building_beds_forecast(result, cfg)["net_pct_shrunk"].notna().all()

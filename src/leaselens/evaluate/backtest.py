@@ -18,7 +18,7 @@ from leaselens.forecast.asof import snapshot_for_year
 from leaselens.forecast.baselines import (BASELINES, frozen_weights, headline_summary, to_pct, training_pairs,
                                           winsor_bounds)
 from leaselens.forecast.combine import MODEL_NAME as ENGINE_MODEL_NAME
-from leaselens.forecast.combine import forecast
+from leaselens.forecast.combine import REGULATED_MODEL_NAME, forecast, forecast_regulated
 from leaselens.measure.pairs import build_pairs
 
 Forecaster = Callable[[Snapshot, dict], ForecastResult]
@@ -123,6 +123,11 @@ def backtest_table(tables: CanonicalTables, external: pd.DataFrame, cfg: dict, m
     return pd.DataFrame(rows)
 
 
+def all_models() -> dict[str, Forecaster]:
+    """Every model that is backtested and eligible for champion selection: B0-B3, E1_engine_blend, E2_regulated."""
+    return {**BASELINES, ENGINE_MODEL_NAME: forecast, REGULATED_MODEL_NAME: forecast_regulated}
+
+
 def backtest_baselines(tables: CanonicalTables, external: pd.DataFrame, cfg: dict,
                        years: list[int] | None = None, strict: bool = False) -> pd.DataFrame:
     """Backtest table for B0-B2 only (same columns as `backtest_table`)."""
@@ -131,8 +136,8 @@ def backtest_baselines(tables: CanonicalTables, external: pd.DataFrame, cfg: dic
 
 def backtest_all_models(tables: CanonicalTables, external: pd.DataFrame, cfg: dict,
                         years: list[int] | None = None, strict: bool = False) -> pd.DataFrame:
-    """Backtest table for B0-B2 and the engine model E1 (forecast.combine.forecast), every model through the same folds."""
-    return backtest_table(tables, external, cfg, {**BASELINES, ENGINE_MODEL_NAME: forecast}, years, strict)
+    """Backtest table for every model (B0-B3, E1, E2; see `all_models`), each through the same folds."""
+    return backtest_table(tables, external, cfg, all_models(), years, strict)
 
 
 def backtest_both_rules(tables: CanonicalTables, external: pd.DataFrame, cfg: dict,
@@ -164,3 +169,35 @@ def summarize_models(table: pd.DataFrame, cfg: dict) -> pd.DataFrame:
                      "mae_holdout_pp": mean_absolute_error_pp(errors.reindex([holdout])),
                      "mae_all_pp": mean_absolute_error_pp(errors), "n_folds_run": int(errors.notna().sum())})
     return pd.DataFrame(rows)
+
+
+def select_champion(table: pd.DataFrame, cfg: dict) -> dict:
+    """Pre-declared champion rule: lowest mean absolute net error (pp) over the selection years, on the agreed Jan-31 rule.
+
+    Only `selection_years` (core.yaml, 2023-24) are used to choose; the holdout year (2025) is reported in the ranking
+    but never used to choose. A model is eligible only if it produced a forecast for every selection year; ties keep the
+    order of the table (simplest model first). Returns champion, rule, metric, selection_years, holdout_year and
+    ranking (model, mae_selection_pp, n_selection_folds_run, eligible, mae_holdout_pp), best first.
+    Raises ValueError when no model is eligible or the configured metric is not supported.
+    """
+    metric = cfg["selection"]["metric"]
+    if metric != "mean_absolute_error_pp":
+        raise ValueError(f"Unsupported selection metric: {metric!r}")
+    selection = cfg["forecast_years"]["selection_years"]
+    holdout = cfg["forecast_years"]["holdout_year"]
+    agreed = table[table["rule"] == RULE_JAN31] if "rule" in table.columns else table
+    rows = []
+    for name, group in agreed.groupby("model", sort=False):
+        errors = group.set_index("year")["abs_error_pp_net"]
+        in_selection = errors.reindex(selection)
+        rows.append({"model": name, "mae_selection_pp": mean_absolute_error_pp(in_selection),
+                     "n_selection_folds_run": int(in_selection.notna().sum()),
+                     "eligible": bool(in_selection.notna().all()),
+                     "mae_holdout_pp": mean_absolute_error_pp(errors.reindex([holdout]))})
+    ranking = pd.DataFrame(rows)
+    eligible = ranking[ranking["eligible"]].sort_values("mae_selection_pp", kind="stable")
+    if eligible.empty:
+        raise ValueError("No model produced a forecast for every selection year")
+    ranking = pd.concat([eligible, ranking[~ranking["eligible"]]], ignore_index=True)
+    return {"champion": eligible["model"].iloc[0], "rule": RULE_JAN31, "metric": metric,
+            "selection_years": list(selection), "holdout_year": holdout, "ranking": ranking}
