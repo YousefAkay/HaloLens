@@ -37,6 +37,18 @@ SIGNAL_COLUMNS = [
 ]
 
 
+SIGNAL_DTYPES = {
+    "prop_code": str, "beds": "int64", "is_renewal": bool, "expected_loggrowth_contract": float,
+    "asking_loggrowth": float, "spread_log": float, "n_listings": "int64", "n_spread_leases": "int64",
+    "signal_source": str, "spread_source": str,
+}
+
+
+def _empty_signal() -> pd.DataFrame:
+    """SIGNAL_COLUMNS table with no rows and the usual dtypes (no asking history at the cutoff)."""
+    return pd.DataFrame({column: pd.Series(dtype=SIGNAL_DTYPES[column]) for column in SIGNAL_COLUMNS})
+
+
 def _month_start(month: pd.Series) -> pd.Series:
     """First day of each pandas Period[M] as a Timestamp."""
     return month.dt.to_timestamp(how="start")
@@ -130,8 +142,11 @@ def turnover_signal(snapshot: Snapshot, cfg: dict) -> pd.DataFrame:
     - signal: `asking.aggregate` over listed units of [ln(asking / prior rent) + spread] / gap_years
       (`listing_growth`); a segment with fewer than `min_listings_per_segment` listed units uses its province pool.
     Columns: SIGNAL_COLUMNS. `expected_loggrowth_contract` is NaN (signal_source "none") when no listing or no
-    spread is available; the caller decides the fallback. Inputs are not modified.
+    spread is available; the caller decides the fallback. A snapshot without asking rows (cut before any asking
+    history) returns an empty SIGNAL_COLUMNS table. Inputs are not modified.
     """
+    if snapshot.asking.empty:
+        return _empty_signal()
     weights = frozen_weights(training_pairs(snapshot, cfg), snapshot.cutoff, cfg)
     segments = weights.loc[~weights["is_renewal"].astype(bool), ["prop_code", "beds", "is_renewal"]]
     province_of = snapshot.leases.drop_duplicates("prop_code").set_index("prop_code")["province"]
