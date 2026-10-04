@@ -34,6 +34,16 @@ combine:
   turnover_nowcast_weight: 0.3    # turnovers: portfolio-wide level from the monthly nowcast
   shrinkage_strength: 20          # pseudo-pairs pulling thin building x beds cells toward their building mean (F-07)
 
+anchors:
+  # Regulatory anchors for renewals (E2_regulated) and the B3_tal_anchor baseline. Rates come from the snapshot's external rows (Jan-31 rule).
+  tal_metric: tal_renewal_reference_pct   # `metric` in sources.csv for the Québec TAL reference percentage of a lease year
+  tal_geography: QC                       # geography code of the TAL rows (and the province whose renewals E2 anchors)
+  ontario_metric: ontario_guideline_pct   # `metric` for the Ontario rent increase guideline
+  ontario_geography: "ON"                 # geography code of the guideline rows (and the province of the alternative Met scenario); quoted because bare ON parses as a YAML boolean
+  gap_window_years: 3                     # training years before the target used to learn gap = actual renewal log growth - log(1 + rate)
+  min_pairs_per_gap_year: 5               # a province-year with fewer eligible renewal pairs is skipped when learning the gap
+  tal_method_change_year: 2026            # first lease year under the TAL method of Dec 17 2025; gap learned on older years is flagged, not adjusted
+
 selection:
   metric: mean_absolute_error_pp  # champion metric over selection_years
 
@@ -43,8 +53,8 @@ leakage_test:
   future_row_count: 5             # number of fake future leases appended per test
 
 scenarios:
-  # Low / central / high levers. Values set by FCT with justification in docs/assumptions/FCT.md.
-  incentive_intensity_shift_pp: null
-  renewal_share_shift_pp: null
-  met_guideline_applies: [false, true]   # central: post-2018 exemption plausible; alternative: guideline applies
-  include_post_cutoff_quebec_method: false
+  # Low / central / high levers. Sizes come from the real history (counts and means only), justified in docs/assumptions/FCT.md.
+  incentive_intensity_shift_pp: 2.0       # +/- shift of every segment's forecast discount share d1; the mean discount share rose 2.1 and 3.4 pp in the last two years
+  renewal_share_shift_pp: 5.0             # +/- shift of the renewal share of the frozen weights; the yearly swing averaged 3 pp and peaked near 7 pp
+  met_guideline_applies: [false, true]    # central: post-2018 exemption plausible; alternative: Ontario guideline applies to the Ontario new-build renewals
+  include_post_cutoff_quebec_method: false  # unused: the Jan 19 2026 TAL percentage is inside the Jan-31 window, so the new method is already the base case
