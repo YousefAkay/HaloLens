@@ -34,7 +34,8 @@ RECORD_SEPARATOR = "\x1e"  # ends each commit in the `git log --format=%B%x1e` d
 
 
 def git(*args: str) -> str:
-    result = subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True)
+    # Commit messages are UTF-8; decode explicitly so a Windows cp1252 locale cannot crash the status run (I-01f)
+    result = subprocess.run(["git", *args], cwd=ROOT, capture_output=True, encoding="utf-8", errors="replace")
     return result.stdout if result.returncode == 0 else ""
 
 

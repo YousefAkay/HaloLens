@@ -158,3 +158,13 @@ def test_future_asking_rows_do_not_change_the_signal(tables, cfg, synthetic_cuto
     leaked.asking = pd.concat([tables.asking, future], ignore_index=True)
     after = turnover_signal(make_snapshot(leaked, external, synthetic_cutoff), cfg)
     pd.testing.assert_frame_equal(baseline, after)
+
+
+def test_empty_asking_table_gives_empty_signal(hand_snapshot, cfg):
+    """REQUEST-FCT-01: a snapshot with no asking rows returns an empty SIGNAL_COLUMNS table instead of crashing."""
+    empty = copy.copy(hand_snapshot)
+    empty.asking = hand_snapshot.asking.iloc[:0]
+    signal = turnover_signal(empty, cfg)
+    assert signal.empty
+    assert list(signal.columns) == SIGNAL_COLUMNS
+    assert signal["expected_loggrowth_contract"].dtype == float

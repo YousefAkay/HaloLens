@@ -14,7 +14,8 @@ FORBIDDEN_PREFIXES = ("data/private/", "outputs/private/", "models/")
 
 def _tracked_files() -> list[str]:
     try:
-        output = subprocess.run(["git", "ls-files"], cwd=repo_root(), capture_output=True, text=True, check=True)
+        output = subprocess.run(["git", "ls-files"], cwd=repo_root(), capture_output=True, encoding="utf-8",
+                                errors="replace", check=True)
     except (OSError, subprocess.CalledProcessError):
         pytest.skip("not a git checkout")
     return output.stdout.splitlines()
