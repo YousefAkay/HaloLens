@@ -5,7 +5,7 @@
 # ---
 
 # %% [markdown]
-# # Hausse de loyer 2026 — the portfolio
+# # Halo Lens — Hausse de loyer 2026, the portfolio
 #
 # _Résumé exécutif complété à la fin (I-13) à partir des résultats calculés : hausse 2026, définition,
 # compagnons (loyer contractuel, médianes), plage de scénarios et erreurs de backtest._
@@ -46,8 +46,8 @@ def _find_root(start: Path):
 
 ROOT = _find_root(Path.cwd())
 if ROOT is None:
-    _stop("Ouvrez le notebook depuis le dossier du dépôt LeaseLens (celui qui contient config/core.yaml).",
-          "Open the notebook from the LeaseLens repository folder (the one that contains config/core.yaml).")
+    _stop("Ouvrez le notebook depuis le dossier du dépôt Halo Lens (celui qui contient config/core.yaml).",
+          "Open the notebook from the Halo Lens repository folder (the one that contains config/core.yaml).")
 try:
     import leaselens  # noqa: F401
 except ImportError:

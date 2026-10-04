@@ -2,7 +2,7 @@
 description: Autopilot — pick up the next task on your track's board, build it, open a PR into dev, and stop.
 ---
 
-You are working on the LeaseLens repo. Follow this routine exactly. AGENTS.md is the rulebook; this is the order of operations.
+You are working on the Halo Lens repo. Follow this routine exactly. AGENTS.md is the rulebook; this is the order of operations.
 
 ## 0. Preflight
 - From the repo root, run the project venv interpreter on `scripts/preflight.py`:

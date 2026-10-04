@@ -1,4 +1,4 @@
-# Light, neutral theme for the LeaseLens demo. primaryColor is contracts.COLOR_NET (a test keeps the two equal).
+# Light, neutral theme for the Halo Lens demo. primaryColor is contracts.COLOR_NET (a test keeps the two equal).
 [theme]
 base = "light"
 primaryColor = "#E69F00"

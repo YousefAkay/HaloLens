@@ -105,3 +105,12 @@ def test_no_key_qa_view_explains_unavailability_without_rendering_cache(monkeypa
     assert not any("Preset answers are not cached" in element.value for element in at.markdown)
     assert at.selectbox(key="lever_incentive").value == "zero"
     assert any("precomputed grid" in element.value for element in at.markdown)
+
+
+def test_header_and_page_title_show_halo_lens(app):
+    """I-16: the display name is Halo Lens in the header (both languages) and the browser page title."""
+    from app import ui
+
+    assert any("Halo Lens" in element.value for element in app.markdown)
+    assert ui.LABELS["fr"]["app_title"] == ui.LABELS["en"]["app_title"] == "Halo Lens"
+    assert 'page_title="Halo Lens"' in APP.read_text(encoding="utf-8")

@@ -27,7 +27,7 @@ BADGE_FONT_WEIGHT = 600  # CSS font weight of the badge text
 LABELS: dict[str, dict[str, str]] = {
     "en": {
         # header and badges
-        "app_title": "LeaseLens",
+        "app_title": "Halo Lens",
         "definition_line": "Fixed-composition same-unit growth in rent net of all incentives, for the target year.",
         "as_of": "Target year {year} · CRM cutoff {crm} · public data by {external} (sensitivity: {strict})",
         "badge_real": "Real data", "badge_demo": "Synthetic demo",
@@ -136,7 +136,7 @@ LABELS: dict[str, dict[str, str]] = {
         "pp": "pp",
     },
     "fr": {
-        "app_title": "LeaseLens",
+        "app_title": "Halo Lens",
         "definition_line": "Croissance à composition fixe, à unité constante, du loyer net de tous les incitatifs, pour l'année cible.",
         "as_of": "Année cible {year} · coupure du CRM {crm} · données publiques au {external} (sensibilité : {strict})",
         "badge_real": "Données réelles", "badge_demo": "Démo synthétique",

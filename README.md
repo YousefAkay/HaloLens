@@ -1,10 +1,12 @@
-# LeaseLens — the portfolio 2026 rent forecast
+# Halo Lens — the portfolio 2026 rent forecast
+
+Halo Lens (code package: `leaselens`).
 
 **project ·  2026 · Défi « Clés en main »**
 
-> **FR —** LeaseLens estime la hausse de loyer 2026 de the portfolio (six immeubles au Québec et en Ontario) à partir de l'historique des baux et de données publiques. Nous définissons précisément la hausse mesurée, comparons chaque unité à elle-même, traitons explicitement les concessions, séparons renouvellements et relocations selon les règles de chaque province, et validons la méthode par backtest sur 2023, 2024 et 2025.
+> **FR —** Halo Lens estime la hausse de loyer 2026 de the portfolio (six immeubles au Québec et en Ontario) à partir de l'historique des baux et de données publiques. Nous définissons précisément la hausse mesurée, comparons chaque unité à elle-même, traitons explicitement les concessions, séparons renouvellements et relocations selon les règles de chaque province, et validons la méthode par backtest sur 2023, 2024 et 2025.
 
-> **EN —** LeaseLens estimates the portfolio's 2026 rent increase from lease history and public market data. We define exactly what "rent increase" means, compare each unit with itself, handle incentives explicitly, separate renewals from turnovers under each province's rules, and validate the method by backtesting 2023, 2024 and 2025.
+> **EN —** Halo Lens estimates the portfolio's 2026 rent increase from lease history and public market data. We define exactly what "rent increase" means, compare each unit with itself, handle incentives explicitly, separate renewals from turnovers under each province's rules, and validate the method by backtesting 2023, 2024 and 2025.
 
 ---
 
@@ -25,7 +27,7 @@ jupyter lab project_analysis.ipynb  # puis / then : Run > Run All Cells (kernel 
 
 Si un fichier manque, le notebook s'arrête et indique les fichiers attendus. Si un paquet manque, il indique `pip install -r requirements.txt`. Les empreintes SHA-256 sont vérifiées avant toute lecture. / If a file is missing, the notebook stops and lists the expected files. If a package is missing, it asks you to run `pip install -r requirements.txt`. The SHA-256 hashes are checked before any file is read.
 
-**Durée attendue / Expected run time:** environ / about 4 minutes (Python 3.13 : 213 s sur la machine d'essai, hors installation / on the test machine, excluding installation).
+**Durée attendue / Expected run time :** environ 6 à 12 minutes selon la machine (le bootstrap §11a et les sensibilités §11b sont les plus longs), plus environ 8 minutes pour `pip install` / about 6–12 minutes depending on the machine (bootstrap §11a and sensitivities §11b are the slowest), plus about 8 minutes for `pip install`.
 
 **Sorties / Outputs:** les figures sont intégrées au notebook. Les sorties calculées sur vos fichiers restent sur votre machine. / The figures are embedded in the notebook. Outputs computed from your files stay on your machine.
 

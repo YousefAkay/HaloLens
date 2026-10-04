@@ -19,7 +19,7 @@ nbformat>=5.10
 nbclient>=0.10
 
 # App and AI features (optional at runtime)
-streamlit>=1.38,<2
+streamlit>=1.65,<2
 anthropic>=0.40
 python-dotenv>=1.0,<2
 # REQUEST-MSR-01: scripts/extract_sources.py imports pydantic directly for the LLM schema

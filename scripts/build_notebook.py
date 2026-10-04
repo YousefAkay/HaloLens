@@ -57,7 +57,7 @@ def execute(notebook: nbformat.NotebookNode, kernel_name: str, timeout: int) -> 
 
 
 def parse_args(argv: list[str] | None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Build the LeaseLens analysis notebook.")
+    parser = argparse.ArgumentParser(description="Build the Halo Lens analysis notebook.")
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--synthetic", action="store_true", help="run on the committed synthetic fixtures")
     mode.add_argument("--real", action="store_true", help="run on the CRM data in data/private")

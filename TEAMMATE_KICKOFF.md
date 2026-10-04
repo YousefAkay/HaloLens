@@ -1,4 +1,4 @@
-# Teammate kickoff — LeaseLens (project  2026)
+# Teammate kickoff — Halo Lens (project  2026)
 
 Follow these steps in order. Takes ~15 minutes. Your track: Hamza = **MSR** (Measure & Market), Yousif = **FCT** (Incentives & Forecast). Yousef = **INT** (integrator).
 

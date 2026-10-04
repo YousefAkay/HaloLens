@@ -427,7 +427,7 @@ def trust_view(doc: dict[str, Any], lang: str = DEFAULT_LANG) -> None:
 # Page
 # ---------------------------------------------------------------------------
 def main() -> None:
-    st.set_page_config(page_title="LeaseLens", layout="wide")
+    st.set_page_config(page_title="Halo Lens", layout="wide")
     inject_css()
     lang = st.sidebar.radio(LANGUAGE_LABEL, LANGS, index=LANGS.index(DEFAULT_LANG), key="lang", horizontal=True,
                             format_func=LANG_NAMES.get)

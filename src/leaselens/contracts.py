@@ -158,7 +158,7 @@ _TEXT = {"type": "string"}
 AGGREGATES_SCHEMA = {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "$id": "leaselens-aggregates",
-    "title": "LeaseLens aggregates (counts and percentages only)",
+    "title": "Halo Lens aggregates (counts and percentages only)",
     "type": "object",
     "additionalProperties": False,
     "required": ["schema_version", "mode", "target_year", "as_of", "definition", "headline", "companions",

@@ -3,7 +3,7 @@
 Usage:
     python scripts/make_submission.py
 
-Writes outputs/submission/LeaseLens_HALO_submission.zip (gitignored). The zip holds the allowlisted repository files plus
+Writes outputs/submission/HaloLens_submission.zip (gitignored). The zip holds the allowlisted repository files plus
 the EXECUTED notebook from outputs/private/project_analysis.ipynb, placed at the zip root as project_analysis.ipynb.
 
 Privacy gate (the build refuses, and writes nothing, when any rule trips):
@@ -27,7 +27,7 @@ from leaselens.config import repo_root
 
 EXIT_OK = 0
 EXIT_REFUSED = 1
-ZIP_RELATIVE = Path("outputs") / "submission" / "LeaseLens_HALO_submission.zip"
+ZIP_RELATIVE = Path("outputs") / "submission" / "HaloLens_submission.zip"
 NOTEBOOK_SOURCE = Path("outputs") / "private" / "project_analysis.ipynb"
 NOTEBOOK_NAME = "project_analysis.ipynb"
 ALLOW_DIRECTORIES = ("src", "config", "scripts", "notebook/sections", "app", "tests", "data/public", "data/synthetic",

@@ -1,4 +1,4 @@
-# AGENTS.md — LeaseLens (project  2026, the portfolio)
+# AGENTS.md — Halo Lens (code package: `leaselens`; project  2026, the portfolio)
 
 This file is the single source of truth for every AI coding agent (Claude Code) and every human on this repo.
 Read it fully at the start of every session. If anything you are asked to do conflicts with this file, STOP and say so.
