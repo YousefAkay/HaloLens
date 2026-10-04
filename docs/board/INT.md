@@ -25,11 +25,11 @@ Task details and "done when" criteria: AGENTS.md Section 10.
 | I-09a | Define the aggregates JSON schema as AGGREGATES_SCHEMA in contracts.py (headline, companions, medians, backtest table per year and model, coverage counts, scenario range, sources, as-of date, definition text) + a synthetic example at outputs/public/aggregates_synthetic.json built from synthetic data or clearly fake values | — | lets app work start before F-05 |
 | I-11a | Streamlit app shell (app/streamlit_app.py) with the four views from AGENTS.md I-11, reading only the synthetic aggregates file | I-09a |  |
 | I-07 | Integration #1 smoke run on real data (counts only) | M-02, F-02 |  |
-| I-08 | Unit-cluster bootstrap + section 11a | M-02, F-05 | can start on synthetic |
+| I-08 | Unit-cluster bootstrap + section 11a | M-02, F-05 | cut: bootstrap replaced by FCT tornado (F-10) |
 | I-09 | Aggregate export + test (no unit-level data) | F-05 |  |
 | I-10 | Integration #2 / core freeze: full notebook on real data | F-05, M-05 |  |
-| I-11 | Streamlit app on aggregates.json + synthetic demo | I-09, I-11a |  |
-| I-12 | LLM narrative + number guard + cache | I-11a, I-12a |  |
+| I-11 | Streamlit app on aggregates.json + synthetic demo | I-09, I-11a | done inside I-12 expanded |
+| I-12 | AI layer: scenario copilot over a precomputed scenario grid + ask-the-analysis Q&A with section citations, number guard, no-key fallbacks; app reads real aggregates.json in real mode | I-11a, I-12a |  |
 | I-13 | Section 00 only (executive summary) | I-09 | section 01 done in I-13a; section 12 moved to MSR as M-10 |
 | I-14 | Final build, clean kernel, fix round | all core tasks |  |
 | I-15 | README, privacy check, submission, slides | I-14 |  |

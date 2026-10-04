@@ -5,11 +5,14 @@
 # ---
 
 # %% [markdown]
-# ## 11a. Incertitude d'échantillonnage
+# ## 11a. Incertitude : scénarios et sensibilités, pas d'intervalle statistique
 #
-# **Objectif :** Bootstrap par unité (historiques complets rééchantillonnés).
+# **Entrée :** la plage bas-haut de la section 11b et la table de sensibilité (F-10, section 11b) qui fait varier une
+# seule hypothèse à la fois.
+# **Opération :** présenter l'incertitude comme des scénarios et des sensibilités, sans calcul supplémentaire.
+# **Pourquoi :** avec trois années de backtest, une plage statistique serait trompeuse. Les scénarios et les
+# sensibilités disent quelles hypothèses comptent le plus, et de combien.
+# **Vérification :** aucun calcul n'est fait ici ; les chiffres sont dans les sections 00, 10 et 11b.
 #
-# _Section à compléter par INT (voir AGENTS.md §10)._
-
-# %%
-# TODO(INT): implement this section using functions from leaselens.
+# **Limite déclarée :** l'incertitude d'échantillonnage (rééchantillonnage des historiques complets par unité,
+# bootstrap) n'a pas été exécutée, faute de temps. Les plages présentées ne sont donc pas des intervalles de confiance.
