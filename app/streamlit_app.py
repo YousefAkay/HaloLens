@@ -7,7 +7,7 @@ Demo mode (default) reads outputs/public/aggregates_synthetic.json. Real mode re
 which exists only after the real export (gitignored). Every file is validated against contracts.AGGREGATES_SCHEMA.
 The views are: Overview, Why, Validation, Scenarios & Sources, Ask the analysis, By building. The Claude API is called
 only through app/narrative.py, and only with aggregates, counts-only notes and the question. Without a key the app runs
-on the dropdowns and the preset answers.
+on the dropdowns and, in synthetic mode, validated preset answers.
 """
 
 from __future__ import annotations
@@ -32,6 +32,16 @@ VIEWS = ("Overview", "Why", "Validation", "Scenarios & Sources", "Ask the analys
 MODE_DEMO, MODE_REAL = "Demo (synthetic)", "Real (outputs/private)"
 LEVER_CHOICES = ("minus", "zero", "plus")
 MET_CHOICES = ("exempt", "guideline")
+NO_KEY_MESSAGES = {
+    "cache_synthetic_only": (
+        "Cached preset answers are available only in the synthetic demo. Configure an API key to ask questions "
+        "about real-data aggregates. The dashboard and scenario dropdowns remain available without a key."
+    ),
+    "cache_missing": "No cached demo answer is available for this question.",
+    "cache_rejected": (
+        "This cached demo answer could not be validated against the current results, so it was not shown."
+    ),
+}
 
 
 def load_aggregates(path: Path) -> dict[str, Any]:
@@ -134,7 +144,8 @@ def ask_analysis_view(doc: dict[str, Any]) -> None:
     client = _client()
     st.markdown("**AI explains, our pipeline computes.**")
     if client is None:
-        st.info("No API key in .env: the dropdowns and the preset answers work without it.")
+        st.info("No API key: scenario dropdowns and validated cached demo answers remain available."
+                if doc.get("mode") == "synthetic" else NO_KEY_MESSAGES["cache_synthetic_only"])
     st.subheader("Scenarios")
     incentive = st.selectbox("Incentive intensity", LEVER_CHOICES, index=1, key="lever_incentive")
     renewal = st.selectbox("Renewal share", LEVER_CHOICES, index=1, key="lever_renewal")
@@ -160,7 +171,10 @@ def ask_analysis_view(doc: dict[str, Any]) -> None:
     if chosen and st.button("Answer", key="answer_go"):
         result = narrative.ask_analysis(chosen, doc, _notes(), client)
         if result["status"] == "no_key":
-            st.write(result["text"] or "Preset answers are not cached for this question. Set a key to ask it.")
+            if result["text"]:
+                st.write(result["text"])
+            else:
+                st.info(NO_KEY_MESSAGES[result["reason"]])
         else:
             st.write(result["text"])
 
