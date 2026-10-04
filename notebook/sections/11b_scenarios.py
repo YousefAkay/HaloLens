@@ -159,6 +159,7 @@ plt.show()
 import numpy as np
 
 from leaselens.evaluate.backtest import champion_pipeline
+from leaselens.evaluate.metrics import TOLERANCE_PP
 from leaselens.forecast.scenarios import sensitivity_table
 
 if "champion" not in globals():
@@ -193,6 +194,16 @@ display(sensitivities[["libellé", "headline_net_pct", "base_net_pct", "delta_pp
     "headline_net_pct": "net variante %", "base_net_pct": "net base %", "delta_pp": "écart pp", "note": "raison si impossible"
 }).round(2))
 
+# %% [markdown]
+# ### 11b.5 Le diagramme en tornade
+#
+# **Entrée :** le tableau des sensibilités calculé ci-dessus (un écart par hypothèse, en points de pourcentage, par rapport au cas de
+# base du même modèle). **Opération :** écarter les variantes qui n'ont pas pu être calculées (écart absent), puis tracer
+# les écarts restants, triés par valeur absolue décroissante, avec une couleur par famille de modèle. Cette étape ne modifie aucun
+# résultat : elle ne fait que mettre en forme le tableau. **Pourquoi :** voir d'un coup d'œil quelles hypothèses déplacent le plus la
+# hausse et lesquelles n'ont aucun effet ; les barres ne s'additionnent pas, car chacune change une seule hypothèse.
+# **Vérification :** le nombre de variantes tracées et le nombre de variantes du tableau sont affichés sous le graphique.
+
 # %%
 ran = sensitivities.dropna(subset=["delta_pp"])
 fig, axis = plt.subplots(figsize=(8, max(3.5, 0.32 * len(ran))))
@@ -208,10 +219,11 @@ axis.barh([], [], color="#999999", label="autre modèle (choix du modèle)")
 axis.legend(fontsize=8, frameon=False, loc="lower right")
 plt.tight_layout()
 plt.show()
+display(Markdown(f"**{len(ran)}** variantes tracées sur **{len(sensitivities)}** dans le tableau."))
 
 # %%
 champion_rows = ran[(ran["model"] == champion) & (ran["assumption"] != "model_choice")]
-unchanged = int((champion_rows["abs_delta_pp"] < 1e-9).sum())
+unchanged = int((champion_rows["abs_delta_pp"] < TOLERANCE_PP).sum())
 largest = ran.iloc[0]
 largest_champion = champion_rows.iloc[0] if len(champion_rows) else None
 rule_rows = sensitivities[sensitivities["assumption"] == "information_rule"].set_index("model")
