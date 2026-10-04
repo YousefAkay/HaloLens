@@ -33,6 +33,7 @@ external:
     - cmhc_vacancy_rate_pct       # CMHC purpose-built vacancy, % — regional market CONTEXT only, never project occupancy
     - tal_renewal_reference_pct   # Québec TAL reference percentage for an unheated dwelling, %
     - ontario_guideline_pct       # Ontario rent increase guideline, %
+  announced_ahead_metrics: [ontario_guideline_pct]  # rules published before the year they apply to (RTA: by Aug 31 of y-1); exempt from the "released before period" check
   statcan:
     table_id: "18-10-0004-01"     # Consumer Price Index, monthly, not seasonally adjusted
     product_id: 18100004          # WDS numeric id of the same table
@@ -47,8 +48,8 @@ external:
     effort: high                  # careful reading of numeric tables
     max_page_characters: 400000   # refuse (not truncate) pages longer than this; split the source instead
   pages:                          # public pages read by the LLM; human verifies every extracted row
-                                  # CMHC: only the latest report is listed; older reports (with their own release
-                                  # dates) must be added for backtest cutoffs to see CMHC values
+                                  # CMHC: only the latest report page is read by the LLM; 2021-2024 report values were
+                                  # added manually from CMHC's rmr workbooks with their own release dates (M-03b)
     - source_id: ontario_guideline
       publisher: Government of Ontario
       url: https://www.ontario.ca/page/rent-increase-guideline
