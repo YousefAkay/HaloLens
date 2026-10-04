@@ -106,10 +106,15 @@ split = headline_by_province(final, province_of).rename(columns={
     "province": "province", "weight_share": "part des poids", "n_segments": "segments", "net_pct": "net %",
     "contract_pct": "contractuel %"})
 display(split.round(3))
-uncovered = 1 - float(split.loc[split["province"] == "all", "part des poids"].iloc[0])
-display(Markdown(
-    f"Les segments sans paire l'année dernière ({uncovered:.1%} des poids) sont exclus et les autres poids sont "
-    f"renormalisés, comme dans la hausse elle-même ; c'est pourquoi les parts ne totalisent pas tout à fait 100 %."))
+if (split["province"] == "all").all():
+    display(Markdown(
+        f"Le modèle retenu ({champion}) prévoit seulement la hausse du portefeuille, sans prévision par segment : la répartition "
+        f"entre provinces n'est pas disponible pour ce modèle ; seule la ligne « all » (le portefeuille) est donnée."))
+else:
+    uncovered = 1 - float(split.loc[split["province"] == "all", "part des poids"].iloc[0])
+    display(Markdown(
+        f"Les segments sans paire l'année dernière ({uncovered:.1%} des poids) sont exclus et les autres poids sont "
+        f"renormalisés, comme dans la hausse elle-même ; c'est pourquoi les parts ne totalisent pas tout à fait 100 %."))
 
 # %% [markdown]
 # ### 10.4 Les autres modèles pour l'année cible

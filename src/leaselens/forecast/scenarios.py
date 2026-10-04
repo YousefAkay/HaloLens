@@ -128,16 +128,37 @@ def building_beds_forecast(result: ForecastResult, cfg: dict) -> pd.DataFrame:
     return out.reset_index(drop=True)
 
 
+PROVINCE_COLUMNS = ["province", "weight_share", "n_segments", "net_pct", "contract_pct"]
+ALL_ROW = "all"
+
+
+def _segment_forecast_columns(segments: pd.DataFrame) -> tuple[str, str] | None:
+    """Names of the per-segment (net, contract) forecast columns, or None when the model has none."""
+    for net, contract in (("g_net", "g_contract"), ("mean_log_net", "mean_log_contract")):
+        if net in segments.columns and contract in segments.columns:
+            return net, contract
+    return None
+
+
 def headline_by_province(result: ForecastResult, province_of: pd.Series) -> pd.DataFrame:
     """The headline split by province, with the same fixed weights (renormalized inside each province). Aggregates only.
 
     `province_of` maps prop_code to province (QC, ON). Works on any ForecastResult whose segment table has either
-    `g_net` / `g_contract` (engines) or `mean_log_net` / `mean_log_contract` (baselines B0); segments without a
-    forecast are left out and the rest renormalized, as in the headline itself. Columns: province, weight_share (of the
-    total frozen weight), n_segments, net_pct, contract_pct. A final `all` row repeats the portfolio aggregation.
+    `g_net` / `g_contract` (engines) or `mean_log_net` / `mean_log_contract` (B0); segments without a forecast are left
+    out and the rest renormalized, as in the headline itself. Columns: PROVINCE_COLUMNS (province, weight_share of the
+    total frozen weight, n_segments, net_pct, contract_pct). A final `all` row repeats the portfolio aggregation.
+
+    Models that forecast only the portfolio (B1 trailing mean, B2 market anchor, B3 TAL anchor) have no segment-level
+    forecast, so no honest split exists: the table then holds the `all` row alone, taken from the model's own headline
+    (weight_share 1), and callers show the province split as "not available for this model".
     """
     segments = result.segments
-    net, contract = ("g_net", "g_contract") if "g_net" in segments.columns else ("mean_log_net", "mean_log_contract")
+    columns = _segment_forecast_columns(segments)
+    if columns is None:
+        return pd.DataFrame([{"province": ALL_ROW, "weight_share": 1.0, "n_segments": len(segments),
+                              "net_pct": result.headline_net_pct, "contract_pct": result.headline_contract_pct}],
+                            columns=PROVINCE_COLUMNS)
+    net, contract = columns
     total_weight = float(segments["weight"].sum())
     usable = segments.assign(province=segments["prop_code"].map(province_of)).dropna(subset=[net, contract])
 
@@ -148,8 +169,8 @@ def headline_by_province(result: ForecastResult, province_of: pd.Series) -> pd.D
                 "contract_pct": to_pct(float((group["weight"] * group[contract]).sum() / weight))}
 
     rows = [aggregate(province, group) for province, group in usable.groupby("province", sort=True)]
-    rows.append(aggregate("all", usable))
-    return pd.DataFrame(rows)
+    rows.append(aggregate(ALL_ROW, usable))
+    return pd.DataFrame(rows, columns=PROVINCE_COLUMNS)
 
 
 # ---------------------------------------------------------------------------
