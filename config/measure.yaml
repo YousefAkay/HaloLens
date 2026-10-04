@@ -98,3 +98,12 @@ external:
       geography: Ottawa CMA
       unit: pct
       instructions: "Same-sample (fixed-sample) average rent change for the Ottawa (Ontario part) CMA, overall (segment all) and split by turnover vs no turnover (segments turnover, non_turnover) if shown; also the vacancy rate as metric cmhc_vacancy_rate_pct (segment all). Each value refers to the October survey of its year: ref period YYYY-10-01 to YYYY-10-31. Report publication date = release_date."
+
+asking:
+  # Turnover leading indicator (market/asking.py). Asking rents are contractual-rent offers; incentives are FCT's engine.
+  match_lookback_months: 3        # an asking posted up to this many months before a lease's signing month is that lease's listing
+  signal_window_months: 12        # asking rents posted in the last N months before the cutoff feed the signal (one year of listings)
+  spread_window_years: 3          # asking→signed spread learned on turnover leases signed in the last N years before the cutoff (same as headline weight window)
+  min_listings_per_segment: 5     # a prop_code x beds cell with fewer listed units uses its province pool instead
+  min_spread_leases: 10           # a province with fewer matched turnover leases uses the all-province spread instead
+  aggregate: median               # "median" or "mean" of per-unit log growth; median resists odd one-off listings
