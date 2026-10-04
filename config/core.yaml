@@ -39,4 +39,9 @@ build:
   kernel_name: python3                  # kernel started fresh for each build, so the run is a clean kernel
   cell_timeout_seconds: 600             # longest a single notebook cell may run before the build fails
 
+app:
+  llm_model: claude-sonnet-5-5          # model id for the scenario copilot and the Q&A (Claude API, aggregates only)
+  llm_max_tokens: 800                   # upper bound for one answer
+  building_min_pairs: 5                 # building x beds cells with fewer eligible pairs are not exported or shown
+
 random_seed: 2026                 # every random operation uses this seed

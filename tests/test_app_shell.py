@@ -31,7 +31,8 @@ def test_app_runs_without_exceptions(app):
 
 
 def test_app_shows_the_four_views_in_order(app):
-    assert [tab.label for tab in app.tabs] == list(VIEWS) == ["Overview", "Why", "Validation", "Scenarios & Sources"]
+    assert [tab.label for tab in app.tabs] == list(VIEWS) == [
+        "Overview", "Why", "Validation", "Scenarios & Sources", "Ask the analysis", "By building"]
 
 
 def test_headline_comes_from_the_synthetic_json(app):
@@ -45,10 +46,12 @@ def test_synthetic_banner_is_shown(app):
     assert any("SYNTHÉTIQUE" in warning.value for warning in app.warning)
 
 
-def test_reads_only_the_synthetic_file():
-    """The app must never point at CRM outputs or the real aggregates file."""
+def test_app_reads_only_the_aggregates_files_and_no_network_library():
+    """Real mode reads only the gitignored aggregates file. The CRM folder and HTTP libraries never appear in the app;
+    the Claude API is reached only through app/narrative.py."""
     source = APP.read_text(encoding="utf-8")
-    for forbidden in ("outputs/private", "data/private", "aggregates.json\"", "requests", "httpx", "urllib", "anthropic"):
+    assert "data/private" not in source
+    for forbidden in ("requests", "httpx", "urllib", "import anthropic"):
         assert forbidden not in source, forbidden
 
 

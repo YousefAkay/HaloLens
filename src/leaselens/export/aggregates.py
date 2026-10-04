@@ -21,13 +21,14 @@ from jsonschema import Draft202012Validator, FormatChecker
 
 from leaselens.config import cutoff_for, external_cutoff_for
 from leaselens.contracts import AGGREGATES_SCHEMA, AGGREGATES_SCHEMA_VERSION, CanonicalTables
-from leaselens.evaluate.backtest import (RULE_JAN31, backtest_both_rules, champion_forecast, champion_pipeline,
-                                        headline_table)
+from leaselens.evaluate.backtest import (RULE_DEC31, RULE_JAN31, all_models, backtest_both_rules, champion_forecast,
+                                        champion_pipeline, headline_table)
 from leaselens.forecast.asof import snapshot_for_year
 from leaselens.forecast.baselines import BASELINE_NAMES, frozen_weights, training_pairs
 from leaselens.forecast.combine import MODEL_NAME as ENGINE_MODEL_NAME
 from leaselens.forecast.combine import REGULATED_MODEL_NAME, forecast_regulated
-from leaselens.forecast.scenarios import CENTRAL, headline_by_province, scenario_table
+from leaselens.forecast.scenarios import (CENTRAL, building_beds_forecast, evaluate_scenario, headline_by_province,
+                                          scenario_table, sensitivity_table)
 from leaselens.measure.pairs import build_pairs
 
 DEFINITION = (
@@ -159,8 +160,80 @@ def build_aggregates(tables: CanonicalTables, external: pd.DataFrame, cfg: dict)
         },
         "scenarios": _scenarios(tables, external, target, cfg),
         "sources": _sources(external, ext_cutoff),
+        "scenario_grid": _scenario_grid(tables, external, cfg, backtest),
+        "building_beds": _building_beds(tables, external, cfg),
+        "sensitivity": _sensitivity(tables, external, cfg, champion=head["headline"]["model"]),
         "note": NOTE_SYNTHETIC if mode == "synthetic" else NOTE_REAL,
     }
+
+
+SHIFT_SIGNS = {"minus": -1, "zero": 0, "plus": 1}  # one step down, no change, one step up (scenarios in config)
+MET_FLAGS = {"exempt": False, "guideline": True}  # central Met scenario is exempt; alternative applies the guideline
+STRICT_BY_RULE = {RULE_JAN31: False, RULE_DEC31: True}  # Jan-31 rule, or the Dec-31 sensitivity
+
+
+def _scenario_grid(tables: CanonicalTables, external: pd.DataFrame, cfg: dict, backtest: pd.DataFrame) -> list[dict]:
+    """E2 under every lever combination and both information rules, plus the champion's base per rule.
+
+    The levers act on the E2 segments through FCT's `evaluate_scenario` (the same engine as the scenario table). The
+    champion has no levers, so its rows carry "none" for each lever and only the information rule varies.
+    """
+    target = cfg["forecast_years"]["target_year"]
+    champion = champion_pipeline(tables, external, cfg, table=backtest)["champion"]
+    forecaster = all_models()[champion]
+    incentive_step = cfg["scenarios"]["incentive_intensity_shift_pp"]
+    renewal_step = cfg["scenarios"]["renewal_share_shift_pp"]
+    rows: list[dict] = []
+    for rule, strict in STRICT_BY_RULE.items():
+        snapshot = snapshot_for_year(tables, external, target, cfg, strict=strict)
+        base = forecaster(snapshot, cfg)
+        rows.append({"model": champion, "information_rule": rule, "incentive_shift": "none",
+                     "renewal_shift": "none", "met_regime": "none",
+                     "headline_net_pct": _clean(base.headline_net_pct),
+                     "headline_contract_pct": _clean(base.headline_contract_pct)})
+        segments = forecast_regulated(snapshot, cfg).segments
+        for incentive_label, incentive_sign in SHIFT_SIGNS.items():
+            for renewal_label, renewal_sign in SHIFT_SIGNS.items():
+                for met_label, met_flag in MET_FLAGS.items():
+                    headline = evaluate_scenario(segments, cfg, incentive_sign * incentive_step,
+                                                 renewal_sign * renewal_step, met_flag)
+                    rows.append({"model": REGULATED_MODEL_NAME, "information_rule": rule,
+                                 "incentive_shift": incentive_label, "renewal_shift": renewal_label,
+                                 "met_regime": met_label,
+                                 "headline_net_pct": _clean(headline["headline_net_pct"]),
+                                 "headline_contract_pct": _clean(headline["headline_contract_pct"])})
+    return rows
+
+
+def _building_beds(tables: CanonicalTables, external: pd.DataFrame, cfg: dict) -> list[dict]:
+    """Building x beds forecast from the E2 engine (FCT `building_beds_forecast`). Building names, never unit codes.
+
+    Cells with fewer eligible pairs than `app.building_min_pairs` are left out, so no thin cell is shown or exported.
+    """
+    snapshot = snapshot_for_year(tables, external, cfg["forecast_years"]["target_year"], cfg)
+    cells = building_beds_forecast(forecast_regulated(snapshot, cfg), cfg)
+    building_of = tables.leases.drop_duplicates("prop_code").set_index("prop_code")["building"]
+    minimum = cfg["app"]["building_min_pairs"]
+    rows: list[dict] = []
+    for record in cells.to_dict("records"):
+        if record["n_pairs"] < minimum:
+            continue
+        rows.append({"building": str(building_of[record["prop_code"]]), "beds": int(record["beds"]),
+                     "n_pairs": int(record["n_pairs"]),
+                     "net_pct_raw": _clean(record["net_pct_raw"]), "net_pct_shrunk": _clean(record["net_pct_shrunk"]),
+                     "contract_pct_raw": _clean(record["contract_pct_raw"]),
+                     "contract_pct_shrunk": _clean(record["contract_pct_shrunk"])})
+    return rows
+
+
+def _sensitivity(tables: CanonicalTables, external: pd.DataFrame, cfg: dict, champion: str) -> list[dict]:
+    """One-assumption-at-a-time sensitivities (FCT `sensitivity_table`, F-10), with the champion held fixed."""
+    table = sensitivity_table(tables, external, cfg, champion=champion)
+    return [{"assumption": str(record["assumption"]), "variant": str(record["variant"]),
+             "setting": str(record["setting"]), "model": str(record["model"]),
+             "headline_net_pct": _clean(record["headline_net_pct"]), "base_net_pct": _clean(record["base_net_pct"]),
+             "delta_pp": _clean(record["delta_pp"]), "note": "" if record["note"] is None else str(record["note"])}
+            for record in table.to_dict("records")]
 
 
 def validate(results: dict) -> None:

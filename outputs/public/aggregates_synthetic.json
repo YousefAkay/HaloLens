@@ -543,5 +543,586 @@
       "release_date": "2026-01-19"
     }
   ],
+  "scenario_grid": [
+    {
+      "model": "B0_last_year",
+      "information_rule": "jan31",
+      "incentive_shift": "none",
+      "renewal_shift": "none",
+      "met_regime": "none",
+      "headline_net_pct": 4.856032690252625,
+      "headline_contract_pct": 5.663026413306089
+    },
+    {
+      "model": "E2_regulated",
+      "information_rule": "jan31",
+      "incentive_shift": "minus",
+      "renewal_shift": "minus",
+      "met_regime": "exempt",
+      "headline_net_pct": 5.706345921098523,
+      "headline_contract_pct": 3.789617653158986
+    },
+    {
+      "model": "E2_regulated",
+      "information_rule": "jan31",
+      "incentive_shift": "minus",
+      "renewal_shift": "minus",
+      "met_regime": "guideline",
+      "headline_net_pct": 5.412655504316889,
+      "headline_contract_pct": 3.501252599949075
+    },
+    {
+      "model": "E2_regulated",
+      "information_rule": "jan31",
+      "incentive_shift": "minus",
+      "renewal_shift": "zero",
+      "met_regime": "exempt",
+      "headline_net_pct": 5.709319483918956,
+      "headline_contract_pct": 3.6290987444519827
+    },
+    {
+      "model": "E2_regulated",
+      "information_rule": "jan31",
+      "incentive_shift": "minus",
+      "renewal_shift": "zero",
+      "met_regime": "guideline",
+      "headline_net_pct": 5.393238990735553,
+      "headline_contract_pct": 3.31923830074455
+    },
+    {
+      "model": "E2_regulated",
+      "information_rule": "jan31",
+      "incentive_shift": "minus",
+      "renewal_shift": "plus",
+      "met_regime": "exempt",
+      "headline_net_pct": 5.71229313038693,
+      "headline_contract_pct": 3.468828091019786
+    },
+    {
+      "model": "E2_regulated",
+      "information_rule": "jan31",
+      "incentive_shift": "minus",
+      "renewal_shift": "plus",
+      "met_regime": "guideline",
+      "headline_net_pct": 5.373826053584374,
+      "headline_contract_pct": 3.1375440866045303
+    },
+    {
+      "model": "E2_regulated",
+      "information_rule": "jan31",
+      "incentive_shift": "zero",
+      "renewal_shift": "minus",
+      "met_regime": "exempt",
+      "headline_net_pct": 3.5289324939650166,
+      "headline_contract_pct": 3.789617653158986
+    },
+    {
+      "model": "E2_regulated",
+      "information_rule": "jan31",
+      "incentive_shift": "zero",
+      "renewal_shift": "minus",
+      "met_regime": "guideline",
+      "headline_net_pct": 3.2412917183033016,
+      "headline_contract_pct": 3.501252599949075
+    },
+    {
+      "model": "E2_regulated",
+      "information_rule": "jan31",
+      "incentive_shift": "zero",
+      "renewal_shift": "zero",
+      "met_regime": "exempt",
+      "headline_net_pct": 3.535312230641093,
+      "headline_contract_pct": 3.6290987444519827
+    },
+    {
+      "model": "E2_regulated",
+      "information_rule": "jan31",
+      "incentive_shift": "zero",
+      "renewal_shift": "zero",
+      "met_regime": "guideline",
+      "headline_net_pct": 3.2257322171519602,
+      "headline_contract_pct": 3.31923830074455
+    },
+    {
+      "model": "E2_regulated",
+      "information_rule": "jan31",
+      "incentive_shift": "zero",
+      "renewal_shift": "plus",
+      "met_regime": "exempt",
+      "headline_net_pct": 3.5416923604540336,
+      "headline_contract_pct": 3.468828091019786
+    },
+    {
+      "model": "E2_regulated",
+      "information_rule": "jan31",
+      "incentive_shift": "zero",
+      "renewal_shift": "plus",
+      "met_regime": "guideline",
+      "headline_net_pct": 3.210175060973952,
+      "headline_contract_pct": 3.1375440866045303
+    },
+    {
+      "model": "E2_regulated",
+      "information_rule": "jan31",
+      "incentive_shift": "plus",
+      "renewal_shift": "minus",
+      "met_regime": "exempt",
+      "headline_net_pct": 1.351498970597907,
+      "headline_contract_pct": 3.789617653158986
+    },
+    {
+      "model": "E2_regulated",
+      "information_rule": "jan31",
+      "incentive_shift": "plus",
+      "renewal_shift": "minus",
+      "met_regime": "guideline",
+      "headline_net_pct": 1.069907891890709,
+      "headline_contract_pct": 3.501252599949075
+    },
+    {
+      "model": "E2_regulated",
+      "information_rule": "jan31",
+      "incentive_shift": "plus",
+      "renewal_shift": "zero",
+      "met_regime": "exempt",
+      "headline_net_pct": 1.361285319002621,
+      "headline_contract_pct": 3.6290987444519827
+    },
+    {
+      "model": "E2_regulated",
+      "information_rule": "jan31",
+      "incentive_shift": "plus",
+      "renewal_shift": "zero",
+      "met_regime": "guideline",
+      "headline_net_pct": 1.0582058439880477,
+      "headline_contract_pct": 3.31923830074455
+    },
+    {
+      "model": "E2_regulated",
+      "information_rule": "jan31",
+      "incentive_shift": "plus",
+      "renewal_shift": "plus",
+      "met_regime": "exempt",
+      "headline_net_pct": 1.371072612362428,
+      "headline_contract_pct": 3.468828091019786
+    },
+    {
+      "model": "E2_regulated",
+      "information_rule": "jan31",
+      "incentive_shift": "plus",
+      "renewal_shift": "plus",
+      "met_regime": "guideline",
+      "headline_net_pct": 1.046505150968635,
+      "headline_contract_pct": 3.1375440866045303
+    },
+    {
+      "model": "B0_last_year",
+      "information_rule": "dec31_strict",
+      "incentive_shift": "none",
+      "renewal_shift": "none",
+      "met_regime": "none",
+      "headline_net_pct": 4.856032690252625,
+      "headline_contract_pct": 5.663026413306089
+    },
+    {
+      "model": "E2_regulated",
+      "information_rule": "dec31_strict",
+      "incentive_shift": "minus",
+      "renewal_shift": "minus",
+      "met_regime": "exempt",
+      "headline_net_pct": 7.235557286746958,
+      "headline_contract_pct": 5.291100478702736
+    },
+    {
+      "model": "E2_regulated",
+      "information_rule": "dec31_strict",
+      "incentive_shift": "minus",
+      "renewal_shift": "minus",
+      "met_regime": "guideline",
+      "headline_net_pct": 6.937618168343759,
+      "headline_contract_pct": 4.998563763772974
+    },
+    {
+      "model": "E2_regulated",
+      "information_rule": "dec31_strict",
+      "incentive_shift": "minus",
+      "renewal_shift": "zero",
+      "met_regime": "exempt",
+      "headline_net_pct": 7.356192639087071,
+      "headline_contract_pct": 5.243563596271088
+    },
+    {
+      "model": "E2_regulated",
+      "information_rule": "dec31_strict",
+      "incentive_shift": "minus",
+      "renewal_shift": "zero",
+      "met_regime": "guideline",
+      "headline_net_pct": 7.035187845173729,
+      "headline_contract_pct": 4.928875755612454
+    },
+    {
+      "model": "E2_regulated",
+      "information_rule": "dec31_strict",
+      "incentive_shift": "minus",
+      "renewal_shift": "plus",
+      "met_regime": "exempt",
+      "headline_net_pct": 7.476963700967958,
+      "headline_contract_pct": 5.196048175816577
+    },
+    {
+      "model": "E2_regulated",
+      "information_rule": "dec31_strict",
+      "incentive_shift": "minus",
+      "renewal_shift": "plus",
+      "met_regime": "guideline",
+      "headline_net_pct": 7.132846544388894,
+      "headline_contract_pct": 4.859233999689174
+    },
+    {
+      "model": "E2_regulated",
+      "information_rule": "dec31_strict",
+      "incentive_shift": "zero",
+      "renewal_shift": "minus",
+      "met_regime": "exempt",
+      "headline_net_pct": 5.026644091728434,
+      "headline_contract_pct": 5.291100478702736
+    },
+    {
+      "model": "E2_regulated",
+      "information_rule": "dec31_strict",
+      "incentive_shift": "zero",
+      "renewal_shift": "minus",
+      "met_regime": "guideline",
+      "headline_net_pct": 4.734842132180049,
+      "headline_contract_pct": 4.998563763772974
+    },
+    {
+      "model": "E2_regulated",
+      "information_rule": "dec31_strict",
+      "incentive_shift": "zero",
+      "renewal_shift": "zero",
+      "met_regime": "exempt",
+      "headline_net_pct": 5.148315957815123,
+      "headline_contract_pct": 5.243563596271088
+    },
+    {
+      "model": "E2_regulated",
+      "information_rule": "dec31_strict",
+      "incentive_shift": "zero",
+      "renewal_shift": "zero",
+      "met_regime": "guideline",
+      "headline_net_pct": 4.833912916270556,
+      "headline_contract_pct": 4.928875755612454
+    },
+    {
+      "model": "E2_regulated",
+      "information_rule": "dec31_strict",
+      "incentive_shift": "zero",
+      "renewal_shift": "plus",
+      "met_regime": "exempt",
+      "headline_net_pct": 5.270128779019679,
+      "headline_contract_pct": 5.196048175816577
+    },
+    {
+      "model": "E2_regulated",
+      "information_rule": "dec31_strict",
+      "incentive_shift": "zero",
+      "renewal_shift": "plus",
+      "met_regime": "guideline",
+      "headline_net_pct": 4.933077413399253,
+      "headline_contract_pct": 4.859233999689174
+    },
+    {
+      "model": "E2_regulated",
+      "information_rule": "dec31_strict",
+      "incentive_shift": "plus",
+      "renewal_shift": "minus",
+      "met_regime": "exempt",
+      "headline_net_pct": 2.817710509752143,
+      "headline_contract_pct": 5.291100478702736
+    },
+    {
+      "model": "E2_regulated",
+      "information_rule": "dec31_strict",
+      "incentive_shift": "plus",
+      "renewal_shift": "minus",
+      "met_regime": "guideline",
+      "headline_net_pct": 2.532045765700902,
+      "headline_contract_pct": 4.998563763772974
+    },
+    {
+      "model": "E2_regulated",
+      "information_rule": "dec31_strict",
+      "incentive_shift": "plus",
+      "renewal_shift": "zero",
+      "met_regime": "exempt",
+      "headline_net_pct": 2.940419311919824,
+      "headline_contract_pct": 5.243563596271088
+    },
+    {
+      "model": "E2_regulated",
+      "information_rule": "dec31_strict",
+      "incentive_shift": "plus",
+      "renewal_shift": "zero",
+      "met_regime": "guideline",
+      "headline_net_pct": 2.6326180824400742,
+      "headline_contract_pct": 4.928875755612454
+    },
+    {
+      "model": "E2_regulated",
+      "information_rule": "dec31_strict",
+      "incentive_shift": "plus",
+      "renewal_shift": "plus",
+      "met_regime": "exempt",
+      "headline_net_pct": 3.0632745621075474,
+      "headline_contract_pct": 5.196048175816577
+    },
+    {
+      "model": "E2_regulated",
+      "information_rule": "dec31_strict",
+      "incentive_shift": "plus",
+      "renewal_shift": "plus",
+      "met_regime": "guideline",
+      "headline_net_pct": 2.7332890492239117,
+      "headline_contract_pct": 4.859233999689174
+    }
+  ],
+  "building_beds": [
+    {
+      "building": "Cedar Park",
+      "beds": 1,
+      "n_pairs": 7,
+      "net_pct_raw": 3.323411322982197,
+      "net_pct_shrunk": 3.1972246541094167,
+      "contract_pct_raw": 3.3112540256231386,
+      "contract_pct_shrunk": 3.2159394888107227
+    },
+    {
+      "building": "Cedar Park",
+      "beds": 2,
+      "n_pairs": 9,
+      "net_pct_raw": 3.0208221787676472,
+      "net_pct_shrunk": 3.1120271584761796,
+      "contract_pct_raw": 3.0826468529191535,
+      "contract_pct_shrunk": 3.1515698146019893
+    },
+    {
+      "building": "Lakeview Residences",
+      "beds": 1,
+      "n_pairs": 6,
+      "net_pct_raw": 5.059961132536726,
+      "net_pct_shrunk": 5.059961132536727,
+      "contract_pct_raw": 4.954685001147316,
+      "contract_pct_shrunk": 4.954685001147316
+    },
+    {
+      "building": "Lakeview Residences",
+      "beds": 2,
+      "n_pairs": 7,
+      "net_pct_raw": 5.067575056857408,
+      "net_pct_shrunk": 5.0619350599337025,
+      "contract_pct_raw": 5.0816628747044446,
+      "contract_pct_shrunk": 4.9875904498220756
+    },
+    {
+      "building": "North Court",
+      "beds": 1,
+      "n_pairs": 12,
+      "net_pct_raw": 3.250616676061003,
+      "net_pct_shrunk": 3.2367756749212515,
+      "contract_pct_raw": 3.4830420518720784,
+      "contract_pct_shrunk": 3.515751443458204
+    },
+    {
+      "building": "North Court",
+      "beds": 2,
+      "n_pairs": 8,
+      "net_pct_raw": 3.378040986463618,
+      "net_pct_shrunk": 3.2711838758074174,
+      "contract_pct_raw": 3.182600180149452,
+      "contract_pct_shrunk": 3.4344643256639587
+    },
+    {
+      "building": "North Court",
+      "beds": 1,
+      "n_pairs": 21,
+      "net_pct_raw": 3.0514229502046857,
+      "net_pct_shrunk": 3.0945662304927306,
+      "contract_pct_raw": 3.3253684193434303,
+      "contract_pct_shrunk": 3.2617216759522214
+    }
+  ],
+  "sensitivity": [
+    {
+      "assumption": "model_choice",
+      "variant": "B1_trailing_mean",
+      "setting": "B1_trailing_mean",
+      "model": "B1_trailing_mean",
+      "headline_net_pct": 2.2158230584957437,
+      "base_net_pct": 4.856032690252625,
+      "delta_pp": -2.640209631756881,
+      "note": ""
+    },
+    {
+      "assumption": "incentive_intensity",
+      "variant": "incentives_deeper",
+      "setting": "2.0",
+      "model": "E2_regulated",
+      "headline_net_pct": 1.361285319002621,
+      "base_net_pct": 3.535312230641093,
+      "delta_pp": -2.174026911638472,
+      "note": ""
+    },
+    {
+      "assumption": "incentive_intensity",
+      "variant": "incentives_shallower",
+      "setting": "-2.0",
+      "model": "E2_regulated",
+      "headline_net_pct": 5.709319483918956,
+      "base_net_pct": 3.535312230641093,
+      "delta_pp": 2.174007253277863,
+      "note": ""
+    },
+    {
+      "assumption": "information_rule",
+      "variant": "strict_dec31",
+      "setting": "dec31_strict",
+      "model": "E2_regulated",
+      "headline_net_pct": 5.148315957815123,
+      "base_net_pct": 3.535312230641093,
+      "delta_pp": 1.6130037271740303,
+      "note": ""
+    },
+    {
+      "assumption": "model_choice",
+      "variant": "E2_regulated",
+      "setting": "E2_regulated",
+      "model": "E2_regulated",
+      "headline_net_pct": 3.535312230641093,
+      "base_net_pct": 4.856032690252625,
+      "delta_pp": -1.3207204596115316,
+      "note": ""
+    },
+    {
+      "assumption": "met_applicability",
+      "variant": "met_guideline_applies",
+      "setting": "guideline_applies",
+      "model": "E2_regulated",
+      "headline_net_pct": 3.2257322171519602,
+      "base_net_pct": 3.535312230641093,
+      "delta_pp": -0.3095800134891329,
+      "note": ""
+    },
+    {
+      "assumption": "weight_window",
+      "variant": "years",
+      "setting": "4",
+      "model": "B0_last_year",
+      "headline_net_pct": 4.613966045638166,
+      "base_net_pct": 4.856032690252625,
+      "delta_pp": -0.24206664461445904,
+      "note": ""
+    },
+    {
+      "assumption": "winsorization",
+      "variant": "quantiles",
+      "setting": "[0.05, 0.95]",
+      "model": "B0_last_year",
+      "headline_net_pct": 4.6728850150525485,
+      "base_net_pct": 4.856032690252625,
+      "delta_pp": -0.18314767520007624,
+      "note": ""
+    },
+    {
+      "assumption": "model_choice",
+      "variant": "E1_engine_blend",
+      "setting": "E1_engine_blend",
+      "model": "E1_engine_blend",
+      "headline_net_pct": 4.736501825038716,
+      "base_net_pct": 4.856032690252625,
+      "delta_pp": -0.11953086521390865,
+      "note": ""
+    },
+    {
+      "assumption": "gap_bounds",
+      "variant": "include_six_month_leases",
+      "setting": "0.45",
+      "model": "B0_last_year",
+      "headline_net_pct": 4.790771213156256,
+      "base_net_pct": 4.856032690252625,
+      "delta_pp": -0.06526147709636909,
+      "note": ""
+    },
+    {
+      "assumption": "weight_window",
+      "variant": "years",
+      "setting": "2",
+      "model": "B0_last_year",
+      "headline_net_pct": 4.826050914856386,
+      "base_net_pct": 4.856032690252625,
+      "delta_pp": -0.02998177539623903,
+      "note": ""
+    },
+    {
+      "assumption": "renewal_mix",
+      "variant": "more_renewals",
+      "setting": "5.0",
+      "model": "E2_regulated",
+      "headline_net_pct": 3.5416923604540336,
+      "base_net_pct": 3.535312230641093,
+      "delta_pp": 0.006380129812940449,
+      "note": ""
+    },
+    {
+      "assumption": "renewal_mix",
+      "variant": "fewer_renewals",
+      "setting": "-5.0",
+      "model": "E2_regulated",
+      "headline_net_pct": 3.5289324939650166,
+      "base_net_pct": 3.535312230641093,
+      "delta_pp": -0.006379736676076497,
+      "note": ""
+    },
+    {
+      "assumption": "information_rule",
+      "variant": "strict_dec31",
+      "setting": "dec31_strict",
+      "model": "B0_last_year",
+      "headline_net_pct": 4.856032690252625,
+      "base_net_pct": 4.856032690252625,
+      "delta_pp": 0.0,
+      "note": ""
+    },
+    {
+      "assumption": "gap_bounds",
+      "variant": "max_gap",
+      "setting": "2.0",
+      "model": "B0_last_year",
+      "headline_net_pct": 4.856032690252625,
+      "base_net_pct": 4.856032690252625,
+      "delta_pp": 0.0,
+      "note": ""
+    },
+    {
+      "assumption": "gap_bounds",
+      "variant": "max_gap",
+      "setting": "3.0",
+      "model": "B0_last_year",
+      "headline_net_pct": 4.856032690252625,
+      "base_net_pct": 4.856032690252625,
+      "delta_pp": 0.0,
+      "note": ""
+    },
+    {
+      "assumption": "winsorization",
+      "variant": "quantiles",
+      "setting": "[0.0, 1.0]",
+      "model": "B0_last_year",
+      "headline_net_pct": 4.856032690252625,
+      "base_net_pct": 4.856032690252625,
+      "delta_pp": 0.0,
+      "note": ""
+    }
+  ],
   "note": "EXEMPLE SYNTHÉTIQUE calculé sur les données fictives du dépôt : la mode, les comptes et les chiffres ne décrivent pas project."
 }
