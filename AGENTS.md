@@ -55,9 +55,9 @@ Point losses the sponsor names explicitly: magic numbers, badly named or inconsi
 
 | Code | Track | Person | Branch prefix | Summary |
 |---|---|---|---|---|
-| **INT** | Integration & Product | Yousef (integrator) | `int/` | Repo, contracts, config, loading/QA/dictionary, notebook assembly, uncertainty (bootstrap), aggregate export, Streamlit app + LLM narrative, README, final checks |
+| **INT** | Integration & Product | Yousef (integrator) | `int/` | Repo, contracts, config, loading/QA/dictionary, notebook assembly, aggregate export, Streamlit app + LLM narrative, README, final checks |
 | **MSR** | Measure & Market | Hamza | `msr/` | Same-unit matching, composition/rent bridge, renewals vs turnovers, QC/ON regulation, external sources + LLM extraction, asking-rent turnover signal, internal vs market reconciliation |
-| **FCT** | Incentives & Forecast | Yousif | `fct/` | As-of snapshot + leakage tests, baselines, incentive engine, monthly index + nowcast, engine combination, backtests, scenarios, concession→lease reconciliation matcher, `estimate_2026()` / `backtest()` |
+| **FCT** | Incentives & Forecast | Yousif | `fct/` | As-of snapshot + leakage tests, baselines, incentive engine, monthly index + nowcast, engine combination, backtests, scenarios, unit-cluster bootstrap (uncertainty, F-11), concession→lease reconciliation matcher, `estimate_2026()` / `backtest()` |
 
 Effort is balanced at ~13 h each including INT's integration duties. Integrator duties count as INT's work.
 
@@ -119,13 +119,13 @@ HALO/
 │  ├─ market/    registry.py  asking.py  regulation.py  reconcile_market.py   (MSR)
 │  ├─ incentives/ engine.py  linking.py  reconcile.py     (FCT)
 │  ├─ forecast/  asof.py  baselines.py  monthly_index.py  nowcast.py  combine.py  scenarios.py  (FCT)
-│  ├─ evaluate/  backtest.py  metrics.py (FCT)   uncertainty.py (INT)
+│  ├─ evaluate/  backtest.py  metrics.py  uncertainty.py (FCT)
 │  └─ export/    aggregates.py                            (INT)
 ├─ notebook/sections/             # jupytext "percent" .py files, assembled in numeric order
 │  ├─ 00_executive.py  01_definition.py  02_data_dictionary_qa.py      (INT)
 │  ├─ 03_composition.py  04_matching.py  06_renewals_regulation.py  07_external.py  12_references.py  (MSR)
 │  ├─ 05_concessions.py  08_forecast_method.py  09_backtest.py  10_forecast_2026.py  11b_scenarios.py  (FCT)
-│  ├─ 11a_uncertainty.py                                 (INT)
+│  ├─ 11a_uncertainty.py                                 (FCT)
 ├─ scripts/
 │  ├─ build_notebook.py  make_synthetic.py  export_aggregates.py  board_status.py  smoke_real_data.py  preflight.py   (INT)
 │  └─ extract_sources.py                                  (MSR)
@@ -134,9 +134,9 @@ HALO/
 ├─ outputs/  private/ (gitignored)  public/ (INT)
 ├─ models/  (gitignored; FCT writes, nobody commits)
 ├─ tests/
-│  ├─ conftest.py  test_contracts.py  test_io.py  test_privacy_guard.py  test_build_notebook.py  test_board_status.py  test_aggregates_schema.py  test_app_shell.py  test_export.py  test_smoke_real_data.py  test_preflight.py  test_uncertainty.py  test_number_guard.py  (INT)
+│  ├─ conftest.py  test_contracts.py  test_io.py  test_privacy_guard.py  test_build_notebook.py  test_board_status.py  test_aggregates_schema.py  test_app_shell.py  test_export.py  test_smoke_real_data.py  test_preflight.py  test_number_guard.py  (INT)
 │  ├─ test_pairs.py  test_composition.py  test_registry.py  test_asking.py  test_regulation.py           (MSR)
-│  └─ test_asof_leakage.py  test_baselines.py  test_incentives.py  test_linking.py  test_backtest.py  test_combine.py  (FCT)
+│  └─ test_asof_leakage.py  test_baselines.py  test_incentives.py  test_linking.py  test_backtest.py  test_combine.py  test_uncertainty.py  (FCT)
 └─ docs/
    ├─ rubric_checklist.md                                 (INT)
    ├─ decisions/INT.md  decisions/MSR.md  decisions/FCT.md
@@ -155,9 +155,9 @@ Each `docs/*/XXX.md` file is owned by the track in its name.
 
 | Owner | Files |
 |---|---|
-| INT | `AGENTS.md`, `CLAUDE.md`, `TEAMMATE_KICKOFF.md`, `.githooks/*`, `.claude/*`, `docs/board/*` (task lists change only through INT), `scripts/board_status.py`, `scripts/smoke_real_data.py`, `scripts/preflight.py`, `README.md`, `requirements.txt`, `pyproject.toml`, `.gitignore`, `.gitattributes`, `.env.example`, `.pre-commit-config.yaml`, `project_analysis.ipynb`, `config/core.yaml`, `src/leaselens/__init__.py`, `contracts.py`, `config.py`, `io/*`, `evaluate/uncertainty.py`, `export/*`, sections `00`, `01`, `02`, `11a`, `scripts/build_notebook.py`, `scripts/make_synthetic.py`, `scripts/export_aggregates.py`, `app/*`, `data/synthetic/*`, `outputs/public/*`, tests listed as INT above, `docs/rubric_checklist.md`, `docs/*/INT.md`, every `__init__.py` |
+| INT | `AGENTS.md`, `CLAUDE.md`, `TEAMMATE_KICKOFF.md`, `.githooks/*`, `.claude/*`, `docs/board/*` (task lists change only through INT), `scripts/board_status.py`, `scripts/smoke_real_data.py`, `scripts/preflight.py`, `README.md`, `requirements.txt`, `pyproject.toml`, `.gitignore`, `.gitattributes`, `.env.example`, `.pre-commit-config.yaml`, `project_analysis.ipynb`, `config/core.yaml`, `src/leaselens/__init__.py`, `contracts.py`, `config.py`, `io/*`, `export/*`, sections `00`, `01`, `02`, `scripts/build_notebook.py`, `scripts/make_synthetic.py`, `scripts/export_aggregates.py`, `app/*`, `data/synthetic/*`, `outputs/public/*`, tests listed as INT above, `docs/rubric_checklist.md`, `docs/*/INT.md`, every `__init__.py` |
 | MSR | `config/measure.yaml`, `measure/*`, `market/*`, sections `03`, `04`, `06`, `07`, `12`, `scripts/extract_sources.py`, `data/public/*`, tests listed as MSR above, `docs/*/MSR.md` |
-| FCT | `config/forecast.yaml`, `incentives/*`, `forecast/*`, `evaluate/backtest.py`, `evaluate/metrics.py`, sections `05`, `08`, `09`, `10`, `11b`, `models/*` (local only), tests listed as FCT above, `docs/*/FCT.md` |
+| FCT | `config/forecast.yaml`, `incentives/*`, `forecast/*`, `evaluate/backtest.py`, `evaluate/metrics.py`, `evaluate/uncertainty.py`, sections `05`, `08`, `09`, `10`, `11a`, `11b`, `models/*` (local only), tests listed as FCT above (incl. `test_uncertainty.py`), `docs/*/FCT.md` |
 
 Rules:
 - A new file must go inside a folder your track owns, and you add it to this table via a request to INT in the same task.
@@ -270,7 +270,7 @@ Original source names are kept in a mapping (`dictionary.py`) shown in notebook 
 | forecast | FCT | `forecast.combine.forecast(snapshot, cfg) -> ForecastResult` |
 | actual | FCT | `evaluate.backtest.actual_for_year(tables, year, weights, cfg) -> dict` |
 | backtest | FCT | `evaluate.backtest.run_backtest(tables, external, target_year, cfg) -> BacktestResult` |
-| bootstrap | INT | `evaluate.uncertainty.unit_bootstrap(tables, external, cfg, n_boot) -> DataFrame` |
+| bootstrap | FCT | `evaluate.uncertainty.unit_bootstrap(tables, external, cfg, n_boot) -> DataFrame` (F-11) |
 | export | INT | `export.aggregates.export(results, path) -> None` (aggregates only, JSON) |
 
 Notebook-facing wrappers (section 10, FCT) keep the sponsor signatures:
@@ -341,7 +341,7 @@ Task IDs are referenced in branches, PRs and Handback Reports. Do tasks in order
 | I-05 | H1–H3 | `build_notebook.py`: jupytext sections → `project_analysis.ipynb`, execute on clean kernel, fail on error; works on synthetic mode via `core.yaml` flag | One command builds the notebook |
 | I-06 | continuous | Review + merge PRs (check ownership diff, tests, privacy); maintain `docs/rubric_checklist.md` | `dev` always green |
 | I-07 | H4 | Integration #1: pairs (MSR) + snapshot (FCT) + loaders on real data, counts-only smoke run | Smoke script passes locally |
-| I-08 | H4–H6 | `evaluate/uncertainty.py`: unit-cluster bootstrap (resample whole unit histories, recompute headline); section `11a_uncertainty.py` | Interval reproducible with fixed seed |
+| I-08 | H4–H6 | Moved to FCT as F-11 (unit-cluster bootstrap in `evaluate/uncertainty.py`, section `11a_uncertainty.py`) | — |
 | I-09 | H6–H8 | `export/aggregates.py` + `scripts/export_aggregates.py`: headline, companions, backtest table, coverage, scenario range → `outputs/private/aggregates.json` | JSON has no unit-level data (test) |
 | I-10 | H8 | Integration #2 / **core freeze**: full notebook build on real data | Notebook runs top to bottom |
 | I-11 | H8–H11 | Streamlit app (Overview, Why, Validation, Scenarios & Sources) reading only `aggregates.json`; synthetic demo mode | App runs offline |
@@ -376,6 +376,7 @@ Task IDs are referenced in branches, PRs and Handback Reports. Do tasks in order
 | F-07 | H10–H11 | Champion selection (pre-declared: choose on 2023–24, 2025 held out); `forecast/scenarios.py` (incentive intensity, renewal mix, Met applicability, post-cutoff QC scenario); per building × beds forecasts with shrinkage; save model to `models/` if a fitted model is used | Scenario table low/central/high |
 | F-08 | H10–H11.5 | Sections `08_forecast_method.py`, `09_backtest.py`, `10_forecast_2026.py` (wrappers `estimate_2026`, `backtest`), `11b_scenarios.py` in French | Ready for final build |
 | F-09 | H12.5–H14 | Slides for own sections; rehearsal | — |
+| F-11 | H11–H12 | Unit-cluster bootstrap: `evaluate/uncertainty.py` `unit_bootstrap(tables, external, cfg, n_boot)` per Section 7.3 (resample whole unit histories with replacement; seed and draws from `core.yaml` `uncertainty`; rerun `champion_forecast` each draw; report the 5–95% interval of the net and contract headline). Section `11a_uncertainty.py` in French: chart of the bootstrap distribution with the headline marked; sampling uncertainty only, complementing the scenario and sensitivity analysis in 11b | Interval reproducible with the fixed seed; interval contains the point estimate; draws resample units, not leases |
 
 ### Critical-path dependencies
 - I-01/I-02/I-03 → everyone (H1). **Highest priority of the whole project.**

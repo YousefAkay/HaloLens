@@ -25,7 +25,7 @@ Task details and "done when" criteria: AGENTS.md Section 10.
 | I-09a | Define the aggregates JSON schema as AGGREGATES_SCHEMA in contracts.py (headline, companions, medians, backtest table per year and model, coverage counts, scenario range, sources, as-of date, definition text) + a synthetic example at outputs/public/aggregates_synthetic.json built from synthetic data or clearly fake values | — | lets app work start before F-05 |
 | I-11a | Streamlit app shell (app/streamlit_app.py) with the four views from AGENTS.md I-11, reading only the synthetic aggregates file | I-09a |  |
 | I-07 | Integration #1 smoke run on real data (counts only) | M-02, F-02 |  |
-| I-08 | Unit-cluster bootstrap + section 11a | M-02, F-05 | done (cut: bootstrap replaced by FCT tornado F-10) |
+| I-08 | Unit-cluster bootstrap + section 11a | M-02, F-05 | done (moved to FCT as F-11) |
 | I-09 | Aggregate export + test (no unit-level data) | F-05 |  |
 | I-10 | Integration #2 / core freeze: full notebook on real data | F-05, M-05 |  |
 | I-11 | Streamlit app on aggregates.json + synthetic demo | I-09, I-11a | done (merged into I-12) |
