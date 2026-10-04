@@ -3,7 +3,8 @@
 Owner: MSR. Implements `build_pairs` (AGENTS.md Section 7.3) and a gap-bound sensitivity helper.
 
 Units are matched on `cfg["pairs"]["unit_key"]` (prop_code + unit_code, the sponsor's safe key) and
-cross-checked against `unit_id` (hUnit). `sSite` is never used. Every consecutive pair is returned,
+cross-checked against `unit_id` (hUnit). `sSite` is never used as a key; `key_comparison` reads it only to
+demonstrate the collision of the unsafe key. Every consecutive pair is returned,
 eligible or not; an excluded pair always carries a non-empty `exclusion_reason`.
 """
 
@@ -13,6 +14,7 @@ import numpy as np
 import pandas as pd
 
 from leaselens.contracts import DAYS_PER_YEAR, PAIRS_COLUMNS, PERCENT
+from leaselens.io.qa import SAFE_UNIT_KEY, UNSAFE_UNIT_KEY
 
 # Exclusion reasons (several are joined with REASON_SEPARATOR when a pair fails more than one rule)
 REASON_MISSING_VALUE = "missing_rent_or_date"
@@ -21,6 +23,10 @@ REASON_GAP_TOO_SHORT = "gap_too_short"
 REASON_GAP_TOO_LONG = "gap_too_long"
 REASON_UNIT_ID_MISMATCH = "unit_id_mismatch"
 REASON_SEPARATOR = ";"
+
+# Source columns used only by the key comparison demo (canonical tables have no sSite)
+SOURCE_UNIT_ID = "hUnit"
+SOURCE_LEASE_START = "sLeaseFrom"
 
 # Columns carried from the later lease of the pair (segment attributes describe the new lease)
 CURRENT_LEASE_COLUMNS = ["unit_id", "prop_code", "building", "province", "beds", "is_renewal",
@@ -131,5 +137,31 @@ def gap_sensitivity(pairs: pd.DataFrame, cfg: dict) -> pd.DataFrame:
             "n_eligible": len(kept),
             "median_contract_pct": PERCENT * np.expm1(kept["loggrowth_contract"].median()),
             "median_net_pct": PERCENT * np.expm1(kept["loggrowth_net"].median()),
+        })
+    return pd.DataFrame(rows)
+
+
+def key_comparison(raw_leases: pd.DataFrame) -> pd.DataFrame:
+    """Safe (sPropCode + sUnitCode) vs unsafe (sSite + sUnitCode) matching key on the SOURCE lease table. Counts only.
+
+    This is the only place `sSite` is read, to demonstrate the collision the sponsor warns about. For each key:
+    n_keys (distinct key values), n_units (distinct hUnit), n_keys_with_several_units, n_leases_in_mixed_keys and
+    n_cross_unit_pairs (consecutive leases by start date under that key that belong to two different hUnit, i.e.
+    pairs that would compare two different apartments).
+    """
+    lease_start = pd.to_datetime(raw_leases[SOURCE_LEASE_START])
+    rows = []
+    for name, key in (("safe: sPropCode + sUnitCode", SAFE_UNIT_KEY), ("unsafe: sSite + sUnitCode", UNSAFE_UNIT_KEY)):
+        frame = raw_leases[key + [SOURCE_UNIT_ID]].assign(_start=lease_start)
+        units_per_key = frame.groupby(key)[SOURCE_UNIT_ID].transform("nunique")
+        ordered = frame.sort_values(key + ["_start"], kind="mergesort")
+        previous_unit = ordered.groupby(key, sort=False)[SOURCE_UNIT_ID].shift(1)
+        rows.append({
+            "key": name,
+            "n_keys": int(frame.groupby(key).ngroups),
+            "n_units": int(frame[SOURCE_UNIT_ID].nunique()),
+            "n_keys_with_several_units": int((frame.groupby(key)[SOURCE_UNIT_ID].nunique() > 1).sum()),
+            "n_leases_in_mixed_keys": int((units_per_key > 1).sum()),
+            "n_cross_unit_pairs": int((previous_unit.notna() & (previous_unit != ordered[SOURCE_UNIT_ID])).sum()),
         })
     return pd.DataFrame(rows)
