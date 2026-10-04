@@ -12,6 +12,7 @@ outputs:
   private_dir: outputs/private    # anything derived from CRM; gitignored
   public_dir: outputs/public      # synthetic or sponsor-approved aggregates only
   aggregates_file: aggregates.json
+  aggregates_synthetic_file: aggregates_synthetic.json  # invented demo file the app reads until the real export (I-09) exists
 
 forecast_years:
   target_year: 2026               # the year we forecast

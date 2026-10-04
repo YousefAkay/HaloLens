@@ -10,3 +10,4 @@ Append one bullet per entry, newest last.
 - 2026-10-03 — Preflight requires `data/private/` on every machine that runs /next, including for synthetic-first tasks. On a machine without the CRM package it stops. Confirm whether this should stay.
 - 2026-10-03 — After the test-module filter, about 169 deprecation warnings remain in the full run, all from the DateOffset helper used by several test modules. The remaining ones come from a shared test helper that pandas attributes to the calling test module. They are not from src/leaselens.
 - 2026-10-03 — I-09a: backtest errors are stored as forecast minus actual, in percentage points, and the tests check that convention on the example.
+- 2026-10-03 — I-11a: the app's only computed values are a mean absolute error per model (from the backtest rows) and display rounding. Every headline, median, coverage count and scenario number is shown as stored in the JSON.
