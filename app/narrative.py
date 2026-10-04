@@ -33,8 +33,8 @@ UNIT_LEVEL_KEYS = {"unit_id", "unit_code", "hunit", "sunitcode", "spropcode", "p
 FORBIDDEN_TOPIC = re.compile(r"occupation|occupancy|vacance|vacancy|absorption|rent[ -]?roll", re.IGNORECASE)
 REFUSAL = {
     "fr": "Cet extrait ne permet pas de mesurer l'occupation, la vacance, l'absorption ni le rent roll total "
-          "(AGENTS.md §1 et §9.4) : ces chiffres ne sont pas calculés ici.",
-    "en": "This extract cannot measure occupancy, vacancy, absorption or the total rent roll (AGENTS.md §1 and §9.4), "
+          "(voir la section 01 du notebook) : ces chiffres ne sont pas calculés ici.",
+    "en": "This extract cannot measure occupancy, vacancy, absorption or the total rent roll (see notebook section 01), "
           "so these figures are not computed here.",
 }
 SECTION_MAP = {
@@ -51,6 +51,13 @@ PRESET_QUESTIONS = (
     "Comment la règle du TAL intervient-elle pour les renouvellements québécois ?",
     "Pourquoi le classement des modèles est-il statistiquement faible ?",
     "Quelles hypothèses déplacent le plus la hausse ?",
+)
+PRESET_QUESTIONS_EN = (  # same order as PRESET_QUESTIONS; a click still sends the French question, so the cached answers match
+    "What is the 2026 increase net of all concessions?",
+    "What happens if the effect of incentives is stronger?",
+    "How does the TAL rule apply to Québec renewals?",
+    "Why is the ranking of the models statistically weak?",
+    "Which assumptions move the increase the most?",
 )
 DECISION_FILES = ("docs/decisions/INT.md", "docs/decisions/MSR.md", "docs/decisions/FCT.md",
                   "docs/assumptions/INT.md", "docs/assumptions/MSR.md", "docs/assumptions/FCT.md")
