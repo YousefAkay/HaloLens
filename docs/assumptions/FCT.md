@@ -18,3 +18,4 @@ Append one bullet per entry, newest last.
 - F-05: Component weights in `combine` (0.5/0.5 for renewals; 0.3/0.4/0.3 for turnovers) are untuned starting values. They can only be re-examined on 2023-24, never on the 2025 holdout; F-07 does the champion selection.
 - F-05: Synthetic backtest errors are not informative (the generator draws growth at random); real accuracy must be read from a counts/aggregates-only run on the real data once the user confirms the sponsor approval covers this session.
 - F-05: The monthly nowcast is a portfolio-wide level shared by all segments; it carries no segment information and no regulatory information.
+- F-05b: Public data released by Jan 31 of the target year is assumed to describe periods that ended before the target year starts (annual CPI average, TAL percentage, CMHC report); a value for a period inside the target year would be a leak the rule does not catch. B2 only uses the latest reference year up to target-1.

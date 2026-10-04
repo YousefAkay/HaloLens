@@ -10,7 +10,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from leaselens.evaluate.backtest import (actual_for_year, backtest_all_models, backtest_baselines, run_backtest,
+from leaselens.evaluate.backtest import (actual_for_year, backtest_all_models, backtest_baselines, backtest_both_rules,
+                                         run_backtest,
                                          summarize_models)
 from leaselens.evaluate.metrics import absolute_error_pp, mean_absolute_error_pp, signed_error_pp
 from leaselens.forecast.asof import make_snapshot
@@ -155,3 +156,66 @@ def test_model_summary_separates_selection_years_from_the_holdout(raw, cfg):
     assert summary.loc["E1_engine_blend", "mae_holdout_pp"] == pytest.approx(engine.loc[cfg["forecast_years"]["holdout_year"]])
     assert summary.loc["E1_engine_blend", "n_folds_run"] == len(engine)
     assert summary.loc["B2_market_anchor", "n_folds_run"] == 0   # no external data in this fixture
+
+
+# ---------------------------------------------------------------------------
+# Information-date rules (REQUEST-INT-01): Jan-31 rule vs Dec-31 strict sensitivity
+# ---------------------------------------------------------------------------
+def january_release_market(year: int) -> pd.DataFrame:
+    """Market rows for ref years year-3 .. year-1 where the latest (year-1) is released on January 15 of `year`."""
+    frame = market_rows(include_post_cutoff=False)
+    latest = frame["ref_period_end"].dt.year == year - 1
+    frame.loc[latest, "release_date"] = pd.Timestamp(f"{year}-01-15")
+    return frame
+
+
+def test_b2_uses_a_january_release_under_the_jan_31_rule_but_not_under_the_strict_rule(tables, cfg):
+    from leaselens.forecast.baselines import market_anchor
+    from leaselens.forecast.asof import snapshot_for_year
+    external = january_release_market(2025)
+    jan31 = market_anchor(snapshot_for_year(tables, external, 2025, cfg), cfg)
+    strict = market_anchor(snapshot_for_year(tables, external, 2025, cfg, strict=True), cfg)
+    assert jan31.components["market_year"] == 2024        # released Jan 15, inside the agreed window
+    assert strict.components["market_year"] == 2023       # strict rule: the 2024 value is not yet public
+    assert jan31.headline_net_pct != strict.headline_net_pct
+
+
+def test_models_that_never_read_external_data_are_identical_under_both_rules(tables, cfg):
+    external = january_release_market(2025)
+    jan31 = backtest_all_models(tables, external, cfg, years=[2025]).set_index("model")
+    strict = backtest_all_models(tables, external, cfg, years=[2025], strict=True).set_index("model")
+    assert jan31.loc["B2_market_anchor", "rule"] == "jan31" and strict.loc["B2_market_anchor", "rule"] == "dec31_strict"
+    for name in ("B0_last_year", "B1_trailing_mean", "E1_engine_blend"):   # E1 is NaN here (too few leases): equal either way
+        pd.testing.assert_series_equal(jan31.loc[[name], "forecast_net_pct"], strict.loc[[name], "forecast_net_pct"])
+
+
+def test_both_rules_table_has_one_block_per_rule(tables, cfg):
+    table = backtest_both_rules(tables, january_release_market(2025), cfg, years=[2025])
+    assert set(table["rule"]) == {"jan31", "dec31_strict"}
+    assert len(table) == 2 * 4                                        # B0, B1, B2, E1 per rule
+    summary = summarize_models(table, cfg)
+    assert set(summary["rule"]) == {"jan31", "dec31_strict"} and len(summary) == 8
+
+
+def test_table_carries_contract_and_net_forecast_and_actual(raw, cfg):
+    from leaselens.io import canonicalize
+    table = backtest_all_models(canonicalize(raw), empty_external(), cfg, years=[2025])
+    engine = table[table["model"] == "E1_engine_blend"].iloc[0]
+    for column in ("forecast_net_pct", "actual_net_pct", "forecast_contract_pct", "actual_contract_pct",
+                   "error_pp_net", "error_pp_contract"):
+        assert np.isfinite(engine[column])
+    assert engine["error_pp_contract"] == pytest.approx(engine["forecast_contract_pct"] - engine["actual_contract_pct"])
+
+
+def test_run_backtest_reports_the_strict_dec_31_sensitivity(raw, cfg):
+    from leaselens.io import canonicalize
+    fold = run_backtest(canonicalize(raw), empty_external(), 2025, cfg)
+    sensitivity = fold.coverage["sensitivity_strict_dec31"]
+    assert set(sensitivity) == {"forecast_net_pct", "forecast_contract_pct", "error_pp_net", "error_pp_contract"}
+    assert sensitivity["forecast_net_pct"] == pytest.approx(fold.forecast.headline_net_pct)   # no external data: same
+
+
+def test_run_backtest_omits_the_sensitivity_when_the_config_switches_it_off(raw, cfg):
+    from leaselens.io import canonicalize
+    off = {**cfg, "forecast_years": {**cfg["forecast_years"], "external_cutoff_strict_sensitivity": False}}
+    assert "sensitivity_strict_dec31" not in run_backtest(canonicalize(raw), empty_external(), 2025, off).coverage
