@@ -45,6 +45,9 @@ anchors:
   tal_method_change_year: 2026            # first lease year under the new TAL method; gap learned on older years is flagged, not adjusted
   tal_method_announced: "2025-12-17"      # date of the TAL method change (AGENTS.md 9.3); quoted in notebook text, which reads it from here
 
+champion:
+  top_n: 3                        # number of best models shown in the backtest reading (notebook section 9)
+
 selection:
   metric: mean_absolute_error_pp  # champion metric over selection_years
 
