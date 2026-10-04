@@ -1,20 +1,26 @@
-"""Tests for the external-source registry (market.registry) and the extraction helpers. Owner: MSR.
+"""Tests for the external-source registry (market.registry), the extraction helpers and the market reconciliation
+(market.reconcile_market). Owner: MSR.
 
 Hand-made public-style observations only; no network calls and no CRM data.
 """
 
 from __future__ import annotations
 
+import copy
 import importlib.util
+import math
 import shutil
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import pytest
 
-from leaselens.config import load_config, repo_root
-from leaselens.contracts import EXTERNAL_COLUMNS, MONTHS_PER_YEAR, PERCENT
-from leaselens.market.registry import as_of, load_external, validate_external
+from leaselens.config import external_cutoff_for, load_config, repo_root
+from leaselens.contracts import EXTERNAL_COLUMNS, MONTHS_PER_YEAR, PAIRS_COLUMNS, PERCENT
+from leaselens.market.reconcile_market import (PROVENANCE_COLUMNS, RECONCILE_COLUMNS, SUMMARY_COLUMNS, provenance_table,
+                                              reconcile, reconcile_summary)
+from leaselens.market.registry import as_of, load_external, parse_external, validate_external
 
 CUTOFF = pd.Timestamp("2022-12-31")
 ONE_DAY = pd.Timedelta(days=1)
@@ -194,3 +200,146 @@ def test_promote_copies_only_verified_rows(tmp_path):
     promoted = load_external(public / cfg["external"]["sources_file"])
     assert list(promoted["series_id"]) == ["checked"]
     assert validate_external(promoted, cfg) == []
+
+
+# ---------------------------------------------------------------------------
+# reconcile_market: internal same-unit growth vs public series
+# ---------------------------------------------------------------------------
+RECONCILE_YEAR = 2024
+INTERNAL_GROWTH = 0.05
+MARKET_PCT = 3.0
+NET_DISCOUNT = 0.01
+BASE_RENT = 1000.0
+
+
+def growth_pair(unit: str, province: str, renewal: bool = True, beds: int = 2, growth: float = INTERNAL_GROWTH,
+                year: int = RECONCILE_YEAR) -> dict:
+    """One eligible annual pair with the given contractual log growth (hand-made, no CRM data)."""
+    start = pd.Timestamp(f"{year}-07-01")
+    row = {
+        "unit_id": unit, "prop_code": "aaa", "building": "Test", "province": province, "beds": beds,
+        "is_renewal": renewal, "prev_lease_start": start - pd.DateOffset(years=1), "lease_start": start,
+        "sign_date": start - pd.Timedelta(days=60), "year": year, "gap_years": 1.0,
+        "rent_contract_prev": BASE_RENT, "rent_contract": BASE_RENT * math.exp(growth),
+        "rent_net_prev": BASE_RENT, "rent_net": BASE_RENT * math.exp(growth - NET_DISCOUNT),
+        "loggrowth_contract": growth, "loggrowth_net": growth - NET_DISCOUNT, "eligible": True, "exclusion_reason": "",
+    }
+    return {column: row[column] for column in PAIRS_COLUMNS}
+
+
+def many_pairs(count: int, province: str, prefix: str = "u", **kwargs) -> list[dict]:
+    return [growth_pair(f"{prefix}-{province}-{index}", province, **kwargs) for index in range(count)]
+
+
+def reconcile_cfg(cfg: dict) -> dict:
+    """Synthetic config with one all-lease comparison and one 2-bedroom turnover comparison."""
+    settings = copy.deepcopy(cfg)
+    settings["reconcile_market"]["comparisons"] = [
+        {"name": "total", "label": "Total", "lease_type": "all", "beds": None,
+         "series": {"QC": "mtl_total", "ON": "ott_total"}},
+        {"name": "turnover", "label": "Turnover", "lease_type": "turnover", "beds": 2,
+         "series": {"QC": "mtl_turnover", "ON": "ott_turnover"}},
+    ]
+    return settings
+
+
+def market_row(series_id: str, geography: str, value: float, release_date: str = "2024-12-17",
+               year: int = RECONCILE_YEAR, metric: str = "cmhc_same_sample_rent_growth_pct") -> dict:
+    return observation(series_id=series_id, geography=geography, metric=metric, value=str(value),
+                       ref_period_start=f"{year}-10-01", ref_period_end=f"{year}-10-31", release_date=release_date)
+
+
+def market_external(rows: list[dict]) -> pd.DataFrame:
+    return parse_external(pd.DataFrame(rows, columns=EXTERNAL_COLUMNS))
+
+
+def cell(table: pd.DataFrame, comparison: str, province: str) -> pd.Series:
+    return table[(table["comparison"] == comparison) & (table["province"] == province)].iloc[0]
+
+
+def test_reconcile_gap_is_internal_minus_same_province_market(cfg):
+    settings = reconcile_cfg(cfg)
+    minimum = settings["renewals"]["min_pairs_per_cell"]
+    external = market_external([market_row("mtl_total", "Montreal CMA", MARKET_PCT),
+                                market_row("ott_total", "Ottawa CMA", MARKET_PCT * 2)])
+    table = reconcile(pd.DataFrame(many_pairs(minimum, "QC")), external, settings)
+    assert list(table.columns) == RECONCILE_COLUMNS
+    quebec = cell(table, "total", "QC")
+    expected = PERCENT * (math.exp(INTERNAL_GROWTH) - 1)
+    assert quebec["n_pairs"] == minimum
+    assert quebec["geography"] == "Montreal CMA"
+    assert quebec["internal_contract_pct"] == pytest.approx(expected)
+    assert quebec["gap_contract_pp"] == pytest.approx(expected - MARKET_PCT)
+    ontario = cell(table, "total", "ON")  # Québec pairs are never compared with Ottawa
+    assert ontario["n_pairs"] == 0 and np.isnan(ontario["internal_contract_pct"])
+
+
+def test_reconcile_thin_cell_keeps_count_without_growth(cfg):
+    settings = reconcile_cfg(cfg)
+    thin = settings["renewals"]["min_pairs_per_cell"] - 1
+    table = reconcile(pd.DataFrame(many_pairs(thin, "QC")),
+                      market_external([market_row("mtl_total", "Montreal CMA", MARKET_PCT)]), settings)
+    quebec = cell(table, "total", "QC")
+    assert quebec["n_pairs"] == thin
+    assert np.isnan(quebec["internal_contract_pct"]) and np.isnan(quebec["gap_contract_pp"])
+
+
+def test_reconcile_filters_lease_type_and_beds(cfg):
+    settings = reconcile_cfg(cfg)
+    minimum = settings["renewals"]["min_pairs_per_cell"]
+    rows = (many_pairs(minimum, "QC", prefix="turnover", renewal=False)
+            + many_pairs(minimum, "QC", prefix="renewal", renewal=True)
+            + many_pairs(minimum, "QC", prefix="one-bed", renewal=False, beds=1))
+    table = reconcile(pd.DataFrame(rows), market_external([market_row("mtl_turnover", "Montreal CMA", MARKET_PCT)]),
+                      settings)
+    assert cell(table, "turnover", "QC")["n_pairs"] == minimum
+    assert cell(table, "total", "QC")["n_pairs"] == len(rows)
+
+
+def test_reconcile_latest_release_wins_and_next_info_date_flag(cfg):
+    settings = reconcile_cfg(cfg)
+    revised = MARKET_PCT + 1
+    late_release = (external_cutoff_for(RECONCILE_YEAR + 1, settings) + ONE_DAY).strftime("%Y-%m-%d")
+    external = market_external([market_row("mtl_total", "Montreal CMA", MARKET_PCT),
+                                market_row("mtl_total", "Montreal CMA", revised, release_date=late_release)])
+    quebec = cell(reconcile(pd.DataFrame(many_pairs(1, "QC")), external, settings), "total", "QC")
+    assert quebec["market_pct"] == revised
+    assert not quebec["known_by_next_info_date"]
+
+
+def test_reconcile_summary_mean_gaps(cfg):
+    settings = reconcile_cfg(cfg)
+    minimum = settings["renewals"]["min_pairs_per_cell"]
+    years = [RECONCILE_YEAR - 1, RECONCILE_YEAR]
+    pairs = pd.DataFrame([row for year in years for row in many_pairs(minimum, "QC", prefix=str(year), year=year)])
+    external = market_external([market_row("mtl_total", "Montreal CMA", MARKET_PCT, year=year,
+                                           release_date=f"{year}-12-17") for year in years])
+    summary = reconcile_summary(reconcile(pairs, external, settings))
+    assert list(summary.columns) == SUMMARY_COLUMNS
+    quebec = cell(summary, "total", "QC")
+    assert quebec["n_years"] == len(years)
+    assert quebec["mean_gap_contract_pp"] == pytest.approx(PERCENT * (math.exp(INTERNAL_GROWTH) - 1) - MARKET_PCT)
+
+
+def test_provenance_table_roles(cfg):
+    settings = reconcile_cfg(cfg)
+    context_metric = settings["reconcile_market"]["context_only_metrics"][0]
+    external = market_external([
+        market_row("mtl_total", "Montreal CMA", MARKET_PCT),
+        market_row("mtl_vacancy", "Montreal CMA", MARKET_PCT, metric=context_metric),
+        market_row("tal", "QC", MARKET_PCT, metric="tal_renewal_reference_pct"),
+    ])
+    table = provenance_table(external, settings)
+    assert list(table.columns) == PROVENANCE_COLUMNS
+    roles = table.set_index("series_id")["role"]
+    assert roles["mtl_total"] == "compared"
+    assert roles["mtl_vacancy"] == "context_only"
+    assert roles["tal"] == "reference"
+    assert table["verified"].all()
+
+
+def test_committed_reconcile_series_exist_in_sources(cfg):
+    series = set(load_external(repo_root() / cfg["data"]["public_dir"] / cfg["external"]["sources_file"])["series_id"])
+    for comparison in cfg["reconcile_market"]["comparisons"]:
+        assert set(comparison["series"]) == {"QC", "ON"}
+        assert set(comparison["series"].values()) <= series
