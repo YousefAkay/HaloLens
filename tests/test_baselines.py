@@ -62,6 +62,23 @@ def market_rows(include_post_cutoff: bool = True) -> pd.DataFrame:
                          "ref_period_start": pd.Timestamp(f"{year}-01-01"),
                          "ref_period_end": pd.Timestamp(f"{year}-10-31"),
                          "release_date": pd.Timestamp(f"{year}-11-30")})
+    return pd.concat([pd.DataFrame(rows).reindex(columns=EXTERNAL_COLUMNS), regulated_rows()], ignore_index=True)
+
+
+TAL_PCT = {2019: 1.0, 2020: 1.0, 2021: 1.0, 2022: 1.5, 2023: 2.0, 2024: 3.0, 2025: 4.0}   # released in January of each year
+GUIDELINE_PCT = {2019: 2.5, 2020: 2.5, 2021: 2.5, 2022: 2.5, 2023: 2.5, 2024: 2.5, 2025: 1.5}  # announced the August before
+
+
+def regulated_rows(tal=TAL_PCT, guideline=GUIDELINE_PCT) -> pd.DataFrame:
+    """TAL (QC) and Ontario guideline (ON) rows with their real-world style release dates."""
+    rows = []
+    for metric, geography, values, release in (
+            ("tal_renewal_reference_pct", "QC", tal, lambda year: pd.Timestamp(f"{year}-01-15")),
+            ("ontario_guideline_pct", "ON", guideline, lambda year: pd.Timestamp(f"{year - 1}-08-31"))):
+        for year, value in values.items():
+            rows.append({"series_id": f"{metric}_{year}", "publisher": "test", "geography": geography, "metric": metric,
+                         "unit": "pct", "value": value, "ref_period_start": pd.Timestamp(f"{year}-01-01"),
+                         "ref_period_end": pd.Timestamp(f"{year}-12-31"), "release_date": release(year)})
     return pd.DataFrame(rows).reindex(columns=EXTERNAL_COLUMNS)
 
 
@@ -217,3 +234,72 @@ def test_baselines_run_on_the_synthetic_snapshot(raw, cfg):
     for name in ("B0_last_year", "B1_trailing_mean"):
         result = BASELINES[name](snap, cfg)
         assert np.isfinite(result.headline_net_pct)
+
+
+# ---------------------------------------------------------------------------
+# B3: TAL anchor
+# ---------------------------------------------------------------------------
+def expected_b3_contract_pct(rate_year: int) -> float:
+    """TAL % of `rate_year` plus the mean gap over 2022-2024 (portfolio growth is the known yearly growth)."""
+    gap = np.mean([np.log1p(YEARLY_GROWTH[y]) - np.log1p(TAL_PCT[y] / PERCENT) for y in (2022, 2023, 2024)])
+    return to_pct(np.log1p(TAL_PCT[rate_year] / PERCENT) + gap)
+
+
+def test_b3_adds_the_training_gap_to_the_latest_public_tal_rate(snapshot, cfg):
+    """Snapshot cut at Dec 31: the 2025 TAL rate (released Jan 15, 2025) is not public yet, so 2024's rate is used."""
+    from leaselens.forecast.baselines import tal_anchor
+    result = tal_anchor(snapshot, cfg)
+    assert result.model_name == "B3_tal_anchor" and result.components["tal_year_used"] == 2024
+    assert result.headline_contract_pct == pytest.approx(expected_b3_contract_pct(2024), abs=ABS_TOLERANCE_PP)
+    assert result.components["gap_years"] == [2022, 2023, 2024]
+
+
+def test_b3_uses_the_target_years_rate_when_public_under_the_jan_31_rule(tables, cfg):
+    from leaselens.forecast.asof import snapshot_for_year
+    from leaselens.forecast.baselines import tal_anchor
+    result = tal_anchor(snapshot_for_year(tables, market_rows(), 2025, cfg), cfg)
+    assert result.components["tal_year_used"] == 2025 and result.components["tal_pct_used"] == pytest.approx(4.0)
+    assert result.headline_contract_pct == pytest.approx(expected_b3_contract_pct(2025), abs=ABS_TOLERANCE_PP)
+
+
+def test_b3_net_is_contract_minus_last_years_contract_to_net_spread(cfg):
+    """Last year's contract-to-net spread is the discount change; give 2024 leases a 5% discount."""
+    leases = annual_leases()
+    in_2024 = leases["lease_start"].dt.year == 2024
+    leases["rent_net_all_incentives"] = leases["rent_contract"].where(~in_2024, leases["rent_contract"] * 0.95)
+    from leaselens.forecast.baselines import tal_anchor
+    result = tal_anchor(make_snapshot(tables_from(leases), market_rows(), CUTOFF_2025), cfg)
+    spread = -np.log(0.95)                                          # contract log growth minus net log growth in 2024
+    assert result.components["spread_log"] == pytest.approx(spread, abs=1e-3)
+    assert to_pct(np.log1p(result.headline_contract_pct / PERCENT) - spread) == pytest.approx(result.headline_net_pct, abs=0.01)
+
+
+def test_b3_needs_a_released_tal_rate(tables, cfg):
+    from leaselens.forecast.baselines import tal_anchor
+    with pytest.raises(ValueError, match="rate"):
+        tal_anchor(make_snapshot(tables, empty_external(), CUTOFF_2025), cfg)
+
+
+def test_b3_ignores_tal_rows_released_after_the_external_cutoff(tables, cfg):
+    from leaselens.forecast.baselines import tal_anchor
+    later = pd.concat([market_rows(), regulated_rows(tal={2025: 99.0}).assign(
+        release_date=pd.Timestamp("2025-03-01"))], ignore_index=True)
+    base = tal_anchor(make_snapshot(tables, market_rows(), CUTOFF_2025), cfg)
+    with_future = tal_anchor(make_snapshot(tables, later, CUTOFF_2025), cfg)
+    assert base.headline_net_pct == with_future.headline_net_pct
+
+
+def test_rate_helpers_pick_the_latest_release_and_resolve_the_year():
+    from leaselens.forecast.baselines import anchor_gap, rate_logs_by_year, resolve_rate_year
+    rows = regulated_rows(tal={2024: 3.0})
+    revised = rows.assign(value=3.5, release_date=pd.Timestamp("2024-06-01"))
+    logs = rate_logs_by_year(pd.concat([rows, revised]), "tal_renewal_reference_pct", "QC")
+    assert logs == {2024: pytest.approx(np.log1p(0.035))}
+    assert resolve_rate_year({2023: 0.1, 2024: 0.2}, 2025) == 2024
+    assert resolve_rate_year({2024: 0.2, 2025: 0.3}, 2025) == 2025
+    with pytest.raises(ValueError):
+        resolve_rate_year({2026: 0.3}, 2025)
+    gap, years = anchor_gap(pd.Series({2023: 0.05, 2024: 0.06}), {2023: 0.02, 2024: 0.02, 2025: 0.02}, [2022, 2023, 2024])
+    assert gap == pytest.approx(0.035) and years == [2023, 2024]
+    with pytest.raises(ValueError):
+        anchor_gap(pd.Series({2020: 0.05}), {2023: 0.02}, [2023])

@@ -24,7 +24,8 @@ GROWTH_COLUMNS = (GROWTH_NET, GROWTH_CONTRACT)
 # Keys of the log-scale summary dict (one value per reported quantity)
 LOG_KEYS = ("log_net", "log_contract", "log_median_net", "log_median_contract")
 
-BASELINE_NAMES = {"last_year": "B0_last_year", "trailing_mean": "B1_trailing_mean", "market_anchor": "B2_market_anchor"}
+BASELINE_NAMES = {"last_year": "B0_last_year", "trailing_mean": "B1_trailing_mean", "market_anchor": "B2_market_anchor",
+                  "tal_anchor": "B3_tal_anchor"}
 
 
 def target_year_for(cutoff: pd.Timestamp) -> int:
@@ -194,8 +195,78 @@ def market_anchor(snapshot: Snapshot, cfg: dict) -> ForecastResult:
                     "Market series is province-weighted with the frozen segment weights."])
 
 
+def rate_logs_by_year(external: pd.DataFrame, metric: str, geography: str) -> dict[int, float]:
+    """log(1 + rate/100) per reference year for one regulated rate (TAL percentage, Ontario guideline).
+
+    Reads the snapshot's external rows only (already cut at the external cutoff), keeps the latest-released value for
+    each reference year and returns {year: log1p(value / 100)}. Empty when the snapshot has no such rows.
+    """
+    rows = external[(external["metric"] == metric) & (external["geography"] == geography)]
+    if rows.empty:
+        return {}
+    latest = rows.assign(year=rows["ref_period_end"].dt.year).sort_values("release_date").groupby("year").last()
+    return {int(year): float(np.log1p(value / PERCENT)) for year, value in latest["value"].items()}
+
+
+def resolve_rate_year(rate_logs: dict[int, float], target_year: int) -> int:
+    """Year whose rate is used for `target_year`: the target year if public by the external cutoff, else the latest earlier one.
+
+    Raises ValueError when no rate for the target year or any earlier year is available.
+    """
+    available = [year for year in rate_logs if year <= target_year]
+    if not available:
+        raise ValueError("No released regulated rate for the target year or any earlier year")
+    return target_year if target_year in rate_logs else max(available)
+
+
+def anchor_gap(growth_by_year: pd.Series, rate_logs: dict[int, float], years: list[int]) -> tuple[float, list[int]]:
+    """Mean of (actual log growth - log(1 + rate)) over the training `years` that have both; also returns those years.
+
+    Raises ValueError when no year has both an observed growth and a released rate.
+    """
+    shared = sorted(set(years) & set(growth_by_year.index) & set(rate_logs))
+    if not shared:
+        raise ValueError("No training year with both observed growth and a released rate to learn the gap")
+    return float(np.mean([growth_by_year[year] - rate_logs[year] for year in shared])), shared
+
+
+def tal_anchor(snapshot: Snapshot, cfg: dict) -> ForecastResult:
+    """B3: portfolio contract growth = TAL reference % of the target year + training gap; net = contract minus last year's spread.
+
+    The TAL rate of the target year is used when public by the external cutoff, otherwise the latest released year's
+    rate. The gap is the mean of (portfolio actual contract log growth - log(1 + TAL)) over the
+    `anchors.gap_window_years` years before the target. The contract-to-net spread is last year's headline
+    (contract log growth - net log growth). Raises ValueError without a TAL rate, a gap year or last-year pairs.
+    """
+    settings = cfg["anchors"]
+    pairs, weights, bounds = _training_context(snapshot, cfg)
+    target = target_year_for(snapshot.cutoff)
+    rates = rate_logs_by_year(snapshot.external, settings["tal_metric"], settings["tal_geography"])
+    rate_year = resolve_rate_year(rates, target)
+    years = list(range(target - settings["gap_window_years"], target))
+    internal = _year_summaries(pairs, years, weights, bounds, cfg)
+    if (target - 1) not in internal:
+        raise ValueError(f"No eligible pairs in {target - 1} to measure the contract-to-net spread")
+    gap_contract, gap_years = anchor_gap(pd.Series({y: s["log_contract"] for y, s in internal.items()}), rates, years)
+    gap_median, _ = anchor_gap(pd.Series({y: s["log_median_contract"] for y, s in internal.items()}), rates, years)
+    last = internal[target - 1]
+    contract = rates[rate_year] + gap_contract
+    median_contract = rates[rate_year] + gap_median
+    logs = {"log_contract": contract, "log_net": contract - (last["log_contract"] - last["log_net"]),
+            "log_median_contract": median_contract,
+            "log_median_net": median_contract - (last["log_median_contract"] - last["log_median_net"])}
+    return _result(snapshot, logs, weights, BASELINE_NAMES["tal_anchor"],
+                   {"tal_year_used": rate_year, "tal_pct_used": to_pct(rates[rate_year]), "gap_years": gap_years,
+                    "gap_log": gap_contract, "spread_log": last["log_contract"] - last["log_net"]},
+                   ["TAL reference percentage of the target year (latest released year if not yet public) plus the mean "
+                    "training gap between actual portfolio contract growth and the TAL rate.",
+                    "Net = contract minus last year's contract-to-net log spread; the TAL rate is Québec's and is applied "
+                    "to the whole portfolio on purpose (simple and transparent)."])
+
+
 BASELINES = {
     BASELINE_NAMES["last_year"]: last_year,
     BASELINE_NAMES["trailing_mean"]: trailing_mean,
     BASELINE_NAMES["market_anchor"]: market_anchor,
+    BASELINE_NAMES["tal_anchor"]: tal_anchor,
 }

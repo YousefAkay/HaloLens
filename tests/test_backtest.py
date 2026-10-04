@@ -11,8 +11,7 @@ import pandas as pd
 import pytest
 
 from leaselens.evaluate.backtest import (actual_for_year, backtest_all_models, backtest_baselines, backtest_both_rules,
-                                         run_backtest,
-                                         summarize_models)
+                                         run_backtest, select_champion, summarize_models)
 from leaselens.evaluate.metrics import absolute_error_pp, mean_absolute_error_pp, signed_error_pp
 from leaselens.forecast.asof import make_snapshot
 from leaselens.forecast.baselines import BASELINES, frozen_weights, training_pairs
@@ -141,9 +140,11 @@ def test_run_backtest_uses_the_same_forecast_as_the_engine_pipeline(raw, cfg):
 def test_all_models_table_adds_the_engine_to_the_baselines(raw, cfg):
     from leaselens.io import canonicalize
     table = backtest_all_models(canonicalize(raw), empty_external(), cfg)
-    assert set(table["model"]) == set(BASELINES) | {"E1_engine_blend"}
+    assert set(table["model"]) == set(BASELINES) | {"E1_engine_blend", "E2_regulated"}
     engine = table[table["model"] == "E1_engine_blend"]
     assert engine["forecast_net_pct"].notna().all() and engine["note"].eq("").all()
+    regulated = table[table["model"] == "E2_regulated"]          # no TAL rows in this fixture: visible NaN rows with a reason
+    assert regulated["forecast_net_pct"].isna().all() and regulated["note"].str.contains("rate").all()
 
 
 def test_model_summary_separates_selection_years_from_the_holdout(raw, cfg):
@@ -192,9 +193,9 @@ def test_models_that_never_read_external_data_are_identical_under_both_rules(tab
 def test_both_rules_table_has_one_block_per_rule(tables, cfg):
     table = backtest_both_rules(tables, january_release_market(2025), cfg, years=[2025])
     assert set(table["rule"]) == {"jan31", "dec31_strict"}
-    assert len(table) == 2 * 4                                        # B0, B1, B2, E1 per rule
+    assert len(table) == 2 * 6                                        # B0-B3, E1, E2 per rule
     summary = summarize_models(table, cfg)
-    assert set(summary["rule"]) == {"jan31", "dec31_strict"} and len(summary) == 8
+    assert set(summary["rule"]) == {"jan31", "dec31_strict"} and len(summary) == 12
 
 
 def test_table_carries_contract_and_net_forecast_and_actual(raw, cfg):
@@ -219,3 +220,64 @@ def test_run_backtest_omits_the_sensitivity_when_the_config_switches_it_off(raw,
     from leaselens.io import canonicalize
     off = {**cfg, "forecast_years": {**cfg["forecast_years"], "external_cutoff_strict_sensitivity": False}}
     assert "sensitivity_strict_dec31" not in run_backtest(canonicalize(raw), empty_external(), 2025, off).coverage
+
+
+# ---------------------------------------------------------------------------
+# Champion selection (pre-declared: lowest mean absolute net error on the selection years, holdout never used)
+# ---------------------------------------------------------------------------
+def error_table(rows: list[tuple[str, int, float, str]]) -> pd.DataFrame:
+    """Rows of (model, year, absolute net error, rule); the other columns are not needed for selection."""
+    return pd.DataFrame(rows, columns=["model", "year", "abs_error_pp_net", "rule"])
+
+
+def test_champion_has_the_lowest_selection_error_and_ignores_the_holdout(cfg):
+    table = error_table([("X", 2023, 1.0, "jan31"), ("X", 2024, 1.0, "jan31"), ("X", 2025, 9.0, "jan31"),
+                         ("Y", 2023, 2.0, "jan31"), ("Y", 2024, 2.0, "jan31"), ("Y", 2025, 0.0, "jan31")])
+    chosen = select_champion(table, cfg)
+    assert chosen["champion"] == "X"                         # Y wins on 2025, but 2025 is the holdout
+    assert chosen["selection_years"] == [2023, 2024] and chosen["holdout_year"] == 2025
+    ranking = chosen["ranking"].set_index("model")
+    assert ranking.loc["X", "mae_selection_pp"] == pytest.approx(1.0)
+    assert ranking.loc["X", "mae_holdout_pp"] == pytest.approx(9.0)      # reported, not used
+
+
+def test_champion_uses_only_the_agreed_jan_31_rule(cfg):
+    table = error_table([("X", 2023, 5.0, "jan31"), ("X", 2024, 5.0, "jan31"),
+                         ("Y", 2023, 6.0, "jan31"), ("Y", 2024, 6.0, "jan31"),
+                         ("Y", 2023, 0.1, "dec31_strict"), ("Y", 2024, 0.1, "dec31_strict")])
+    assert select_champion(table, cfg)["champion"] == "X"
+
+
+def test_model_missing_a_selection_year_is_not_eligible(cfg):
+    table = error_table([("X", 2023, 1.0, "jan31"), ("X", 2024, np.nan, "jan31"),
+                         ("Y", 2023, 3.0, "jan31"), ("Y", 2024, 3.0, "jan31")])
+    chosen = select_champion(table, cfg)
+    assert chosen["champion"] == "Y"
+    ranking = chosen["ranking"].set_index("model")
+    assert bool(ranking.loc["X", "eligible"]) is False and ranking.loc["X", "n_selection_folds_run"] == 1
+
+
+def test_champion_ties_keep_table_order(cfg):
+    table = error_table([("simple", 2023, 2.0, "jan31"), ("simple", 2024, 2.0, "jan31"),
+                         ("complex", 2023, 2.0, "jan31"), ("complex", 2024, 2.0, "jan31")])
+    assert select_champion(table, cfg)["champion"] == "simple"
+
+
+def test_no_eligible_model_raises(cfg):
+    table = error_table([("X", 2023, 1.0, "jan31"), ("X", 2024, np.nan, "jan31")])
+    with pytest.raises(ValueError, match="selection year"):
+        select_champion(table, cfg)
+
+
+def test_unsupported_selection_metric_raises(cfg):
+    other = {**cfg, "selection": {"metric": "rmse"}}
+    with pytest.raises(ValueError, match="metric"):
+        select_champion(error_table([("X", 2023, 1.0, "jan31")]), other)
+
+
+def test_champion_selection_runs_on_the_full_synthetic_table(raw, cfg):
+    from leaselens.io import canonicalize
+    table = backtest_both_rules(canonicalize(raw), empty_external(), cfg)
+    chosen = select_champion(table, cfg)
+    assert chosen["champion"] in set(table["model"])
+    assert chosen["ranking"]["eligible"].iloc[0]
