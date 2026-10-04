@@ -9,6 +9,10 @@ from __future__ import annotations
 
 import streamlit as st
 
+from leaselens.contracts import COLOR_CONTRACT, COLOR_NET
+
+NET = COLOR_NET  # anything that means "net of incentives": the same colour as the notebook charts (AGENTS.md section 11)
+CONTRACT = COLOR_CONTRACT  # anything that means "contractual rent": likewise
 PAPER = "#f3f2f2"  # page ground
 SURFACE = "#eae9e9"  # inputs and quiet fills
 INK = "#201e1d"  # text
@@ -20,11 +24,15 @@ SECOND_TINT = "#f6d2e3"  # light magenta for the synthetic-data notice
 NEUTRALS = ("#d7d3d3", "#bab6b6", "#9b9797", "#605d5d")  # 200..600 ramp, light to dark
 NEUTRAL_200, NEUTRAL_300, NEUTRAL_500, NEUTRAL_600 = NEUTRALS
 FONT_FAMILY = "'Source Serif 4', Georgia, 'Times New Roman', serif"
+# The @import below makes the visitor's BROWSER fetch one typeface (Source Serif 4) from Google Fonts.
+# It sends none of the app's data and it is the only external address in the app (a test enforces that).
+# Offline, the stack falls back to Georgia, then to any serif, so the page stays readable.
+# The sidebar trust notes say so in plain words.
 FONT_IMPORT = "https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap"
 CONTENT_MAX_WIDTH_PX = 1120
 PAGE_PADDING_PX = 40
 PAGE_BOTTOM_PX = 120
-SECTION_TOP_PX = 160  # space above each section
+SECTION_TOP_PX = 24  # space above a section's heading inside its tab
 HERO_MIN_PX, HERO_VW, HERO_MAX_PX = 120, 19, 220  # hero number: clamp(min, vw, max)
 H2_PX = 44
 KICKER_PX = 16
@@ -38,28 +46,33 @@ CSS = f"""
 @import url('{FONT_IMPORT}');
 :root {{ --paper:{PAPER}; --surface:{SURFACE}; --ink:{INK}; --accent:{ACCENT}; --accent-text:{ACCENT_TEXT};
         --second:{SECOND}; --second-text:{SECOND_TEXT}; --n200:{NEUTRAL_200}; --n300:{NEUTRAL_300}; --n500:{NEUTRAL_500};
-        --n600:{NEUTRAL_600}; }}
+        --n600:{NEUTRAL_600}; --net:{NET}; --contract:{CONTRACT}; }}
 html, body, .stApp, .stApp *:not([data-testid="stIconMaterial"]) {{ font-family:{FONT_FAMILY}; }}
 [data-testid="stIconMaterial"] {{ font-family:'Material Symbols Rounded' !important; }}
 body, .stApp {{ background:var(--paper); color:var(--ink); font-size:{BODY_PX}px; line-height:1.5; }}
-#MainMenu, footer, header, [data-testid="stHeader"], [data-testid="stToolbar"] {{ display:none !important; visibility:hidden; }}
+#MainMenu, footer, [data-testid="stToolbar"], [data-testid="stDecoration"] {{ display:none !important; visibility:hidden; }}
+header, [data-testid="stHeader"] {{ background:transparent !important; }}
 .block-container {{ max-width:{CONTENT_MAX_WIDTH_PX}px; padding:0 {PAGE_PADDING_PX}px {PAGE_BOTTOM_PX}px; }}
 a, .stApp a, [data-testid="stMarkdownContainer"] a {{ color:var(--accent-text) !important; }}
 :focus-visible {{ outline:{FOCUS_OUTLINE_PX}px solid var(--accent); outline-offset:{FOCUS_OUTLINE_PX}px; }}
 
-/* masthead: sticky, quiet */
-.st-key-masthead {{ position:sticky; top:0; z-index:100; background:var(--paper); padding:14px 0 10px; }}
-.ll-title {{ font-size:24px; font-weight:600; line-height:1.1; margin:0; }}
-.ll-sub {{ font-size:14px; color:var(--n600); margin:2px 0 0; }}
-.ll-nav {{ display:flex; gap:20px; flex-wrap:nowrap; white-space:nowrap; font-size:15px; padding-top:8px; }}
-.ll-nav a {{ text-decoration:none; }}
-.ll-nav a:hover {{ text-decoration:underline; }}
+/* masthead: title and badge above the tabs */
+.ll-title {{ font-size:28px; font-weight:600; line-height:1.1; margin:6px 0 0; }}
+.ll-sub {{ font-size:15px; color:var(--n600); margin:2px 0 8px; }}
 .ll-badge {{ font-size:12px; font-weight:600; color:var(--accent-text); margin-left:10px; letter-spacing:.04em; text-transform:uppercase; }}
 .ll-notice {{ background:{SECOND_TINT}; color:var(--second-text); font-size:14px; padding:6px 10px; margin:0 0 4px; }}
 
+/* tabs and sidebar */
+[data-baseweb="tab-list"] {{ gap:4px; flex-wrap:wrap; }}
+button[data-baseweb="tab"] {{ background:transparent; font-size:17px; color:var(--ink); padding:8px 14px; }}
+button[data-baseweb="tab"][aria-selected="true"] {{ color:var(--accent-text); font-weight:600; }}
+[data-baseweb="tab-highlight"] {{ background:var(--accent) !important; }}
+[data-baseweb="tab-border"] {{ background:var(--n300) !important; }}
+[data-testid="stSidebar"] {{ background:var(--surface); }}
+[data-testid="stSidebar"] * {{ font-size:15px; }}
+
 /* sections: kicker, sentence headline, generous space */
-.ll-section {{ padding-top:{SECTION_TOP_PX}px; scroll-margin-top:70px; }}
-.ll-section.first {{ padding-top:24px; }}
+.ll-section {{ padding-top:{SECTION_TOP_PX}px; }}
 .ll-kicker {{ color:var(--accent-text); font-size:{KICKER_PX}px; font-weight:600; margin-bottom:10px; }}
 .ll-kicker.ai {{ color:var(--second-text); }}
 .ll-h2 {{ font-size:{H2_PX}px; line-height:1.1; font-weight:600; margin:0 0 28px; letter-spacing:-.01em; text-wrap:balance; }}
@@ -68,7 +81,7 @@ a, .stApp a, [data-testid="stMarkdownContainer"] a {{ color:var(--accent-text) !
 
 /* hero */
 .ll-hero-row {{ display:flex; align-items:flex-end; gap:40px; flex-wrap:wrap; margin:10px 0 18px; }}
-.ll-hero-number {{ font-size:clamp({HERO_MIN_PX}px, {HERO_VW}vw, {HERO_MAX_PX}px); font-weight:600; letter-spacing:-.04em; line-height:.9; }}
+.ll-hero-number {{ font-size:clamp({HERO_MIN_PX}px, {HERO_VW}vw, {HERO_MAX_PX}px); font-weight:600; letter-spacing:-.04em; line-height:.9; color:var(--net); }}
 .ll-hero-pct {{ font-size:.4em; letter-spacing:0; margin-left:.06em; }}
 .ll-hero-text {{ max-width:430px; padding-bottom:14px; }}
 .ll-hero-label {{ font-size:28px; font-weight:600; line-height:1.15; }}
@@ -80,15 +93,18 @@ a, .stApp a, [data-testid="stMarkdownContainer"] a {{ color:var(--accent-text) !
 .ll-band {{ position:absolute; top:12px; height:20px; background:var(--n200); }}
 .ll-band.lab {{ background:#cfe6ee; }}
 .ll-marker {{ position:absolute; top:6px; width:3px; height:32px; margin-left:-1.5px; transition:left {MOTION_SECONDS}s; }}
-.ll-marker.net {{ background:var(--accent); }}
-.ll-marker.contract {{ background:var(--ink); width:2px; height:26px; top:9px; }}
+.ll-marker.net {{ background:var(--net); }}
+.ll-marker.contract {{ background:var(--contract); width:3px; height:26px; top:9px; margin-left:-1.5px; }}
 .ll-dot {{ position:absolute; top:12px; width:20px; height:20px; margin-left:-10px; border-radius:50%; transition:left {MOTION_SECONDS}s; box-sizing:border-box; }}
 .ll-dot.base {{ border:2px solid var(--ink); background:var(--paper); }}
-.ll-dot.scenario {{ background:var(--accent); border:2px solid var(--accent); }}
+.ll-dot.scenario {{ background:var(--net); border:2px solid var(--net); }}
 .ll-axis {{ position:relative; height:20px; font-size:13px; color:var(--n600); }}
 .ll-axis span {{ position:absolute; transform:translateX(-50%); white-space:nowrap; }}
 .ll-legend {{ font-size:14px; color:var(--n600); display:flex; gap:20px; flex-wrap:wrap; }}
 .ll-legend i {{ display:inline-block; width:12px; height:12px; margin-right:6px; vertical-align:-1px; }}
+.ll-legend i.net {{ background:var(--net); }}
+.ll-legend i.contract {{ background:var(--contract); }}
+.ll-legend i.band {{ background:var(--n200); }}
 
 /* supporting stats, no cards */
 .ll-stats {{ display:grid; grid-template-columns:repeat(4, 1fr); gap:34px; margin-top:44px; }}
@@ -108,9 +124,10 @@ a, .stApp a, [data-testid="stMarkdownContainer"] a {{ color:var(--accent-text) !
 .ll-row .lbl {{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }}
 .ll-row .val {{ text-align:right; font-variant-numeric:tabular-nums; }}
 .ll-trk {{ position:relative; height:22px; }}
-.ll-fill {{ position:absolute; left:0; top:4px; height:14px; background:var(--n500); }}
-.ll-fill.lead {{ background:var(--accent); }}
-.ll-fill.ink {{ background:var(--ink); }}
+.ll-fill {{ position:absolute; left:0; top:4px; height:14px; background:var(--net); opacity:.4; }}
+.ll-fill.lead {{ background:var(--net); opacity:1; }}
+.ll-fill.actual {{ background:var(--net); opacity:1; }}
+.ll-fill.forecast {{ background:var(--net); opacity:.4; }}
 .ll-fill.thin {{ height:9px; }}
 .ll-tick {{ position:absolute; top:1px; width:2px; height:20px; margin-left:-1px; background:var(--ink); }}
 .ll-hollow {{ position:absolute; top:5px; width:12px; height:12px; margin-left:-6px; border:2px solid var(--ink); border-radius:50%; box-sizing:border-box; background:var(--paper); }}
@@ -121,8 +138,8 @@ a, .stApp a, [data-testid="stMarkdownContainer"] a {{ color:var(--accent-text) !
 .ll-changed {{ color:var(--second-text); font-size:14px; font-style:italic; margin-left:8px; }}
 .ll-lab-label {{ font-size:15px; font-weight:600; margin:14px 0 4px; }}
 .ll-big-row {{ display:flex; align-items:flex-end; gap:34px; flex-wrap:wrap; }}
-.ll-base-num {{ font-size:44px; font-weight:600; color:var(--n500); line-height:1; }}
-.ll-scn-num {{ font-size:84px; font-weight:600; letter-spacing:-.03em; line-height:.95; }}
+.ll-base-num {{ font-size:44px; font-weight:600; color:var(--net); opacity:.45; line-height:1; }}
+.ll-scn-num {{ font-size:84px; font-weight:600; letter-spacing:-.03em; line-height:.95; color:var(--net); }}
 .ll-delta {{ font-size:22px; font-weight:600; color:var(--second-text); padding-bottom:10px; }}
 .ll-num-cap {{ font-size:14px; color:var(--n600); }}
 
@@ -138,7 +155,7 @@ a, .stApp a, [data-testid="stMarkdownContainer"] a {{ color:var(--accent-text) !
 /* buildings */
 .ll-bd-row {{ display:grid; grid-template-columns:260px 1fr 190px; gap:14px; align-items:center; font-size:16px; min-height:34px; }}
 .ll-bd-trk {{ position:relative; height:30px; }}
-.ll-bd-dot {{ position:absolute; top:50%; border-radius:50%; background:var(--accent); transform:translate(-50%, -50%); opacity:.9; }}
+.ll-bd-dot {{ position:absolute; top:50%; border-radius:50%; background:var(--net); transform:translate(-50%, -50%); opacity:.9; }}
 .ll-bd-tick {{ position:absolute; top:4px; width:2px; height:22px; background:var(--ink); margin-left:-1px; }}
 .ll-bd-axis {{ position:relative; height:20px; margin-left:274px; margin-right:204px; font-size:13px; color:var(--n600); }}
 .ll-bd-axis span {{ position:absolute; transform:translateX(-50%); white-space:nowrap; }}

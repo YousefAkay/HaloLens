@@ -1,13 +1,14 @@
-"""Streamlit app: one scrolling page of six sections over the aggregates JSON (I-11a shell, I-12 AI layer, I-11b, I-11c redesign).
+"""Streamlit app: seven tabs and a sidebar over the aggregates JSON (I-11a shell, I-12 AI layer, I-11b, I-11c redesign).
 
 Owner: INT; the I-11b polish and the I-11c newsprint redesign were delegated to FCT (docs/decisions/FCT.md).
 
 Run locally:  streamlit run app/streamlit_app.py
 Demo mode (default) reads outputs/public/aggregates_synthetic.json. Real mode reads outputs/private/aggregates.json,
 which exists only after the real export (gitignored). Every file is validated against contracts.AGGREGATES_SCHEMA and must
-carry the mode that was selected. The page reads: 01 Answer, 02 Why, 03 Validation, 04 Scenario Lab, 05 Buildings, 06 Ask the
-analysis, then a footer with the sources. The Claude API is called only through app/narrative.py, and only with aggregates,
-counts-only notes and the question. Without a key the app runs on the levers and, in synthetic mode, validated preset answers.
+carry the mode that was selected. The sidebar holds the language, the data mode, Reload and the notes; the tabs are 01 Answer,
+02 Why, 03 Validation, 04 Scenario Lab, 05 Buildings, 06 Questions, 07 Sources (`?view=<tab>` opens one directly). The Claude API
+is called only through app/narrative.py, and only with aggregates, counts-only notes and the question. Without a key the app runs
+on the levers and, in synthetic mode, validated preset answers.
 """
 
 from __future__ import annotations
@@ -35,7 +36,9 @@ from leaselens.contracts import AGGREGATES_SCHEMA
 from leaselens.evaluate.backtest import RULE_DEC31
 
 MISSING = ui.MISSING  # shown when the aggregates hold null (not computable)
-VIEWS = tuple(t(label, "en") for _, label in ui.NAV)  # English section names, in page order
+TAB_KEYS = ("answer", "why", "validation", "lab", "buildings", "ask", "sources")
+VIEWS = tuple(t(f"tab_{key}", "en") for key in TAB_KEYS)  # English tab names, in order
+VIEW_PARAMETER = "view"  # ?view=<tab key> opens that tab (used for the screenshots)
 MODE_DEMO, MODE_REAL = "Demo (synthetic)", "Real (outputs/private)"
 MODE_OF = {MODE_DEMO: "synthetic", MODE_REAL: "real"}  # the document's own mode must match the selected one
 LEVER_CHOICES = ("minus", "zero", "plus")
@@ -45,9 +48,9 @@ NO_KEY_REASONS = ("cache_synthetic_only", "cache_missing", "cache_rejected")
 NO_KEY_MESSAGES = {reason: t(f"no_key_{reason}", "en") for reason in NO_KEY_REASONS}
 HIDDEN_ANSWER_REASONS = {"cache_synthetic_only", "cache_rejected"}  # a cached text is never shown for these
 PILL_COLUMNS = 3  # preset question pills per row
-MASTHEAD_COLUMNS = (3, 6, 2, 1.4)  # title, navigation, data mode, language
-MODE_SHORT = {MODE_DEMO: "Demo", MODE_REAL: "Real"}  # compact labels of the data-mode control (the values stay MODE_*)
+MODE_LABEL = {MODE_DEMO: "mode_demo", MODE_REAL: "mode_real"}  # label keys of the data-mode control (the values stay MODE_*)
 LANG_SHORT = {"en": "EN", "fr": "FR"}  # compact labels of the language control
+LANGUAGE_LABEL = "Langue / Language"  # bilingual on purpose: it is shown before a language is chosen
 
 
 # ---------------------------------------------------------------------------
@@ -118,8 +121,8 @@ def _plain(text: str) -> None:
 # 01 Answer, 02 Why
 # ---------------------------------------------------------------------------
 def overview(doc: dict[str, Any], lang: str = DEFAULT_LANG) -> None:
-    """Section 01: nothing above the fold but the caption, the headline number, its range and four supporting facts."""
-    _html('<div id="answer" class="ll-section first"></div>' + ui.hero(doc, lang) + ui.stats(doc, lang))
+    """Tab 01: the caption, the headline number, its range and four supporting facts (visible without scrolling)."""
+    _html(ui.hero(doc, lang) + ui.stats(doc, lang))
 
 
 def why(doc: dict[str, Any], lang: str = DEFAULT_LANG) -> None:
@@ -142,12 +145,13 @@ def validation(doc: dict[str, Any], lang: str = DEFAULT_LANG) -> None:
     cfg = _config()
     figures = ui.validation_figures(doc, cfg)
     headline_model = doc["headline"]["model"]
+    shown_model = ui.model_name(doc)
     _html(ui.section_header("validation", t("val_kicker", lang), ui.validation_headline(figures, lang)))
-    if figures["champion"] is not None and figures["champion"] != headline_model:
+    if figures["champion"] is not None and headline_model is not None and figures["champion"] != headline_model:
         st.warning(t("val_mismatch", lang, ranked=figures["champion"], headline=headline_model))
     left, right = st.columns(2)
     with left:
-        st.markdown(f"**{t('val_left_title', lang, model=headline_model)}**")
+        st.markdown(f"**{t('val_left_title', lang, model=shown_model)}**")
         if figures["left"]:
             _html(ui.forecast_actual(figures["left"], lang))
         else:
@@ -270,8 +274,10 @@ def _lab(doc: dict[str, Any], lang: str) -> None:
     base = narrative.baseline_row(doc, rule)
     selection = {"incentive": incentive, "renewal": renewal, "met": met, "rule": rule}
     with result:
-        if row is None or base is None:
-            _plain(t("lab_no_row", lang))
+        numbers = None if row is None or base is None else (
+            row["headline_net_pct"], row["headline_contract_pct"], base["headline_net_pct"])
+        if numbers is None or not all(ui.present(value) for value in numbers):
+            _plain(t("lab_no_row", lang))  # a missing grid row or a null figure: say so, compute and word nothing
         else:
             scenarios = doc["scenarios"]
             low, high = ui.scale_with([row["headline_net_pct"], base["headline_net_pct"], row["headline_contract_pct"],
@@ -377,47 +383,46 @@ def ask_analysis_view(doc: dict[str, Any], lang: str = DEFAULT_LANG) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Footer and page
+# 07 Sources, sidebar and page
 # ---------------------------------------------------------------------------
-def footer(doc: dict[str, Any], lang: str = DEFAULT_LANG) -> None:
+def sources_view(doc: dict[str, Any], lang: str = DEFAULT_LANG) -> None:
+    """Tab 07: the public series behind the forecast, with their release dates."""
     sources = pd.DataFrame(doc["sources"])
-    _html('<div class="ll-section"></div>')
-    with st.expander(t("foot_sources", lang, n=len(sources))):
-        if not sources.empty:
-            link = t("foot_col_url", lang)
-            table = sources[["series_id", "publisher", "release_date", "url"]].rename(columns={
-                "series_id": t("foot_col_series", lang), "publisher": t("foot_col_publisher", lang),
-                "release_date": t("foot_col_release", lang), "url": link})
-            st.dataframe(table, hide_index=True, column_config={link: st.column_config.LinkColumn(link)})
-    with st.expander(t("foot_trust", lang)):
-        for key in ("trust_privacy", "trust_ai", "trust_guard", "trust_tools"):
-            st.markdown(t(key, lang))
-    if st.button(t("foot_reload", lang), key="reload"):
-        st.cache_data.clear()
-    st.caption(t("foot_key_note", lang))
+    _html(ui.section_header("sources", t("src_kicker", lang), t("src_headline", lang)))
+    st.markdown(f"**{t('foot_sources', lang, n=len(sources))}**")
+    if not sources.empty:
+        link = t("foot_col_url", lang)
+        table = sources[["series_id", "publisher", "release_date", "url"]].rename(columns={
+            "series_id": t("foot_col_series", lang), "publisher": t("foot_col_publisher", lang),
+            "release_date": t("foot_col_release", lang), "url": link})
+        st.dataframe(table, hide_index=True, column_config={link: st.column_config.LinkColumn(link)})
 
 
-def masthead() -> tuple[str, str]:
-    """Sticky title, section links and the two small controls; returns (language, data mode)."""
-    lang = st.session_state.get("lang") or DEFAULT_LANG  # the controls below set these keys before the next run
-    mode = st.session_state.get("data_mode") or MODE_DEMO
-    with st.container(key="masthead"):
-        title, links, data_control, language_control = st.columns(MASTHEAD_COLUMNS)
-        title.markdown(ui.masthead_title(mode == MODE_REAL, lang), unsafe_allow_html=True)
-        links.markdown(ui.nav(lang), unsafe_allow_html=True)
-        with data_control:
-            st.segmented_control(t("data_label", lang), [MODE_DEMO, MODE_REAL], key="data_mode", default=MODE_DEMO,
-                                 format_func=MODE_SHORT.get, label_visibility="collapsed")
-        with language_control:
-            st.segmented_control(t("language_label", lang), list(LANGS), key="lang", default=DEFAULT_LANG,
-                                 format_func=LANG_SHORT.get, label_visibility="collapsed")
-    return lang, mode
+def sidebar() -> tuple[str, str]:
+    """Language, data mode, Reload, the reading note, the API-key note and the trust notes; returns (language, data mode)."""
+    lang = st.session_state.get("lang") or DEFAULT_LANG  # the radios below set these keys before the next run
+    with st.sidebar:
+        st.radio(LANGUAGE_LABEL, list(LANGS), key="lang", horizontal=True, format_func=LANG_SHORT.get)
+        st.radio(t("data_label", lang), [MODE_DEMO, MODE_REAL], key="data_mode", horizontal=True,
+                 format_func=lambda value: t(MODE_LABEL[value], lang))
+        if st.button(t("foot_reload", lang), key="reload"):
+            st.cache_data.clear()
+        with st.expander(t("side_how_title", lang)):
+            st.write(t("side_how_body", lang))
+        st.caption(t("foot_key_note", lang))
+        with st.expander(t("foot_trust", lang)):
+            for key in ("trust_privacy", "trust_ai", "trust_guard", "trust_tools", "trust_font"):
+                st.markdown(t(key, lang))
+    return st.session_state["lang"], st.session_state["data_mode"]
 
 
 def main() -> None:
-    st.set_page_config(page_title="LeaseLens", layout="wide", initial_sidebar_state="collapsed")
+    st.set_page_config(page_title="LeaseLens", layout="wide", initial_sidebar_state="expanded")
     inject_css()
-    lang, mode = masthead()
+    st.session_state.setdefault("lang", DEFAULT_LANG)  # initialised here, not with `default=`, so tests and callbacks can set them
+    st.session_state.setdefault("data_mode", MODE_DEMO)
+    lang, mode = sidebar()
+    _html(ui.masthead_title(mode == MODE_REAL, lang))
     try:
         doc = _load(mode)
     except FileNotFoundError:
@@ -430,8 +435,13 @@ def main() -> None:
         st.error(t("mode_mismatch", lang, found=doc["mode"], expected=MODE_OF[mode]))
         st.stop()
     _html(ui.notice(doc))
-    for section in (overview, why, validation, scenarios_sources, building_view, ask_analysis_view, footer):
-        section(doc, lang)
+    labels = [t(f"tab_{key}", lang) for key in TAB_KEYS]
+    requested = st.query_params.get(VIEW_PARAMETER)
+    default = labels[TAB_KEYS.index(requested)] if requested in TAB_KEYS else None
+    renderers = (overview, why, validation, scenarios_sources, building_view, ask_analysis_view, sources_view)
+    for tab, render in zip(st.tabs(labels, default=default), renderers):
+        with tab:
+            render(doc, lang)
 
 
 if __name__ == "__main__":  # Streamlit runs the script as __main__; importing the module (tests) must not render it

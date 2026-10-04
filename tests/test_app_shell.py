@@ -34,14 +34,15 @@ def test_app_runs_without_exceptions(app):
     assert not app.exception
 
 
-def test_page_shows_the_six_sections_in_order(app):
-    """One scrolling page (no tabs): the six sections follow the story order and the navigation links to each."""
-    assert list(VIEWS) == ["Answer", "Why", "Validation", "Scenario Lab", "Buildings", "Ask"]
-    assert len(app.tabs) == 0
-    page = "\n".join(element.value for element in app.markdown)
-    anchors = ["answer", "why", "validation", "lab", "buildings", "ask"]
-    positions = [page.index(f'id="{anchor}"') for anchor in anchors]
-    assert positions == sorted(positions) and all(f'href="#{anchor}"' in page for anchor in anchors)
+def test_page_shows_the_seven_tabs_in_order_and_a_sidebar(app):
+    """Seven tabs in story order (the app opens in French), the controls in the sidebar, no anchor navigation."""
+    from app.ui import t
+
+    assert list(VIEWS) == ["01 · Answer", "02 · Why", "03 · Validation", "04 · Scenario Lab", "05 · Buildings",
+                           "06 · Questions", "07 · Sources"]
+    assert [tab.label for tab in app.tabs] == [t(f"tab_{key}", "fr") for key in streamlit_app.TAB_KEYS]
+    assert [radio.key for radio in app.sidebar.radio] == ["lang", "data_mode"]
+    assert 'class="ll-nav"' not in "\n".join(element.value for element in app.markdown)
 
 
 def test_headline_comes_from_the_synthetic_json(app):
@@ -81,7 +82,7 @@ def test_loader_rejects_a_non_conforming_file(tmp_path):
 def _qa_view(document):
     from app.streamlit_app import ask_analysis_view
 
-    ask_analysis_view(document)
+    ask_analysis_view(document, "en")              # NO_KEY_MESSAGES are the English texts; the app itself opens in French
 
 
 @pytest.mark.parametrize("mode, cached, reason", [

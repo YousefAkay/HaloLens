@@ -21,13 +21,14 @@ from app.ui import DEFAULT_LANG, LABELS, LANGS, t
 from app.ui import components as ui
 from app.ui import theme
 from leaselens.config import load_config, repo_root
+from leaselens.contracts import COLOR_CONTRACT, COLOR_NET
 from leaselens.evaluate.backtest import select_champion
 
 TIMEOUT_SECONDS = 90
 APP = repo_root() / "app" / "streamlit_app.py"
 SYNTHETIC = json.loads(streamlit_app.synthetic_path().read_text(encoding="utf-8"))
 CFG = load_config(mode="synthetic")
-SECTION_IDS = ["answer", "why", "validation", "lab", "buildings", "ask"]
+TAB_KEYS = list(streamlit_app.TAB_KEYS)
 
 
 def _main():
@@ -36,10 +37,15 @@ def _main():
     main()
 
 
-def new_app(monkeypatch, client=None) -> AppTest:
-    """The whole page, run through the imported module so that monkeypatched paths and clients take effect."""
+def new_app(monkeypatch, client=None, lang="en") -> AppTest:
+    """The whole page, run through the imported module so that monkeypatched paths and clients take effect.
+
+    The app opens in French; most tests read English labels, so the language is set explicitly before the first run.
+    """
     monkeypatch.setattr(streamlit_app, "_client", lambda: client)   # _client is cached, so patch it rather than get_client
-    return AppTest.from_function(_main, default_timeout=TIMEOUT_SECONDS)
+    at = AppTest.from_function(_main, default_timeout=TIMEOUT_SECONDS)
+    at.session_state["lang"] = lang
+    return at
 
 
 def text_of(at: AppTest) -> str:
@@ -253,9 +259,9 @@ def test_every_label_is_used_somewhere():
     sources = "\n".join(path.read_text(encoding="utf-8") for path in (repo_root() / "app").rglob("*.py")
                         if path.name != "labels.py")
     built_from_a_prefix = ("why_step_", "why_title_", "why_body_", "opt_incentive_", "opt_renewal_", "opt_met_", "province_",
-                           "as_", "va_", "no_key_", "val_headline_", "nav_")           # keys assembled with an f-string
+                           "as_", "va_", "no_key_", "val_headline_")                   # keys assembled with an f-string
     unused = [key for key in LABELS["en"]
-              if not key.startswith(built_from_a_prefix) and f'"{key}"' not in sources and f"'{key}'" not in sources]
+              if not key.startswith(built_from_a_prefix + ("tab_",)) and f'"{key}"' not in sources and f"'{key}'" not in sources]
     assert not unused, unused
 
 
@@ -271,7 +277,7 @@ def test_the_css_carries_the_hand_off_tokens_and_hides_the_streamlit_chrome():
     css = theme.CSS
     for token in (theme.PAPER, theme.SURFACE, theme.INK, theme.ACCENT, theme.ACCENT_TEXT, theme.SECOND, theme.SECOND_TEXT,
                   *theme.NEUTRALS, "Source+Serif+4", "max-width:1120px", "padding:0 40px 120px", "outline:2px solid",
-                  "clamp(120px", "padding-top:160px", "#MainMenu"):
+                  "clamp(120px", "padding-top:24px", "#MainMenu", 'button[data-baseweb="tab"]'):
         assert token in css, token
     assert "sans-serif" not in css
 
@@ -282,35 +288,71 @@ def test_the_css_carries_the_hand_off_tokens_and_hides_the_streamlit_chrome():
 @pytest.mark.parametrize("lang", LANGS)
 def test_the_page_runs_without_exceptions_in_both_languages(monkeypatch, lang):
     at = new_app(monkeypatch).run()
-    at.segmented_control(key="lang").set_value(lang).run()
+    at.radio(key="lang").set_value(lang).run()
     assert not at.exception
     text = text_of(at)
     assert t("val_weak", lang, n=len(CFG["forecast_years"]["selection_years"])) in text
     assert t("tornado_title", lang) in text and t("foot_key_note", lang) in text
 
 
-def test_the_six_sections_appear_in_story_order_with_anchors(monkeypatch):
-    at = new_app(monkeypatch).run()
+@pytest.mark.parametrize("lang", LANGS)
+def test_the_seven_tabs_appear_in_order_in_both_languages(monkeypatch, lang):
+    at = new_app(monkeypatch, lang=lang).run()
+    assert [tab.label for tab in at.tabs] == [t(f"tab_{key}", lang) for key in TAB_KEYS]
+    assert len(at.tabs) == 7
+    assert list(streamlit_app.VIEWS) == ["01 · Answer", "02 · Why", "03 · Validation", "04 · Scenario Lab", "05 · Buildings",
+                                          "06 · Questions", "07 · Sources"]
     page = "\n".join(element.value for element in at.markdown)
-    positions = [page.index(f'id="{anchor}"') for anchor in SECTION_IDS]
-    assert positions == sorted(positions)
-    for anchor in SECTION_IDS:
-        assert f'href="#{anchor}"' in page                                   # the sticky navigation links to every section
-    assert [label for _, label in ui.NAV] == [f"nav_{anchor}" for anchor in ("answer", "why", "validation", "lab", "buildings", "ask")]
+    assert 'class="ll-nav"' not in page and "position:sticky" not in theme.CSS      # no anchor navigation, nothing sticky
 
 
-def test_there_are_no_tabs_and_no_sidebar_content(monkeypatch):
+@pytest.mark.parametrize("lang", LANGS)
+def test_the_sidebar_holds_the_controls_and_the_notes(monkeypatch, lang):
+    at = new_app(monkeypatch, lang=lang).run()
+    assert [radio.key for radio in at.sidebar.radio] == ["lang", "data_mode"]
+    assert at.sidebar.radio(key="lang").options == ["EN", "FR"]
+    assert at.sidebar.radio(key="data_mode").options == [t("mode_demo", lang), t("mode_real", lang)]
+    assert [button.key for button in at.sidebar.button] == ["reload"]
+    assert any(t("foot_key_note", lang) == caption.value for caption in at.sidebar.caption)
+    labels = [expander.label for expander in at.sidebar.expander]
+    assert labels == [t("side_how_title", lang), t("foot_trust", lang)]
+    notes = " ".join(element.value for element in at.sidebar.markdown)
+    for key in ("trust_privacy", "trust_ai", "trust_guard", "trust_tools", "trust_font"):
+        assert t(key, lang) in notes
+    assert not at.main.radio                                                       # no data or language control in the main area
+    assert [group.key for group in at.main.button_group] == ["lever_incentive", "lever_renewal", "lever_met", "lever_rule"]
+
+
+def test_the_masthead_title_and_badge_sit_above_the_tabs(monkeypatch):
     at = new_app(monkeypatch).run()
-    assert len(at.tabs) == 0 and len(at.sidebar.children) == 0
+    top = next(element.value for element in at.main.markdown if 'class="ll-title"' in element.value)
+    top = html.unescape(top)                                                       # the subtitle holds an ampersand
+    assert t("app_title", "en") in top and t("badge_demo", "en") in top and t("masthead_sub", "en") in top
 
 
-def test_the_hero_comes_first_and_nothing_else_is_above_it(monkeypatch):
+@pytest.mark.parametrize("lang", LANGS)
+def test_deep_links_open_each_tab_without_exceptions(monkeypatch, lang):
+    for key in TAB_KEYS:
+        at = new_app(monkeypatch, lang=lang)
+        at.query_params["view"] = key
+        at.run()
+        assert not at.exception, key
+        assert len(at.tabs) == 7
+
+
+def test_the_app_opens_in_french_by_default(monkeypatch):
+    monkeypatch.setattr(streamlit_app, "_client", lambda: None)
+    at = AppTest.from_function(_main, default_timeout=TIMEOUT_SECONDS).run()
+    assert DEFAULT_LANG == "fr" and at.radio(key="lang").value == "fr"
+    assert [tab.label for tab in at.tabs] == [t(f"tab_{key}", "fr") for key in TAB_KEYS]
+
+
+def test_the_hero_is_the_first_thing_in_the_first_tab(monkeypatch):
     at = new_app(monkeypatch).run()
-    values = [element.value for element in at.markdown]
-    first_hero = next(index for index, value in enumerate(values) if "ll-hero-number" in value)
-    before = " ".join(values[:first_hero])
-    for later in ('id="why"', 'id="validation"', 'id="lab"', 'id="buildings"', 'id="ask"'):
-        assert later not in before
+    first_tab = at.tabs[0]
+    assert 'class="ll-hero-number"' in first_tab.markdown[0].value
+    for other in at.tabs[1:]:
+        assert not any('class="ll-hero-number"' in element.value for element in other.markdown)
 
 
 def test_the_headline_number_comes_from_the_json(monkeypatch):
@@ -323,11 +365,11 @@ def test_the_synthetic_notice_is_shown_as_one_line(monkeypatch):
     assert sum("ll-notice" in element.value and "SYNTHÉTIQUE" in element.value for element in at.markdown) == 1
 
 
-def test_data_mode_is_a_segmented_control_and_real_without_a_file_shows_the_error(monkeypatch, tmp_path):
+def test_data_mode_is_a_sidebar_radio_and_real_without_a_file_shows_the_error(monkeypatch, tmp_path):
     monkeypatch.setattr(streamlit_app, "real_path", lambda: tmp_path / "missing.json")
     at = new_app(monkeypatch).run()
-    assert at.segmented_control(key="data_mode").options == ["Demo", "Real"]
-    at.segmented_control(key="data_mode").set_value(streamlit_app.MODE_REAL).run()
+    assert at.radio(key="data_mode").options == ["Demo", "Real"]
+    at.radio(key="data_mode").set_value(streamlit_app.MODE_REAL).run()
     assert not at.exception and any(t("no_real", "en") == error.value for error in at.error)
 
 
@@ -359,18 +401,19 @@ def test_a_document_whose_mode_does_not_match_the_selection_is_rejected(monkeypa
     path.write_text(json.dumps(document), encoding="utf-8")
     monkeypatch.setattr(streamlit_app, "synthetic_path", lambda: path)
     at = new_app(monkeypatch).run()
-    at.segmented_control(key="lang").set_value(lang).run()
+    at.radio(key="lang").set_value(lang).run()
     assert not at.exception
     assert any(t("mode_mismatch", lang, found="real", expected="synthetic") == error.value for error in at.error)
     assert not any('class="ll-hero-number"' in element.value for element in at.markdown)   # nothing from the mismatched file
 
 
-def test_the_footer_holds_the_sources_the_reload_and_the_restart_note(monkeypatch):
+def test_the_sources_tab_lists_the_series_with_their_release_dates(monkeypatch):
     at = new_app(monkeypatch).run()
-    labels = [expander.label for expander in at.expander]
-    assert t("foot_sources", "en", n=len(SYNTHETIC["sources"])) in labels
-    assert any(t("foot_key_note", "en") == caption.value for caption in at.caption)
-    assert at.button(key="reload") is not None
+    sources_tab = at.tabs[TAB_KEYS.index("sources")]
+    assert t("foot_sources", "en", n=len(SYNTHETIC["sources"])) in " ".join(element.value for element in sources_tab.markdown)
+    table = sources_tab.dataframe[0].value
+    assert list(table[t("foot_col_release", "en")]) == [row["release_date"] for row in SYNTHETIC["sources"]]
+    assert len(table) == len(SYNTHETIC["sources"])
 
 
 def test_the_validation_section_warns_when_the_ranking_disagrees_with_the_headline(monkeypatch, tmp_path):
@@ -486,10 +529,9 @@ def ask_app(monkeypatch, ask=None, key=False, lang="en") -> AppTest:
 
 
 def lab_app(monkeypatch, copilot=None) -> AppTest:
-    monkeypatch.setattr(streamlit_app, "_client", lambda: object())
     if copilot is not None:
         monkeypatch.setattr(narrative, "scenario_copilot", copilot)
-    return AppTest.from_function(_main, default_timeout=TIMEOUT_SECONDS).run()
+    return new_app(monkeypatch, client=object()).run()
 
 
 ROW = narrative.scenario_row(SYNTHETIC, "plus", "zero", "guideline", "dec31_strict")
@@ -651,6 +693,171 @@ def test_the_copilot_still_works_without_a_selection_parameter(monkeypatch):
 
 
 # ---------------------------------------------------------------------------
+# Fix round 1: colours, null safety, font note, building phases
+# ---------------------------------------------------------------------------
+def test_net_and_contractual_tokens_are_the_contracts_colours():
+    assert theme.NET == COLOR_NET and theme.CONTRACT == COLOR_CONTRACT
+    assert f"--net:{COLOR_NET}" in theme.CSS and f"--contract:{COLOR_CONTRACT}" in theme.CSS
+
+
+def test_everything_that_means_net_or_contractual_uses_those_colours():
+    css = re.sub(r"\s+", " ", theme.CSS)
+    for selector in (".ll-hero-number", ".ll-marker.net", ".ll-marker.contract", ".ll-fill.lead", ".ll-fill.actual",
+                     ".ll-fill.forecast", ".ll-bd-dot", ".ll-scn-num", ".ll-base-num", ".ll-dot.scenario", ".ll-legend i.net",
+                     ".ll-legend i.contract"):
+        rule = css[css.index(selector + " {"):].split("}")[0]
+        assert "var(--net)" in rule or "var(--contract)" in rule, selector
+    assert "var(--accent" not in css[css.index(".ll-hero-number {"):].split("}")[0]
+
+
+def test_the_hero_and_the_legend_use_the_net_and_contractual_classes():
+    markup = ui.hero(SYNTHETIC, "en")
+    assert 'class="ll-marker net"' in markup and 'class="ll-marker contract"' in markup
+    assert '<i class="net">' in markup and '<i class="contract">' in markup
+
+
+def null_document() -> dict:
+    """A document with null in every field the schema allows to be null (the schema is the contract)."""
+    document = copy.deepcopy(SYNTHETIC)
+    head = document["headline"]
+    head.update(net_pct=None, contract_pct=None, model=None)
+    head["model_range"] = {"low_net_pct": None, "high_net_pct": None}
+    head["provinces"] = {code: {"net_pct": None, "contract_pct": None} for code in ("QC", "ON")}
+    document["companions"] = {"median_net_pct": None, "median_contract_pct": None}
+    document["scenarios"] = {"low_net_pct": None, "central_net_pct": None, "high_net_pct": None}
+    for row in document["backtest"][::2]:
+        row.update(forecast_net_pct=None, actual_net_pct=None, error_pp_net=None, forecast_contract_pct=None,
+                   actual_contract_pct=None, error_pp_contract=None)
+    for row in document["scenario_grid"]:
+        row.update(headline_net_pct=None, headline_contract_pct=None)
+    for row in document["building_beds"]:
+        row.update(net_pct_raw=None, net_pct_shrunk=None, contract_pct_raw=None, contract_pct_shrunk=None)
+    for row in document["sensitivity"]:
+        row.update(headline_net_pct=None, base_net_pct=None, delta_pp=None)
+    return document
+
+
+def serve(monkeypatch, tmp_path, document, lang="en") -> AppTest:
+    path = tmp_path / "aggregates.json"
+    path.write_text(json.dumps(document), encoding="utf-8")
+    monkeypatch.setattr(streamlit_app, "synthetic_path", lambda: path)
+    return new_app(monkeypatch, lang=lang)
+
+
+def test_the_null_document_is_valid_against_the_schema(tmp_path):
+    path = tmp_path / "aggregates.json"
+    path.write_text(json.dumps(null_document()), encoding="utf-8")
+    assert streamlit_app.load_aggregates(path)["headline"]["net_pct"] is None
+
+
+@pytest.mark.parametrize("lang", LANGS)
+def test_every_tab_renders_a_document_full_of_nulls_without_exceptions(monkeypatch, tmp_path, lang):
+    at = serve(monkeypatch, tmp_path, null_document(), lang).run()
+    assert not at.exception and len(at.tabs) == 7
+    assert "nan" not in text_of(at).lower().replace("financ", "")                # no raw float ever leaks
+    hero = next(element.value for element in at.markdown if 'class="ll-hero-number"' in element.value)
+    assert ui.MISSING in hero and 'class="ll-marker net"' not in hero
+    assert t("lab_no_row", lang) in text_of(at)
+
+
+def test_the_lab_never_words_or_subtracts_null_figures(monkeypatch, tmp_path):
+    def forbidden(*args, **kwargs):
+        raise AssertionError("fallback_scenario_text must not be called with null values")
+
+    monkeypatch.setattr(narrative, "fallback_scenario_text", forbidden)
+    at = serve(monkeypatch, tmp_path, null_document()).run()
+    for incentive in ("minus", "plus"):
+        at.segmented_control(key="lever_incentive").set_value(incentive).run()
+        assert not at.exception, incentive
+    assert number_in(at, "ll-scn-num") is None and number_in(at, "ll-delta") is None
+
+
+def test_a_single_null_grid_row_gives_the_no_row_message_and_the_rest_still_works(monkeypatch, tmp_path):
+    document = copy.deepcopy(SYNTHETIC)
+    for row in document["scenario_grid"]:
+        if (row["incentive_shift"], row["renewal_shift"], row["met_regime"], row["information_rule"]) == ("plus", "zero", "exempt", "jan31"):
+            row.update(headline_net_pct=None, headline_contract_pct=None)
+    at = serve(monkeypatch, tmp_path, document).run()
+    assert number_in(at, "ll-scn-num") == grid_net("zero", "zero", "exempt")
+    at.segmented_control(key="lever_incentive").set_value("plus").run()
+    assert not at.exception and t("lab_no_row", "en") in text_of(at) and number_in(at, "ll-scn-num") is None
+    at.segmented_control(key="lever_incentive").set_value("minus").run()
+    assert number_in(at, "ll-scn-num") == grid_net("minus", "zero", "exempt")
+
+
+def test_null_building_values_are_left_out_of_the_headline_and_the_dots():
+    document = copy.deepcopy(SYNTHETIC)
+    document["building_beds"][0].update(net_pct_shrunk=None, net_pct_raw=None)
+    cells = ui.building_cells(document, "en")
+    assert len(cells) == len(SYNTHETIC["building_beds"])                             # the table keeps every cell
+    assert cells.iloc[0]["label"] not in ui.building_dots(cells, "en")
+    assert "nan" not in ui.building_headline(cells, "en").lower()
+    assert ui.building_dots(cells.assign(net_pct_shrunk=None), "en") == ""
+    assert ui.building_headline(cells.assign(net_pct_shrunk=None), "en") == t("bd_headline_empty", "en")
+
+
+def test_the_headline_model_may_be_null():
+    document = null_document()
+    assert ui.model_name(document) == ui.MISSING
+    assert ui.MISSING in ui.hero(document, "en") and ui.validation_figures(document, CFG)["left"] == []
+
+
+def test_a_missing_value_formats_as_n_a_never_as_nan():
+    assert ui.pct(None) == ui.pct(float("nan")) == "n/a" and ui.pp(None) == ui.pp(float("nan")) == "n/a"
+
+
+def test_the_font_note_is_in_the_trust_notes_and_the_font_comment_is_explicit():
+    assert "Google Fonts" in t("trust_font", "en") and "no data sent" in t("trust_font", "en")
+    assert ("Police chargée depuis Google Fonts (aucune donnée envoyée) ; hors ligne, une police système est utilisée."
+            in t("trust_font", "fr"))
+    source = (repo_root() / "app" / "ui" / "theme.py").read_text(encoding="utf-8")
+    assert "none of the app's data" in source and "Georgia" in source and "Source Serif 4" in theme.FONT_FAMILY
+
+
+def cell(building, beds, pairs):
+    return {"building": building, "beds": beds, "n_pairs": pairs, "net_pct_raw": 3.0 + pairs / 100,
+            "net_pct_shrunk": 3.0 + pairs / 100, "contract_pct_raw": 4.0, "contract_pct_shrunk": 4.0}
+
+
+# the same two property cells of one building (A has 1 and 2 bedrooms, B has 1 and 2), in the two ways an export may sort them
+CELL_FIRST = [cell("North Court", 1, 12), cell("North Court", 2, 8), cell("North Court", 1, 21), cell("North Court", 2, 9)]
+BEDS_FIRST = [cell("North Court", 1, 12), cell("North Court", 1, 21), cell("North Court", 2, 8), cell("North Court", 2, 9)]
+
+
+@pytest.mark.parametrize("order", [CELL_FIRST, BEDS_FIRST], ids=["cell-first", "beds-first"])
+@pytest.mark.parametrize("lang", LANGS)
+def test_building_labels_stay_unique_in_either_export_order(order, lang):
+    document = copy.deepcopy(SYNTHETIC)
+    document["building_beds"] = copy.deepcopy(order)
+    cells = ui.building_cells(document, lang)
+    assert cells["label"].is_unique and len(cells) == 4
+    assert sorted(cells["phase"]) == [1, 1, 2, 2]                                    # each bedroom count has a phase 1 and a phase 2
+    assert all("phase" in label.lower() or t("bd_phase", lang, phase=1).split()[0] in label for label in cells["label"])
+    dots = ui.building_dots(cells, lang)
+    assert {html.unescape(label) for label in re.findall(r'<div title="([^"]+)">', dots)} == set(cells["label"])
+
+
+@pytest.mark.parametrize("order", [CELL_FIRST, BEDS_FIRST], ids=["cell-first", "beds-first"])
+def test_the_table_and_the_dots_show_the_same_cells_in_either_export_order(monkeypatch, tmp_path, order):
+    document = copy.deepcopy(SYNTHETIC)
+    document["building_beds"] = copy.deepcopy(order)
+    at = serve(monkeypatch, tmp_path, document).run()
+    assert not at.exception
+    tab = at.tabs[TAB_KEYS.index("buildings")]
+    table_labels = set(tab.dataframe[0].value[t("bd_col_cell", "en")])
+    dot_labels = {html.unescape(label) for element in tab.markdown for label in re.findall(r'<div title="([^"]+)">', element.value)}
+    assert table_labels == dot_labels == set(ui.building_cells(document, "en")["label"])
+
+
+def test_a_building_with_an_extra_cell_never_gets_a_guessed_phase():
+    """Cell B only has 3 bedrooms: that row is unique for its building and bedroom count, so it carries no phase word."""
+    document = copy.deepcopy(SYNTHETIC)
+    document["building_beds"] = [cell("North Court", 1, 12), cell("North Court", 2, 8), cell("North Court", 3, 5)]
+    labels = list(ui.building_cells(document, "en")["label"])
+    assert all("phase" not in label for label in labels) and len(set(labels)) == 3
+
+
+# ---------------------------------------------------------------------------
 # Privacy and packaging
 # ---------------------------------------------------------------------------
 APP_FILES = ["streamlit_app.py", "ui/labels.py", "ui/theme.py", "ui/components.py", "ui/__init__.py"]
@@ -678,7 +885,7 @@ def test_a_demo_session_reads_no_csv_and_no_crm_path(monkeypatch):
                                                                                   original(self, *args, **kwargs))[1])
     monkeypatch.setattr(pd, "read_csv", lambda *args, **kwargs: pytest.fail("the app must not read CSV files"))
     at = new_app(monkeypatch).run()
-    at.segmented_control(key="lang").set_value("fr").run()
+    at.radio(key="lang").set_value("fr").run()
     assert not at.exception
     assert read and not any("data/private" in path or path.endswith(".csv") for path in read)
     assert all("outputs/private" not in path for path in read)

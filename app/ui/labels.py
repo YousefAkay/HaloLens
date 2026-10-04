@@ -9,16 +9,20 @@ from __future__ import annotations
 from typing import Any
 
 LANGS = ("en", "fr")
-DEFAULT_LANG = "en"  # one constant: the app opens in this language; the masthead toggle switches it
+DEFAULT_LANG = "fr"  # one constant: the app opens in this language (French jury); the sidebar toggle switches it
 LANG_NAMES = {"en": "English", "fr": "Français"}
 
 LABELS: dict[str, dict[str, str]] = {
     "en": {
         # masthead and navigation
         "app_title": "LeaseLens", "masthead_sub": "the portfolio · residential buildings, Québec & Ontario",
-        "nav_answer": "Answer", "nav_why": "Why", "nav_validation": "Validation", "nav_lab": "Scenario Lab",
-        "nav_buildings": "Buildings", "nav_ask": "Ask", "badge_real": "Real data", "badge_demo": "Synthetic demo",
-        "data_label": "Data", "language_label": "Language",
+        "tab_answer": "01 · Answer", "tab_why": "02 · Why", "tab_validation": "03 · Validation",
+        "tab_lab": "04 · Scenario Lab", "tab_buildings": "05 · Buildings", "tab_ask": "06 · Questions",
+        "tab_sources": "07 · Sources", "badge_real": "Real data", "badge_demo": "Synthetic demo",
+        "data_label": "Data", "mode_demo": "Demo", "mode_real": "Real",
+        "side_how_title": "How to read this",
+        "side_how_body": ("Every figure comes from a precomputed aggregates file: this app never touches the lease data. "
+                          "The headline is a forecast for the target year; the lab and the sensitivities show what moves it."),
         # 01 answer
         "answer_caption": "{year} rent increase · same-unit, fixed composition · forecast as of {crm}",
         "hero_label": "Net of all incentives.",
@@ -113,6 +117,7 @@ LABELS: dict[str, dict[str, str]] = {
                                   "shown."),
         "no_key_generic": "No answer is available without an API key for this question.",
         # footer
+        "src_kicker": "07 · Sources", "src_headline": "The public numbers behind the forecast.",
         "foot_sources": "Sources ({n} series)", "foot_col_series": "Series", "foot_col_publisher": "Publisher",
         "foot_col_release": "Release date", "foot_col_url": "Link", "foot_trust": "How this dashboard protects the data",
         "trust_privacy": ("**Privacy wall.** The lease data never leaves the analysis machine. This app reads only aggregate "
@@ -122,6 +127,7 @@ LABELS: dict[str, dict[str, str]] = {
                         "on screen; otherwise a verified fallback text is shown."),
         "trust_tools": ("**AI tools used.** Claude Code (development of the pipeline and this app) and the Claude API "
                         "(optional wording of answers, aggregates only)."),
+        "trust_font": "**Typeface.** Loaded from Google Fonts (no data sent); offline, a system font is used.",
         "foot_reload": "Reload", "foot_key_note": "Adding or changing an API key requires restarting the app.",
         # errors and misc
         "pp": "pp",
@@ -131,9 +137,13 @@ LABELS: dict[str, dict[str, str]] = {
     },
     "fr": {
         "app_title": "LeaseLens", "masthead_sub": "the portfolio · immeubles résidentiels, Québec et Ontario",
-        "nav_answer": "Réponse", "nav_why": "Pourquoi", "nav_validation": "Validation", "nav_lab": "Laboratoire",
-        "nav_buildings": "Immeubles", "nav_ask": "Questions", "badge_real": "Données réelles", "badge_demo": "Démo synthétique",
-        "data_label": "Données", "language_label": "Langue",
+        "tab_answer": "01 · Réponse", "tab_why": "02 · Pourquoi", "tab_validation": "03 · Validation",
+        "tab_lab": "04 · Laboratoire de scénarios", "tab_buildings": "05 · Immeubles", "tab_ask": "06 · Questions",
+        "tab_sources": "07 · Sources", "badge_real": "Données réelles", "badge_demo": "Démo synthétique",
+        "data_label": "Données", "mode_demo": "Démo", "mode_real": "Réel",
+        "side_how_title": "Comment lire",
+        "side_how_body": ("Chaque chiffre vient d'un fichier d'agrégats précalculé : l'application ne touche jamais aux baux. "
+                          "La hausse est une prévision pour l'année cible ; le laboratoire et les sensibilités montrent ce qui la déplace."),
         "answer_caption": "Hausse des loyers {year} · même unité, composition fixe · prévision au {crm}",
         "hero_label": "Nette de tous les incitatifs.",
         "hero_sentence": ("Le loyer contractuel augmente de {contract} avant les concessions. L'unité médiane évolue de "
@@ -226,6 +236,7 @@ LABELS: dict[str, dict[str, str]] = {
         "no_key_cache_rejected": ("Cette réponse de démonstration n'a pas pu être validée avec les résultats actuels : elle n'est "
                                   "donc pas affichée."),
         "no_key_generic": "Aucune réponse n'est disponible sans clé API pour cette question.",
+        "src_kicker": "07 · Sources", "src_headline": "Les chiffres publics derrière la prévision.",
         "foot_sources": "Sources ({n} séries)", "foot_col_series": "Série", "foot_col_publisher": "Éditeur",
         "foot_col_release": "Date de publication", "foot_col_url": "Lien", "foot_trust": "Comment ce tableau de bord protège les données",
         "trust_privacy": ("**Mur de confidentialité.** Les baux ne quittent jamais la machine d'analyse. Cette application ne lit "
@@ -235,6 +246,7 @@ LABELS: dict[str, dict[str, str]] = {
                         "agrégats à l'écran ; sinon un texte de repli vérifié est affiché."),
         "trust_tools": ("**Outils d'IA utilisés.** Claude Code (développement du pipeline et de cette application) et l'API Claude "
                         "(formulation facultative des réponses, agrégats seulement)."),
+        "trust_font": "**Police.** Police chargée depuis Google Fonts (aucune donnée envoyée) ; hors ligne, une police système est utilisée.",
         "foot_reload": "Recharger", "foot_key_note": "Ajouter ou changer une clé API exige de redémarrer l'application.",
         "pp": "pp",
         "mode_mismatch": "Le fichier ne correspond pas au mode de données choisi ({found} au lieu de {expected}).",
