@@ -72,7 +72,7 @@ display(comparison.round(3))
 # ### 5.4 Divergence entre croissance contractuelle et nette
 #
 # **Opération :** par année de début de bail, part des baux avec concession, rabais moyen (1 − net/contrat) et croissance médiane
-# annualisée des paires d'unités (MSR, `build_pairs`) sur le loyer contractuel et sur le loyer net. **Pourquoi :** quand les
+# annualisée des paires d'unités (`build_pairs`, section 4)` sur le loyer contractuel et sur le loyer net. **Pourquoi :** quand les
 # concessions deviennent plus fréquentes ou plus généreuses, le loyer net croît moins vite que le loyer contractuel ;
 # c'est ce qui rend le choix du loyer net déterminant pour la hausse 2026.
 
