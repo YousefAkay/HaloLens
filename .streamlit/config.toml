@@ -1,0 +1,14 @@
+# Light, neutral theme for the LeaseLens demo. primaryColor is contracts.COLOR_NET (a test keeps the two equal).
+[theme]
+base = "light"
+primaryColor = "#E69F00"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F5F6F7"
+textColor = "#222222"
+font = "sans serif"
+
+[browser]
+gatherUsageStats = false
+
+[client]
+toolbarMode = "minimal"

@@ -29,6 +29,7 @@ import pandas as pd
 from leaselens.config import cutoff_for, external_cutoff_for
 from leaselens.evaluate.backtest import (backtest_both_rules, champion_backtest, champion_forecast, champion_pipeline,
                                          french_date, french_day_month, headline_table, tables_from_leases)
+from leaselens.evaluate.metrics import TOLERANCE_PP
 from leaselens.forecast.asof import snapshot_for_year
 from leaselens.forecast.baselines import rate_logs_by_year, to_pct
 from leaselens.market.registry import load_external
@@ -69,7 +70,7 @@ final = champion_forecast(tables, external, cfg, table=backtest_all)
 folds = {year: backtest(tables.leases, year) for year in cfg["forecast_years"]["backtest_years"]}
 display(Markdown(
     f"Modèle retenu : **{champion}**. `estimate_2026()` = **{estimate:.2f} %** (identique au pipeline direct : "
-    f"**{'oui' if abs(estimate - final.headline_net_pct) < 1e-9 else 'NON'}**). Plis de `backtest()` : "
+    f"**{'oui' if abs(estimate - final.headline_net_pct) < TOLERANCE_PP else 'NON'}**). Plis de `backtest()` : "
     + "; ".join(f"{year} → {fold.forecast.model_name}, erreur {fold.error_pp_net:+.2f} pp" for year, fold in folds.items())
     + "."))
 

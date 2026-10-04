@@ -33,9 +33,9 @@ def test_app_runs_without_exceptions(app):
     assert not app.exception
 
 
-def test_app_shows_the_four_views_in_order(app):
+def test_app_shows_the_six_tabs_in_order(app):
     assert [tab.label for tab in app.tabs] == list(VIEWS) == [
-        "Overview", "Why", "Validation", "Scenarios & Sources", "Ask the analysis", "By building"]
+        "Overview", "Validation", "Scenarios", "By building", "Ask the analysis", "Trust"]
 
 
 def test_headline_comes_from_the_synthetic_json(app):
