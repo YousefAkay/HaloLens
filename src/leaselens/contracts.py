@@ -137,3 +137,84 @@ class BacktestResult:
     error_pp_net: float
     error_pp_contract: float
     coverage: dict = field(default_factory=dict)
+
+
+# ---------------------------------------------------------------------------
+# Aggregates JSON (I-09a). The only file the Streamlit app and the LLM narrative may read (AGENTS.md Section 15).
+# Percentages are in percent units (3.2 means 3.2%). null means "not computable", never a placeholder.
+# Every object is closed (additionalProperties false): no unit-level list, identifier or extra field can appear.
+# ---------------------------------------------------------------------------
+AGGREGATES_SCHEMA_VERSION = 1
+INFORMATION_RULES = ("jan31", "dec31_strict")  # jan31: public data by January 31 of the target year; dec31_strict: sensitivity
+MODES = ("synthetic", "real")
+
+_NUMBER = {"type": ["number", "null"]}
+_COUNT = {"type": "integer", "minimum": 0}
+_DATE = {"type": "string", "format": "date"}
+_TEXT = {"type": "string"}
+
+AGGREGATES_SCHEMA = {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "leaselens-aggregates",
+    "title": "LeaseLens aggregates (counts and percentages only)",
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["schema_version", "mode", "target_year", "as_of", "definition", "headline", "companions",
+                 "backtest", "coverage", "scenarios", "sources", "note"],
+    "properties": {
+        "schema_version": {"const": AGGREGATES_SCHEMA_VERSION},
+        "mode": {"enum": list(MODES)},
+        "target_year": {"type": "integer"},
+        "as_of": {
+            "type": "object", "additionalProperties": False,
+            "required": ["crm_cutoff", "external_cutoff", "external_strict_cutoff"],
+            "properties": {"crm_cutoff": _DATE, "external_cutoff": _DATE, "external_strict_cutoff": _DATE},
+        },
+        "definition": _TEXT,
+        "headline": {
+            "type": "object", "additionalProperties": False,
+            "required": ["net_pct", "contract_pct", "information_rule"],
+            "properties": {"net_pct": _NUMBER, "contract_pct": _NUMBER,
+                           "information_rule": {"enum": list(INFORMATION_RULES)}},
+        },
+        "companions": {
+            "type": "object", "additionalProperties": False,
+            "required": ["median_net_pct", "median_contract_pct"],
+            "properties": {"median_net_pct": _NUMBER, "median_contract_pct": _NUMBER},
+        },
+        "backtest": {
+            "type": "array",
+            "items": {
+                "type": "object", "additionalProperties": False,
+                "required": ["year", "model", "information_rule", "forecast_net_pct", "actual_net_pct",
+                             "error_pp_net", "forecast_contract_pct", "actual_contract_pct", "error_pp_contract"],
+                "properties": {
+                    "year": {"type": "integer"}, "model": _TEXT,
+                    "information_rule": {"enum": list(INFORMATION_RULES)},
+                    "forecast_net_pct": _NUMBER, "actual_net_pct": _NUMBER, "error_pp_net": _NUMBER,
+                    "forecast_contract_pct": _NUMBER, "actual_contract_pct": _NUMBER, "error_pp_contract": _NUMBER,
+                },
+            },
+        },
+        "coverage": {
+            "type": "object", "additionalProperties": False,
+            "required": ["leases", "units", "eligible_pairs", "excluded_pairs", "segments"],
+            "properties": {"leases": _COUNT, "units": _COUNT, "eligible_pairs": _COUNT,
+                           "excluded_pairs": _COUNT, "segments": _COUNT},
+        },
+        "scenarios": {
+            "type": "object", "additionalProperties": False,
+            "required": ["low_net_pct", "central_net_pct", "high_net_pct"],
+            "properties": {"low_net_pct": _NUMBER, "central_net_pct": _NUMBER, "high_net_pct": _NUMBER},
+        },
+        "sources": {
+            "type": "array",
+            "items": {
+                "type": "object", "additionalProperties": False,
+                "required": ["series_id", "publisher", "release_date", "url"],
+                "properties": {"series_id": _TEXT, "publisher": _TEXT, "release_date": _DATE, "url": _TEXT},
+            },
+        },
+        "note": _TEXT,
+    },
+}
