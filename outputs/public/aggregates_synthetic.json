@@ -1,0 +1,175 @@
+{
+  "schema_version": 1,
+  "mode": "synthetic",
+  "target_year": 2026,
+  "as_of": {
+    "crm_cutoff": "2025-12-31",
+    "external_cutoff": "2026-01-31",
+    "external_strict_cutoff": "2025-12-31"
+  },
+  "definition": "Croissance à composition fixe et à unité constante du loyer net de toutes concessions, pour 2026 (AGENTS.md §9.1). Les poids reflètent les transitions de baux observées, pas l'occupation ni le taux de roulement.",
+  "headline": {
+    "net_pct": 3.1,
+    "contract_pct": 3.6,
+    "information_rule": "jan31"
+  },
+  "companions": {
+    "median_net_pct": 2.8,
+    "median_contract_pct": 3.3
+  },
+  "backtest": [
+    {
+      "year": 2023,
+      "model": "B0_last_year",
+      "information_rule": "jan31",
+      "forecast_net_pct": 2.5,
+      "actual_net_pct": 2.0,
+      "error_pp_net": 0.5,
+      "forecast_contract_pct": 3.1,
+      "actual_contract_pct": 2.6,
+      "error_pp_contract": 0.5
+    },
+    {
+      "year": 2024,
+      "model": "B0_last_year",
+      "information_rule": "jan31",
+      "forecast_net_pct": 3.0,
+      "actual_net_pct": 2.6,
+      "error_pp_net": 0.4,
+      "forecast_contract_pct": 3.5,
+      "actual_contract_pct": 3.2,
+      "error_pp_contract": 0.3
+    },
+    {
+      "year": 2025,
+      "model": "B0_last_year",
+      "information_rule": "jan31",
+      "forecast_net_pct": 2.8,
+      "actual_net_pct": 4.4,
+      "error_pp_net": -1.6,
+      "forecast_contract_pct": 3.0,
+      "actual_contract_pct": 4.9,
+      "error_pp_contract": -1.9
+    },
+    {
+      "year": 2023,
+      "model": "B1_trailing_mean",
+      "information_rule": "jan31",
+      "forecast_net_pct": 2.2,
+      "actual_net_pct": 2.0,
+      "error_pp_net": 0.2,
+      "forecast_contract_pct": 2.9,
+      "actual_contract_pct": 2.6,
+      "error_pp_contract": 0.3
+    },
+    {
+      "year": 2024,
+      "model": "B1_trailing_mean",
+      "information_rule": "jan31",
+      "forecast_net_pct": 2.4,
+      "actual_net_pct": 2.6,
+      "error_pp_net": -0.2,
+      "forecast_contract_pct": 3.0,
+      "actual_contract_pct": 3.2,
+      "error_pp_contract": -0.2
+    },
+    {
+      "year": 2025,
+      "model": "B1_trailing_mean",
+      "information_rule": "jan31",
+      "forecast_net_pct": 3.5,
+      "actual_net_pct": 4.4,
+      "error_pp_net": -0.9,
+      "forecast_contract_pct": 3.9,
+      "actual_contract_pct": 4.9,
+      "error_pp_contract": -1.0
+    },
+    {
+      "year": 2023,
+      "model": "B2_market_anchor",
+      "information_rule": "jan31",
+      "forecast_net_pct": 2.7,
+      "actual_net_pct": 2.0,
+      "error_pp_net": 0.7,
+      "forecast_contract_pct": 3.2,
+      "actual_contract_pct": 2.6,
+      "error_pp_contract": 0.6
+    },
+    {
+      "year": 2024,
+      "model": "B2_market_anchor",
+      "information_rule": "jan31",
+      "forecast_net_pct": 3.1,
+      "actual_net_pct": 2.6,
+      "error_pp_net": 0.5,
+      "forecast_contract_pct": 3.6,
+      "actual_contract_pct": 3.2,
+      "error_pp_contract": 0.4
+    },
+    {
+      "year": 2025,
+      "model": "B2_market_anchor",
+      "information_rule": "jan31",
+      "forecast_net_pct": 3.8,
+      "actual_net_pct": 4.4,
+      "error_pp_net": -0.6,
+      "forecast_contract_pct": 4.2,
+      "actual_contract_pct": 4.9,
+      "error_pp_contract": -0.7
+    },
+    {
+      "year": 2023,
+      "model": "E1_engine_blend",
+      "information_rule": "jan31",
+      "forecast_net_pct": 2.3,
+      "actual_net_pct": 2.0,
+      "error_pp_net": 0.3,
+      "forecast_contract_pct": 2.9,
+      "actual_contract_pct": 2.6,
+      "error_pp_contract": 0.3
+    },
+    {
+      "year": 2024,
+      "model": "E1_engine_blend",
+      "information_rule": "jan31",
+      "forecast_net_pct": 2.9,
+      "actual_net_pct": 2.6,
+      "error_pp_net": 0.3,
+      "forecast_contract_pct": 3.4,
+      "actual_contract_pct": 3.2,
+      "error_pp_contract": 0.2
+    },
+    {
+      "year": 2025,
+      "model": "E1_engine_blend",
+      "information_rule": "jan31",
+      "forecast_net_pct": 3.6,
+      "actual_net_pct": 4.4,
+      "error_pp_net": -0.8,
+      "forecast_contract_pct": 4.0,
+      "actual_contract_pct": 4.9,
+      "error_pp_contract": -0.9
+    }
+  ],
+  "coverage": {
+    "leases": 170,
+    "units": 32,
+    "eligible_pairs": 134,
+    "excluded_pairs": 4,
+    "segments": 12
+  },
+  "scenarios": {
+    "low_net_pct": 1.2,
+    "central_net_pct": 3.1,
+    "high_net_pct": 5.0
+  },
+  "sources": [
+    {
+      "series_id": "SYNTHETIC-RENT",
+      "publisher": "Invented for app development (not a real source)",
+      "release_date": "2025-01-01",
+      "url": "https://example.invalid/synthetic"
+    }
+  ],
+  "note": "SYNTHETIC EXAMPLE. Headline, companions, backtest, scenarios and sources are invented for app development. Coverage counts are the synthetic smoke-run counts, except segments (invented)."
+}
