@@ -123,9 +123,9 @@ HALO/
 │  └─ export/    aggregates.py                            (INT)
 ├─ notebook/sections/             # jupytext "percent" .py files, assembled in numeric order
 │  ├─ 00_executive.py  01_definition.py  02_data_dictionary_qa.py      (INT)
-│  ├─ 03_composition.py  04_matching.py  06_renewals_regulation.py  07_external.py  (MSR)
+│  ├─ 03_composition.py  04_matching.py  06_renewals_regulation.py  07_external.py  12_references.py  (MSR)
 │  ├─ 05_concessions.py  08_forecast_method.py  09_backtest.py  10_forecast_2026.py  11b_scenarios.py  (FCT)
-│  ├─ 11a_uncertainty.py  12_references.py               (INT)
+│  ├─ 11a_uncertainty.py                                 (INT)
 ├─ scripts/
 │  ├─ build_notebook.py  make_synthetic.py  export_aggregates.py  board_status.py  smoke_real_data.py  preflight.py   (INT)
 │  └─ extract_sources.py                                  (MSR)
@@ -155,8 +155,8 @@ Each `docs/*/XXX.md` file is owned by the track in its name.
 
 | Owner | Files |
 |---|---|
-| INT | `AGENTS.md`, `CLAUDE.md`, `TEAMMATE_KICKOFF.md`, `.githooks/*`, `.claude/*`, `docs/board/*` (task lists change only through INT), `scripts/board_status.py`, `scripts/smoke_real_data.py`, `scripts/preflight.py`, `README.md`, `requirements.txt`, `pyproject.toml`, `.gitignore`, `.gitattributes`, `.env.example`, `.pre-commit-config.yaml`, `project_analysis.ipynb`, `config/core.yaml`, `src/leaselens/__init__.py`, `contracts.py`, `config.py`, `io/*`, `evaluate/uncertainty.py`, `export/*`, sections `00`, `01`, `02`, `11a`, `12`, `scripts/build_notebook.py`, `scripts/make_synthetic.py`, `scripts/export_aggregates.py`, `app/*`, `data/synthetic/*`, `outputs/public/*`, tests listed as INT above, `docs/rubric_checklist.md`, `docs/*/INT.md`, every `__init__.py` |
-| MSR | `config/measure.yaml`, `measure/*`, `market/*`, sections `03`, `04`, `06`, `07`, `scripts/extract_sources.py`, `data/public/*`, tests listed as MSR above, `docs/*/MSR.md` |
+| INT | `AGENTS.md`, `CLAUDE.md`, `TEAMMATE_KICKOFF.md`, `.githooks/*`, `.claude/*`, `docs/board/*` (task lists change only through INT), `scripts/board_status.py`, `scripts/smoke_real_data.py`, `scripts/preflight.py`, `README.md`, `requirements.txt`, `pyproject.toml`, `.gitignore`, `.gitattributes`, `.env.example`, `.pre-commit-config.yaml`, `project_analysis.ipynb`, `config/core.yaml`, `src/leaselens/__init__.py`, `contracts.py`, `config.py`, `io/*`, `evaluate/uncertainty.py`, `export/*`, sections `00`, `01`, `02`, `11a`, `scripts/build_notebook.py`, `scripts/make_synthetic.py`, `scripts/export_aggregates.py`, `app/*`, `data/synthetic/*`, `outputs/public/*`, tests listed as INT above, `docs/rubric_checklist.md`, `docs/*/INT.md`, every `__init__.py` |
+| MSR | `config/measure.yaml`, `measure/*`, `market/*`, sections `03`, `04`, `06`, `07`, `12`, `scripts/extract_sources.py`, `data/public/*`, tests listed as MSR above, `docs/*/MSR.md` |
 | FCT | `config/forecast.yaml`, `incentives/*`, `forecast/*`, `evaluate/backtest.py`, `evaluate/metrics.py`, sections `05`, `08`, `09`, `10`, `11b`, `models/*` (local only), tests listed as FCT above, `docs/*/FCT.md` |
 
 Rules:
@@ -346,7 +346,7 @@ Task IDs are referenced in branches, PRs and Handback Reports. Do tasks in order
 | I-10 | H8 | Integration #2 / **core freeze**: full notebook build on real data | Notebook runs top to bottom |
 | I-11 | H8–H11 | Streamlit app (Overview, Why, Validation, Scenarios & Sources) reading only `aggregates.json`; synthetic demo mode | App runs offline |
 | I-12 | H9–H11 | `app/narrative.py` (LLM, FR/EN evidence card from aggregates JSON only) + `app/number_guard.py` (reject any number not in the JSON) + `app/cache/` fallback | Guard test passes; works with no key |
-| I-13 | H6–H11 | Sections `00_executive.py`, `01_definition.py` (Section 9.1 in French), `12_references.py` (compile `docs/references/*.md`, cite starter, data, AI tools) | Narrative numbers come from results |
+| I-13 | H6–H11 | Section `00_executive.py` only (`01_definition.py` was done in I-13a; `12_references.py` moved to MSR as M-10) | Narrative numbers come from results |
 | I-14 | H11–H12.5 | Final build, clean kernel, fix-request round | Clean run |
 | I-15 | H12.5–H14 | README (run steps, versions, sources, AI tools), final privacy check (`git ls-files` scan), submission package, slides for own sections | Submitted |
 
@@ -361,6 +361,7 @@ Task IDs are referenced in branches, PRs and Handback Reports. Do tasks in order
 | M-06 | H8–H10 | `measure/renewals.py` + `market/regulation.py` (QC/ON applicability matrix, regulatory reference lines, Met scenarios); section `06_renewals_regulation.py` | Renewal vs turnover by province with counts |
 | M-07 | H10–H11 | `market/reconcile_market.py`: internal same-unit vs CMHC/CPI trends per CMA; section `07_external.py` with provenance table | Reconciliation chart + source table |
 | M-08 | H11–H11.5 | French Markdown pass on own sections; `docs/references/MSR.md` complete | Ready for final build |
+| M-10 | H11.5–H12 | Section `12_references.py` in French, built to compile itself: at build time it reads and renders `docs/references/INT.md`, `MSR.md` and `FCT.md` (no copied text). Only fixed parts are written in the section: credit to the sponsor `template.ipynb` (what we reused), the challenge documents, the AI tools (Claude chat for planning and review, Claude Code for implementation, Claude API for public-source extraction checked by hand and for the dashboard narrative with a number guard), and the statement that no CRM data was sent to any API. Later additions go into each track's own references file | Section 12 compiles from the three reference files; no text copied into the notebook |
 | M-09 | H12.5–H14 | Slides for own sections; rehearsal | — |
 
 ### FCT — Incentives & Forecast (Yousif) — ~13 h

@@ -30,6 +30,6 @@ Task details and "done when" criteria: AGENTS.md Section 10.
 | I-10 | Integration #2 / core freeze: full notebook on real data | F-05, M-05 |  |
 | I-11 | Streamlit app on aggregates.json + synthetic demo | I-09, I-11a |  |
 | I-12 | LLM narrative + number guard + cache | I-11a, I-12a |  |
-| I-13 | Sections 00, 01, 12 | I-09 | section 01 done in I-13a |
+| I-13 | Section 00 only (executive summary) | I-09 | section 01 done in I-13a; section 12 moved to MSR as M-10 |
 | I-14 | Final build, clean kernel, fix round | all core tasks |  |
 | I-15 | README, privacy check, submission, slides | I-14 |  |
