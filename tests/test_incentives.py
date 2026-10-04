@@ -164,3 +164,15 @@ def test_engine_runs_on_the_synthetic_snapshot(raw, cfg):
     assert len(result) > 0
     assert result[["d0", "d1"]].notna().all().all()
     assert result["d1"].between(0, cfg["incentives"]["max_discount_share"]).all()
+
+
+def test_province_with_too_few_leases_falls_back_to_the_portfolio_pool(cfg):
+    """Ontario has only two units (below the minimum in every province-level cell), so bbb borrows the portfolio shares."""
+    pooled_discount = 0.08
+    thin = make_segment_leases("bbb", "ON", False, discounts(0.0, 0.0, 0.0), units=2)
+    thick = make_segment_leases("aaa", "QC", False, discounts(pooled_discount, pooled_discount, pooled_discount))
+    row_ = row(run_engine(thin, thick, cfg=cfg), "bbb", False)
+    expected = pooled_discount * UNITS_PER_SEGMENT / (UNITS_PER_SEGMENT + 2)
+    assert row_["d1_source"] == "portfolio_pool"
+    assert row_["d1"] == pytest.approx(expected)
+    assert row_["d0"] == pytest.approx(expected)

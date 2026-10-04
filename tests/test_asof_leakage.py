@@ -1,8 +1,7 @@
 """Leakage tests for the as-of snapshot and the forecast. Owner: FCT.
 
-Written in F-01 before the implementation. The `make_snapshot` tests became hard tests in F-02. The `forecast` test
-is marked `expected_until_f05`: it fails with NotImplementedError today and turns into a hard failure the moment
-`forecast` exists, so F-05 must remove the marker.
+Written in F-01 before the implementation; the `make_snapshot` tests became hard tests in F-02 and the `forecast`
+test in F-05.
 
 Policy under test: AGENTS.md Section 9.3. Cutoff for year y is December 31 of y-1; training uses leases with BOTH
 sign_date and lease_start on/before the cutoff; asking months and concession date_from on/before the cutoff;
@@ -24,8 +23,6 @@ from leaselens.contracts import EXTERNAL_COLUMNS, CanonicalTables
 from leaselens.forecast.asof import make_snapshot
 from leaselens.forecast.combine import forecast
 
-expected_until_f05 = pytest.mark.xfail(raises=NotImplementedError, strict=True,
-                                       reason="forecast is implemented in F-05")
 
 HISTORICAL_FOLD_YEAR = 2025   # cutoff 2024-12-31: the synthetic data has plenty of rows after it
 ONE_DAY = pd.Timedelta(days=1)
@@ -128,8 +125,10 @@ def test_forecast_config_has_agreed_keys(cfg):
     assert forecast_cfg["incentives"]["trend_window_years"] > 0
     assert forecast_cfg["nowcast"]["min_pairs_per_month"] > 0
     assert forecast_cfg["selection"]["metric"]
-    weights = forecast_cfg["combine"]
-    assert weights["renewal_engine_weight"] + weights["turnover_engine_weight"] == pytest.approx(1.0)
+    combine = forecast_cfg["combine"]
+    assert combine["renewal_history_weight"] + combine["renewal_nowcast_weight"] == pytest.approx(1.0)
+    assert (combine["turnover_history_weight"] + combine["turnover_signal_weight"]
+            + combine["turnover_nowcast_weight"]) == pytest.approx(1.0)
     assert set(forecast_cfg["scenarios"]) >= {"met_guideline_applies", "include_post_cutoff_quebec_method"}
     assert forecast_cfg["leakage_test"]["future_row_count"] > 0
     assert forecast_cfg["leakage_test"]["future_rent_multiplier"] > 1
@@ -200,7 +199,6 @@ def test_appending_future_rows_leaves_the_snapshot_identical(tables, external, c
 # ---------------------------------------------------------------------------
 # forecast (F-05)
 # ---------------------------------------------------------------------------
-@expected_until_f05
 def test_appending_future_rows_leaves_the_forecast_identical(tables, external, cutoff, cfg):
     """Same forecast whether or not post-cutoff rows exist in the source tables."""
     future = fake_future_tables(tables, cutoff, cfg)

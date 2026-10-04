@@ -200,3 +200,105 @@ def test_index_and_nowcast_run_on_the_synthetic_fixtures(raw, cfg):
     result = nowcast(index, CUTOFF, cfg)
     assert np.isfinite(result["year_log_net"]) and np.isfinite(result["year_log_contract"])
     assert result["months_observed"] > 0
+
+
+# ---------------------------------------------------------------------------
+# forecast (F-05): renewal + turnover + incentive engines, fixed-weight aggregation
+# ---------------------------------------------------------------------------
+UNITS_PER_PROP = 6                      # above incentives.min_leases_per_cell and combine.min_pairs_history
+CONSTANT_GROWTH = {year: 0.03 for year in range(2020, 2026)}
+ENGINE_UNITS = [(prop, province, f"{index:04d}") for prop, province in (("aaa", "QC"), ("bbb", "ON"))
+                for index in range(UNITS_PER_PROP)]
+
+
+def engine_tables(growth=CONSTANT_GROWTH, discount_by_year=None, renewal=True):
+    leases = annual_leases(growth, units=ENGINE_UNITS)
+    leases["is_renewal"] = renewal
+    if discount_by_year is not None:
+        discount = leases["lease_start"].dt.year.map(discount_by_year).fillna(0.0)
+        leases["rent_net_all_incentives"] = leases["rent_contract"] * (1 - discount)
+        leases["has_concession"] = discount > 0
+    return tables_from(leases)
+
+
+def run_forecast(tables, cfg, cutoff=CUTOFF):
+    from leaselens.forecast.combine import forecast
+    return forecast(make_snapshot(tables, empty_external(), cutoff), cfg)
+
+
+def test_weighted_median_follows_the_weights():
+    from leaselens.forecast.combine import weighted_median
+    values = pd.Series([1.0, 2.0, 3.0])
+    assert weighted_median(values, pd.Series([1.0, 1.0, 1.0])) == 2.0
+    assert weighted_median(values, pd.Series([0.1, 0.1, 0.8])) == 3.0
+    assert weighted_median(values, pd.Series([0.8, 0.1, 0.1])) == 1.0
+
+
+def test_constant_growth_and_no_discounts_forecast_that_growth(cfg):
+    result = run_forecast(engine_tables(), cfg)
+    assert result.model_name == "E1_engine_blend" and result.target_year == 2025
+    assert result.headline_contract_pct == pytest.approx(100 * np.expm1(np.log1p(0.03)), abs=0.1)
+    assert result.headline_net_pct == pytest.approx(result.headline_contract_pct)
+    assert result.median_net_pct == pytest.approx(result.headline_net_pct, abs=1e-6)
+    assert result.assumptions
+
+
+def test_segment_table_has_weights_components_and_discounts(cfg):
+    result = run_forecast(engine_tables(), cfg)
+    segments = result.segments
+    assert segments["weight"].sum() == pytest.approx(1.0)
+    assert {"hist_contract", "signal_contract", "nowcast_contract", "g_contract", "d0", "d1", "g_net"} <= set(segments.columns)
+    assert segments["g_contract"].notna().all() and segments["g_net"].notna().all()
+
+
+def test_headline_is_the_fixed_weight_aggregate_of_segment_forecasts(cfg):
+    """aaa grows 10% a year, bbb 0%; the headline is the weighted mean on the log scale."""
+    fast = annual_leases({year: 0.10 for year in range(2020, 2026)}, units=[u for u in ENGINE_UNITS if u[0] == "aaa"])
+    flat = annual_leases({year: 0.0 for year in range(2020, 2026)}, units=[u for u in ENGINE_UNITS if u[0] == "bbb"])
+    result = run_forecast(tables_from(pd.concat([fast, flat], ignore_index=True)), cfg)
+    segments = result.segments
+    expected = float((segments["weight"] * segments["g_contract"]).sum())
+    assert result.headline_contract_pct == pytest.approx(100 * np.expm1(expected))
+    by_prop = segments.set_index("prop_code")["g_contract"]
+    assert by_prop["aaa"] > 0.05 > by_prop["bbb"] + 0.0   # each segment keeps its own history
+
+
+def test_rising_discounts_pull_net_growth_below_contract_growth(cfg):
+    """Discount 0 until 2023 and 5% in 2024: d0 = 5%, trend d1 = 10%, so net sits below contract."""
+    result = run_forecast(engine_tables(discount_by_year={2024: 0.05}), cfg)
+    expected_gap = 100 * (np.expm1(np.log1p(0.03) + np.log(0.90) - np.log(0.95)) - 0.03)
+    assert result.headline_net_pct < result.headline_contract_pct
+    assert result.headline_net_pct - result.headline_contract_pct == pytest.approx(expected_gap, abs=0.1)
+
+
+def test_turnover_segments_without_asking_data_use_history_and_nowcast_only(cfg):
+    result = run_forecast(engine_tables(renewal=False), cfg)
+    segments = result.segments
+    assert segments["signal_contract"].isna().all()
+    assert segments["g_contract"].notna().all()
+    assert result.headline_contract_pct == pytest.approx(100 * np.expm1(np.log1p(0.03)), abs=0.1)
+
+
+def test_forecast_ignores_leases_that_start_after_the_cutoff(cfg):
+    tables = engine_tables()
+    truncated = tables_from(tables.leases[tables.leases["lease_start"] <= CUTOFF])
+    full, early = run_forecast(tables, cfg), run_forecast(truncated, cfg)
+    assert full.headline_net_pct == early.headline_net_pct
+    assert full.headline_contract_pct == early.headline_contract_pct
+
+
+def test_forecast_reports_where_each_component_came_from(cfg):
+    result = run_forecast(engine_tables(), cfg)
+    assert result.components["history_sources"] == {"segment": len(result.segments)}
+    assert result.components["n_segments"] == len(result.segments)
+    assert "year_log_contract" in result.components["nowcast"]
+
+
+def test_forecast_runs_on_the_synthetic_fixtures_at_every_backtest_fold(raw, cfg):
+    from leaselens.config import cutoff_for
+    from leaselens.io import canonicalize
+    synthetic = canonicalize(raw)
+    for year in cfg["forecast_years"]["backtest_years"] + [cfg["forecast_years"]["target_year"]]:
+        result = run_forecast(synthetic, cfg, cutoff_for(year, cfg))
+        assert np.isfinite(result.headline_net_pct) and np.isfinite(result.headline_contract_pct)
+        assert result.target_year == year
