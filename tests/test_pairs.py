@@ -15,7 +15,8 @@ import pytest
 
 from leaselens.contracts import DAYS_PER_YEAR, LEASES_COLUMNS, PAIRS_COLUMNS, PERCENT
 from leaselens.measure.pairs import (REASON_GAP_TOO_SHORT, REASON_NON_POSITIVE_RENT, REASON_SEPARATOR,
-                                     REASON_UNIT_ID_MISMATCH, build_pairs, exclusion_summary, gap_sensitivity)
+                                     REASON_UNIT_ID_MISMATCH, build_pairs, exclusion_summary, gap_sensitivity,
+                                     key_comparison)
 
 BASE_RENT = 1000.0
 
@@ -64,6 +65,15 @@ def test_safe_key_identifies_exactly_one_unit(raw):
     leases = raw["leases"]
     assert (leases.groupby(["sPropCode", "sUnitCode"])["hUnit"].nunique() == 1).all()
     assert (leases.groupby("hUnit")[["sPropCode", "sUnitCode"]].nunique() == 1).all().all()
+
+
+def test_key_comparison_counts_cross_unit_pairs_only_for_unsafe_key(raw):
+    """The section 04 demo: the safe key never pairs two apartments, the unsafe key does."""
+    comparison = key_comparison(raw["leases"]).set_index("key")
+    safe, unsafe = comparison.iloc[0], comparison.iloc[1]
+    assert safe["n_cross_unit_pairs"] == 0 and safe["n_keys_with_several_units"] == 0
+    assert safe["n_keys"] == safe["n_units"]
+    assert unsafe["n_cross_unit_pairs"] > 0 and unsafe["n_keys"] < unsafe["n_units"]
 
 
 # ---------------------------------------------------------------------------
