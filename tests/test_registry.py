@@ -20,7 +20,8 @@ from leaselens.config import external_cutoff_for, load_config, repo_root
 from leaselens.contracts import EXTERNAL_COLUMNS, MONTHS_PER_YEAR, PAIRS_COLUMNS, PERCENT
 from leaselens.market.reconcile_market import (PROVENANCE_COLUMNS, RECONCILE_COLUMNS, SUMMARY_COLUMNS, provenance_table,
                                               reconcile, reconcile_summary)
-from leaselens.market.registry import as_of, load_external, parse_external, validate_external
+from leaselens.market.registry import (WATCH_STATUSES, as_of, load_external, load_watch, parse_external, validate_external,
+                                       watch_status, watch_summary)
 
 CUTOFF = pd.Timestamp("2022-12-31")
 ONE_DAY = pd.Timedelta(days=1)
@@ -242,6 +243,39 @@ def test_new_since_cutoff_lists_only_series_released_after_cutoff():
                                         "last_period": "2026-12-31", "latest_release": "2026-04-01"}]
     assert undated.to_dict("records") == [{"series_id": "undated", "rows": 1, "first_period": "2027-01-01",
                                            "last_period": "2027-12-31", "latest_release": ""}]
+
+
+def test_watch_summary_counts_status_and_rows_after_cutoff(tmp_path):
+    script = load_script()
+    candidates = pd.DataFrame([
+        observation(series_id="late", ref_period_start="2026-01-01", ref_period_end="2026-12-31",
+                    release_date="2026-04-01"),
+        observation(series_id="old", ref_period_start="2020-01-01", ref_period_end="2020-12-31",
+                    release_date="2021-01-19"),
+        observation(series_id="undated_future", ref_period_start="2027-01-01", ref_period_end="2027-12-31",
+                    release_date=""),
+        observation(series_id="undated_past", release_date=""),
+    ], columns=EXTERNAL_COLUMNS)
+    sources = parse_external(pd.DataFrame([observation(series_id="old", release_date="2022-01-19")]))
+    path = tmp_path / "sources_watch.csv"
+    script.watch_rows(candidates, sources).to_csv(path, index=False)
+    watch = load_watch(path)
+    assert list(watch.columns) == EXTERNAL_COLUMNS
+    summary = watch_summary(watch, pd.Timestamp("2026-01-31"))
+    assert summary == {"n_rows": 4, "by_status": {"new_release": 1, "missing_period": 1, "release_date_unknown": 2},
+                       "n_after_cutoff": 2}
+
+
+def test_load_watch_missing_file_is_empty(tmp_path):
+    watch = load_watch(tmp_path / "absent.csv")
+    assert watch.empty and list(watch.columns) == EXTERNAL_COLUMNS
+    assert watch_summary(watch, pd.Timestamp("2026-01-31"))["n_rows"] == 0
+
+
+def test_committed_watch_file_has_known_statuses(cfg):
+    path = repo_root() / cfg["data"]["public_dir"] / cfg["external"]["watch_file"]
+    watch = load_watch(path)
+    assert set(watch_status(watch)) <= set(WATCH_STATUSES)
 
 
 def test_watch_without_key_skips_pages_and_never_touches_cache(tmp_path, monkeypatch, capsys):
