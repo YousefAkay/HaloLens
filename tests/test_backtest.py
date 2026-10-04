@@ -281,3 +281,126 @@ def test_champion_selection_runs_on_the_full_synthetic_table(raw, cfg):
     chosen = select_champion(table, cfg)
     assert chosen["champion"] in set(table["model"])
     assert chosen["ranking"]["eligible"].iloc[0]
+
+
+# ---------------------------------------------------------------------------
+# Champion pipeline: one path behind estimate_2026() and backtest()
+# ---------------------------------------------------------------------------
+def test_empty_external_has_the_contract_columns_and_no_rows():
+    from leaselens.contracts import EXTERNAL_COLUMNS
+    from leaselens.evaluate.backtest import empty_external as library_empty_external
+    frame = library_empty_external()
+    assert list(frame.columns) == EXTERNAL_COLUMNS and frame.empty
+    assert str(frame["release_date"].dtype).startswith("datetime64")
+
+
+def test_tables_from_leases_leaves_concessions_and_listings_empty(raw, cfg):
+    from leaselens.evaluate.backtest import tables_from_leases
+    from leaselens.io import canonicalize
+    source = canonicalize(raw)
+    rebuilt = tables_from_leases(source.leases, source.asking)
+    assert rebuilt.concessions.empty and rebuilt.units.empty
+    assert rebuilt.leases is source.leases and rebuilt.asking is source.asking
+
+
+def test_champion_pipeline_applies_the_pre_declared_rule(raw, cfg):
+    from leaselens.evaluate.backtest import champion_pipeline
+    from leaselens.io import canonicalize
+    synthetic = canonicalize(raw)
+    pipeline = champion_pipeline(synthetic, empty_external(), cfg)
+    direct = select_champion(backtest_all_models(synthetic, empty_external(), cfg), cfg)
+    assert pipeline["champion"] == direct["champion"] and callable(pipeline["forecaster"])
+    assert pipeline["selection_years"] == [2023, 2024] and pipeline["holdout_year"] == 2025
+
+
+def test_champion_pipeline_reuses_a_precomputed_table(raw, cfg):
+    from leaselens.evaluate.backtest import champion_pipeline
+    from leaselens.io import canonicalize
+    synthetic = canonicalize(raw)
+    table = backtest_all_models(synthetic, empty_external(), cfg)
+    assert champion_pipeline(synthetic, empty_external(), cfg, table)["champion"] == champion_pipeline(
+        synthetic, empty_external(), cfg)["champion"]
+
+
+def test_champion_forecast_is_the_champions_own_forecast_for_the_target_year(raw, cfg):
+    from leaselens.evaluate.backtest import champion_forecast, champion_pipeline
+    from leaselens.forecast.asof import snapshot_for_year
+    from leaselens.io import canonicalize
+    synthetic = canonicalize(raw)
+    pipeline = champion_pipeline(synthetic, empty_external(), cfg)
+    result = champion_forecast(synthetic, empty_external(), cfg)
+    direct = pipeline["forecaster"](snapshot_for_year(synthetic, empty_external(), cfg["forecast_years"]["target_year"], cfg), cfg)
+    assert result.model_name == direct.model_name and result.target_year == 2026
+    assert result.headline_net_pct == direct.headline_net_pct
+
+
+def test_champion_backtest_uses_the_same_champion_and_reports_the_sensitivity(raw, cfg):
+    from leaselens.evaluate.backtest import champion_backtest, champion_pipeline
+    from leaselens.io import canonicalize
+    synthetic = canonicalize(raw)
+    fold = champion_backtest(synthetic, empty_external(), 2025, cfg)
+    assert fold.coverage["champion"] == champion_pipeline(synthetic, empty_external(), cfg)["champion"]
+    assert fold.forecast.model_name == fold.coverage["champion"]
+    assert fold.error_pp_net == pytest.approx(fold.forecast.headline_net_pct - fold.actual_net_pct)
+    assert "sensitivity_strict_dec31" in fold.coverage and fold.target_year == 2025
+
+
+def test_estimate_and_backtest_wrappers_share_one_champion(raw, cfg):
+    """The 2026 headline and the backtest folds must come from the same model."""
+    from leaselens.evaluate.backtest import champion_backtest, champion_forecast, tables_from_leases
+    from leaselens.io import canonicalize
+    source = canonicalize(raw)
+    tables = tables_from_leases(source.leases, source.asking)
+    estimate = champion_forecast(tables, None, cfg)
+    folds = [champion_backtest(tables, None, year, cfg) for year in cfg["forecast_years"]["backtest_years"]]
+    assert {fold.forecast.model_name for fold in folds} == {estimate.model_name}
+
+
+def test_headline_table_lists_every_model_under_both_rules(raw, cfg):
+    from leaselens.evaluate.backtest import headline_table
+    from leaselens.io import canonicalize
+    table = headline_table(canonicalize(raw), None, cfg)
+    assert len(table) == 2 * 6 and set(table["rule"]) == {"jan31", "dec31_strict"}
+    ran = table[table["note"] == ""]
+    assert {"B0_last_year", "B1_trailing_mean", "E1_engine_blend"} <= set(ran["model"])
+    assert ran[["net_pct", "contract_pct"]].notna().all().all()
+    missing = table[table["model"].isin(["B2_market_anchor", "B3_tal_anchor", "E2_regulated"])]
+    assert missing["net_pct"].isna().all() and missing["note"].ne("").all()   # no public data passed in
+
+
+def test_headline_table_matches_the_champion_forecast_for_the_champion(raw, cfg):
+    from leaselens.evaluate.backtest import champion_forecast, headline_table
+    from leaselens.io import canonicalize
+    synthetic = canonicalize(raw)
+    champion = champion_forecast(synthetic, None, cfg)
+    row = headline_table(synthetic, None, cfg).query("rule == 'jan31' and model == @champion.model_name").iloc[0]
+    assert row["net_pct"] == pytest.approx(champion.headline_net_pct)
+
+
+def test_french_date_helpers_write_dates_from_values_not_literals(cfg):
+    from leaselens.config import cutoff_for, external_cutoff_for
+    from leaselens.evaluate.backtest import french_date, french_day_month
+    assert french_day_month(external_cutoff_for(2026, cfg)) == "31 janvier"
+    assert french_day_month(cutoff_for(2026, cfg)) == "31 décembre"
+    assert french_date(cfg["regulation"]["ontario_post_2018_exemption_cutoff"]) == "15 novembre 2018"
+    assert french_date(cfg["anchors"]["tal_method_announced"]) == "17 décembre 2025"
+    assert french_date("2024-08-01") == "1 août 2024" and french_date("2024-02-29").startswith("29 février")
+
+
+def test_sections_08_09_10_11b_type_no_dates_years_or_figures_in_markdown():
+    """Numbers, dates and years in the notebook text must come from code (f-strings), not from typed Markdown."""
+    import re
+
+    import jupytext
+    from leaselens.config import repo_root
+    allowed = re.compile(r"`[^`]*`|\\bB[0-3]\\b|\\bE[12]\\b|F-05b|estimate_2026|\\|[-| ]+\\||section \\d+")
+    for name in ("08_forecast_method", "09_backtest", "10_forecast_2026", "11b_scenarios"):
+        notebook = jupytext.read(repo_root() / "notebook" / "sections" / f"{name}.py")
+        for cell in notebook.cells:
+            if cell.cell_type != "markdown":
+                continue
+            for line in cell.source.splitlines():
+                text = allowed.sub("", re.sub(r"^#+\\s*\\d+[ab]?(\\.\\d+)*\\.?\\s*", "", line) if line.startswith("#") else line)
+                assert not re.search(r"\\d", text), f"{name}: typed figure in Markdown: {line.strip()[:80]}"
+                assert not re.search(r"\\b(janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)\\b",
+                                     text, re.I), f"{name}: typed month in Markdown: {line.strip()[:80]}"
