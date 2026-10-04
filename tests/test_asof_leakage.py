@@ -20,7 +20,7 @@ import pytest
 
 from leaselens.config import cutoff_for
 from leaselens.contracts import EXTERNAL_COLUMNS, CanonicalTables
-from leaselens.forecast.asof import make_snapshot
+from leaselens.forecast.asof import make_snapshot, snapshot_for_year
 from leaselens.forecast.combine import forecast
 
 
@@ -208,3 +208,77 @@ def test_appending_future_rows_leaves_the_forecast_identical(tables, external, c
     assert leaked.headline_contract_pct == base.headline_contract_pct
     assert leaked.median_net_pct == base.median_net_pct
     pd.testing.assert_frame_equal(fingerprint(leaked.segments), fingerprint(base.segments))
+
+
+# ---------------------------------------------------------------------------
+# External information date (REQUEST-INT-01): public data by Jan 31 of the target year, CRM data by Dec 31
+# ---------------------------------------------------------------------------
+JAN_31 = pd.Timestamp("2025-01-31")   # external cutoff for the 2025 fold (CRM cutoff 2024-12-31)
+
+
+@pytest.fixture(scope="module")
+def external_by_release(cutoff) -> pd.DataFrame:
+    """Hand-made rows released on the CRM cutoff, in January, on Jan 31 and in February of the target year."""
+    releases = {"on_cutoff": cutoff, "mid_january": pd.Timestamp("2025-01-15"), "on_jan_31": JAN_31,
+                "in_february": pd.Timestamp("2025-02-01")}
+    rows = [{"series_id": name, "publisher": "test", "geography": "QC", "metric": "rent_cpi", "unit": "pct",
+             "ref_period_start": pd.Timestamp("2024-01-01"), "ref_period_end": pd.Timestamp("2024-12-31"),
+             "value": 2.0, "release_date": release} for name, release in releases.items()]
+    frame = pd.DataFrame(rows).reindex(columns=EXTERNAL_COLUMNS)
+    for column in ["ref_period_start", "ref_period_end", "release_date"]:
+        frame[column] = pd.to_datetime(frame[column])
+    return frame
+
+
+def test_external_row_released_after_the_external_cutoff_is_rejected(tables, external_by_release, cutoff):
+    snapshot = make_snapshot(tables, external_by_release, cutoff, external_cutoff=JAN_31)
+    assert "in_february" not in set(snapshot.external["series_id"])
+    assert (snapshot.external["release_date"] <= JAN_31).all()
+
+
+def test_external_row_released_between_the_two_cutoffs_is_accepted(tables, external_by_release, cutoff):
+    snapshot = make_snapshot(tables, external_by_release, cutoff, external_cutoff=JAN_31)
+    assert {"mid_january", "on_jan_31"} <= set(snapshot.external["series_id"])    # external cutoff day is inclusive
+    assert cutoff < pd.Timestamp("2025-01-15") <= JAN_31
+
+
+def test_crm_rows_after_the_crm_cutoff_are_still_rejected_with_a_later_external_cutoff(tables, external, cutoff, cfg):
+    future = fake_future_tables(tables, cutoff, cfg)
+    snapshot = make_snapshot(future, external, cutoff, external_cutoff=JAN_31)
+    assert (snapshot.leases["sign_date"] <= cutoff).all() and (snapshot.leases["lease_start"] <= cutoff).all()
+    assert (snapshot.concessions["date_from"] <= cutoff).all()
+    assert (snapshot.asking["month"] <= cutoff.to_period("M")).all()
+    assert_same_snapshot(snapshot, make_snapshot(tables, external, cutoff, external_cutoff=JAN_31))
+
+
+def test_external_cutoff_equal_to_the_crm_cutoff_is_the_strict_dec_31_version(tables, external_by_release, cutoff):
+    strict = make_snapshot(tables, external_by_release, cutoff, external_cutoff=cutoff)
+    default = make_snapshot(tables, external_by_release, cutoff)
+    assert_same_snapshot(strict, default)
+    assert set(strict.external["series_id"]) == {"on_cutoff"}
+
+
+def test_default_external_cutoff_behaves_as_before(tables, external, cutoff):
+    assert_same_snapshot(make_snapshot(tables, external, cutoff), make_snapshot(tables, external, cutoff, None))
+
+
+def test_snapshot_for_year_uses_dec_31_for_crm_and_jan_31_for_public_data(tables, external_by_release, cfg):
+    snapshot = snapshot_for_year(tables, external_by_release, HISTORICAL_FOLD_YEAR, cfg)
+    assert snapshot.cutoff == pd.Timestamp("2024-12-31")
+    assert (snapshot.leases["lease_start"] <= snapshot.cutoff).all()
+    assert set(snapshot.external["series_id"]) == {"on_cutoff", "mid_january", "on_jan_31"}
+
+
+def test_snapshot_for_year_strict_flag_gives_the_dec_31_sensitivity(tables, external_by_release, cfg):
+    snapshot = snapshot_for_year(tables, external_by_release, HISTORICAL_FOLD_YEAR, cfg, strict=True)
+    assert set(snapshot.external["series_id"]) == {"on_cutoff"}
+
+
+def test_forecast_is_unchanged_by_public_data_released_after_the_external_cutoff(tables, external_by_release, cutoff, cfg):
+    """A February release can move nothing; a mid-January one is allowed to (it is inside the agreed window)."""
+    later = pd.concat([external_by_release, external_by_release.assign(series_id="much_later", value=99.0,
+                                                                        release_date=pd.Timestamp("2025-03-01"))],
+                      ignore_index=True)
+    base = forecast(make_snapshot(tables, external_by_release, cutoff, external_cutoff=JAN_31), copy.deepcopy(cfg))
+    leaked = forecast(make_snapshot(tables, later, cutoff, external_cutoff=JAN_31), copy.deepcopy(cfg))
+    assert leaked.headline_net_pct == base.headline_net_pct
