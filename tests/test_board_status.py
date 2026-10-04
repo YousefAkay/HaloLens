@@ -1,11 +1,12 @@
 """Tests for the done-matching rules in scripts/board_status.py. Owner: INT.
 
-Pure functions only: no git calls, so these run offline and never touch the real history.
+Pure functions, plus one test that runs git in a temporary repository (never the real history).
 """
 
 from __future__ import annotations
 
 import importlib.util
+import subprocess
 
 from leaselens.config import repo_root
 
@@ -92,3 +93,14 @@ def test_priority_must_start_the_notes():
 
 def test_nothing_workable_returns_none():
     assert next_task([_row("I-05", workable=False)])[0] is None
+
+
+def test_git_helper_reads_non_ascii_commit_messages(tmp_path, monkeypatch):
+    """I-01f: a commit with non-ASCII characters (⚠️, é) must decode on any console code page, e.g. Windows cp1252."""
+    message = "[INT][I-99] Warn about ⚠️ and é in a subject"
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    subprocess.run(["git", "-c", "user.name=test", "-c", "user.email=test@example.com", "-c", "commit.gpgsign=false",
+                    "commit", "-q", "--allow-empty", "-m", message], cwd=tmp_path, check=True)
+    monkeypatch.setattr(board_status, "ROOT", tmp_path)
+    raw = board_status.git("log", f"--format=%B{board_status.RECORD_SEPARATOR}")
+    assert message in board_status.subject_lines(raw)

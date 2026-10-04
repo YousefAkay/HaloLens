@@ -18,6 +18,7 @@ Task details and "done when" criteria: AGENTS.md Section 10.
 | I-06 | Review + merge PRs (continuous, use /review-pr) | — | continuous; never marked done |
 | I-01d | /next preflight, priority marker, auto-merge of dev, requirements check | — | |
 | I-01e | Windows console encoding fix for preflight | — | |
+| I-01f | Explicit UTF-8 decoding for git and gh subprocess output (board status, preflight, privacy test) | — | |
 | I-02b | External information date (Jan-31 rule), REQUEST-INT-01 | — | |
 | I-12a | app/number_guard.py + tests/test_number_guard.py: reject generated text containing any number not present in a given aggregates JSON | — | independent of results |
 | I-13a | Section 01 (notebook/sections/01_definition.py): the headline definition from AGENTS.md §9.1 in French, with its rationale, population, horizon, weighting and companions; no result numbers | — |  |
