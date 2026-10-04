@@ -206,3 +206,14 @@ asking:
   min_listings_per_segment: 5     # a prop_code x beds cell with fewer listed units uses its province pool instead
   min_spread_leases: 10           # a province with fewer matched turnover leases uses the all-province spread instead
   aggregate: median               # "median" or "mean" of per-unit log growth; median resists odd one-off listings
+
+references:
+  # Section 12 compiles itself from each track's own references file at build time (no text copied into the notebook).
+  dir: docs/references            # one append-only Markdown file per track, owned by that track
+  tracks:                         # rendered in this order, one subsection each, with its French title
+    INT: Intégration et produit
+    MSR: Mesure et marché
+    FCT: Incitatifs et prévision
+  boilerplate: "Append one bullet per entry, newest last."  # editing instruction at the top of each file; not shown in the notebook
+  heading_shift: 2                # a file's "## Heading" becomes "#### Heading" under the "### 12.x" track subsection
+  sponsor_approval_date: "2026-10-03"  # sponsor/mentor approved Claude Code processing the CRM CSVs locally (AGENTS.md §3)

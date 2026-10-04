@@ -81,6 +81,18 @@ display(Markdown(
     f"coupés au {strict_label}). La version stricte (publication au plus tard le {strict_label}) est montrée comme "
     f"sensibilité."))
 
+# %% [markdown]
+# **Entrée :** le registre public `data/public/sources.csv` (pourcentages du TAL et lignes directrices de l'Ontario,
+# avec leur date de publication) et le tableau des renouvellements de la section 6.1.
+# **Opération :** charger le registre, en tirer une ligne de référence par année et par province (TAL pour le Québec,
+# ligne directrice pour l'Ontario), puis la joindre aux renouvellements sur l'année et la province. Chaque référence
+# est marquée selon qu'elle était publiée ou non à la date d'information (et à la date stricte, en sensibilité).
+# **Pourquoi :** comparer la hausse des renouvellements au repère réglementaire de **sa propre** province, sans
+# jamais appliquer la règle d'une province à l'autre.
+# **Vérification :** la jointure se fait sur l'année **et** la province ; seules les années de renouvellement qui ont
+# une référence publiée dans leur province sont comparées (les autres restent dans le tableau 6.1) ; seuls des
+# agrégats sont affichés.
+
 # %%
 external = load_external(Path(cfg["_root"]) / cfg["data"]["public_dir"] / cfg["external"]["sources_file"])
 references = reference_lines(external, cfg)

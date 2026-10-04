@@ -343,3 +343,36 @@ def test_committed_reconcile_series_exist_in_sources(cfg):
     for comparison in cfg["reconcile_market"]["comparisons"]:
         assert set(comparison["series"]) == {"QC", "ON"}
         assert set(comparison["series"].values()) <= series
+
+
+# --- Section 12: references compiled from each track's file (measure.labels.track_references_markdown) ---------------
+
+def test_track_references_drops_title_and_boilerplate_and_shifts_headings():
+    from leaselens.measure.labels import track_references_markdown
+
+    cfg = load_config()["references"]
+    text = (f"# References MSR\n\n{cfg['boilerplate']} Extra context stays.\n\n## Public data\n- Entry one\n\n\n\n"
+            "### Detail\n```\n# not a heading\n```\n")
+    body = track_references_markdown(text, cfg["boilerplate"], cfg["heading_shift"])
+    assert "References MSR" not in body and cfg["boilerplate"] not in body
+    assert body.startswith("Extra context stays.")
+    assert "#### Public data" in body and "##### Detail" in body
+    assert "\n# not a heading\n" in body  # code fence untouched
+    assert "\n\n\n" not in body
+
+
+def test_track_references_empty_file_and_heading_cap():
+    from leaselens.measure.labels import MAX_HEADING_LEVEL, track_references_markdown
+
+    cfg = load_config()["references"]
+    assert track_references_markdown(f"# References FCT\n\n{cfg['boilerplate']}\n", cfg["boilerplate"],
+                                     cfg["heading_shift"]) == ""
+    deep = track_references_markdown("##### Deep", "", cfg["heading_shift"])
+    assert deep == "#" * MAX_HEADING_LEVEL + " Deep"
+
+
+def test_references_config_points_at_every_track_file():
+    cfg = load_config()
+    references_dir = Path(cfg["_root"]) / cfg["references"]["dir"]
+    for track in cfg["references"]["tracks"]:
+        assert (references_dir / f"{track}.md").exists()

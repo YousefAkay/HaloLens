@@ -1,9 +1,13 @@
-"""French date labels for notebook Markdown (MSR sections 03, 04, 06, 07).
+"""French date labels and Markdown helpers for the notebook (MSR sections 03, 04, 06, 07, 12).
 
 Owner: MSR. Dates shown in the notebook text are generated from config or data with these helpers, never typed by hand.
+Section 12 renders each track's references file with `track_references_markdown`, so no reference text is copied
+into the notebook.
 """
 
 from __future__ import annotations
+
+import re
 
 import pandas as pd
 
@@ -36,3 +40,36 @@ def french_month_year(date) -> str:
 def french_month_day(month_day: str) -> str:
     """A config month-day such as '12-31' as '31 décembre'."""
     return french_date(f"{LEAP_YEAR}-{month_day}", with_year=False)
+
+
+MAX_HEADING_LEVEL = 6  # deepest Markdown heading
+CODE_FENCE = "```"
+HEADING_PATTERN = re.compile(r"^(#+)(\s.*)$")
+
+
+def track_references_markdown(text: str, boilerplate: str, heading_shift: int) -> str:
+    """Body of one track's references file, ready to sit under a notebook subsection.
+
+    Input: the raw Markdown of `docs/references/<TRACK>.md`, the editing instruction to hide (`boilerplate`) and the
+    number of levels to push headings down. Output: the same entries with the file's leading title (`# References
+    <TRACK>`) and the boilerplate sentence removed, every heading moved `heading_shift` levels down (capped at 6, code
+    fences left alone), and outer blank lines trimmed. An empty string means the file has no entries yet.
+    """
+    lines = text.splitlines()
+    first = next((i for i, line in enumerate(lines) if line.strip()), None)
+    title = HEADING_PATTERN.match(lines[first]) if first is not None else None
+    if title and len(title[1]) == 1:
+        lines = lines[first + 1:]
+    shifted, in_fence = [], False
+    for line in lines:
+        if line.lstrip().startswith(CODE_FENCE):
+            in_fence = not in_fence
+        heading = None if in_fence else HEADING_PATTERN.match(line)
+        if heading:
+            line = "#" * min(len(heading[1]) + heading_shift, MAX_HEADING_LEVEL) + heading[2]
+        shifted.append(line)
+    body = "\n".join(shifted)
+    if boilerplate:
+        body = body.replace(boilerplate, "")
+    body = "\n".join(line.rstrip() if line.strip() else "" for line in body.splitlines())
+    return re.sub(r"\n{3,}", "\n\n", body).strip()
