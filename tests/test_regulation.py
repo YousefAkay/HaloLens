@@ -211,3 +211,33 @@ def test_exemption_evidence_counts_renewals_above_guideline(real_cfg):
     assert evidence.loc[YEAR, "n_renewals"] == 3              # a renewal exactly at the guideline is not above it
     assert evidence.loc[YEAR, "n_above_reference"] == 2
     assert evidence.loc[YEAR, "share_above_reference"] == pytest.approx(2 / 3)
+
+
+# ---------------------------------------------------------------------------
+# measure.labels (French dates in notebook text) and the templated config text
+# ---------------------------------------------------------------------------
+def test_french_dates_from_config():
+    from leaselens.measure.labels import french_date, french_month, french_month_day, french_month_year
+    assert french_date("2018-11-15") == "15 novembre 2018"
+    assert french_date("2026-01-01") == "1er janvier 2026"
+    assert french_date("2026-01-19", with_year=False) == "19 janvier"
+    assert french_month_day("12-31") == "31 décembre"
+    assert french_month_day("02-29") == "29 février"
+    assert french_month("2025-10-01") == "octobre"
+    assert french_month_year("2023-05") == "mai 2023"
+
+
+def test_post_cutoff_note_template_fills_every_placeholder():
+    cfg = load_config(mode="synthetic")
+    note = cfg["regulation"]["post_cutoff_note"].format(
+        target_year=TARGET_YEAR, tal_release="a", info_date="b", method_change="c", strict_cutoff="d",
+        strict_known="e")
+    assert "{" not in note and str(TARGET_YEAR) in note
+
+
+def test_exemption_evidence_has_dated_source_fields():
+    settings = load_config(mode="synthetic")["regulation"]["exemption_evidence"]
+    for key in ("occupancy_source_label", "occupancy_source_date", "occupancy_start_month", "building_units",
+                "building_address", "law_citation", "law_url", "occupancy_url"):
+        assert settings[key] not in ("", None), key
+    assert pd.Timestamp(settings["occupancy_start_month"]) <= pd.Timestamp(settings["occupancy_source_date"])
