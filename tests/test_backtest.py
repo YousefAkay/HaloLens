@@ -404,3 +404,32 @@ def test_sections_08_09_10_11a_11b_type_no_dates_years_or_figures_in_markdown():
                 assert not re.search(r"\\d", text), f"{name}: typed figure in Markdown: {line.strip()[:80]}"
                 assert not re.search(r"\\b(janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)\\b",
                                      text, re.I), f"{name}: typed month in Markdown: {line.strip()[:80]}"
+
+
+def test_the_notebook_sections_name_their_numerical_tolerance():
+    """A bare 1e-9 in a section hides what it is for; the tolerance is one named constant in evaluate.metrics."""
+    from leaselens.config import repo_root
+    from leaselens.evaluate.metrics import TOLERANCE_PP
+    assert 0 < TOLERANCE_PP < 1e-6
+    for name in ("08_forecast_method", "09_backtest", "10_forecast_2026", "11a_uncertainty", "11b_scenarios"):
+        source = (repo_root() / "notebook" / "sections" / f"{name}.py").read_text(encoding="utf-8")
+        assert "1e-9" not in source, name
+    for name in ("10_forecast_2026", "11b_scenarios"):
+        assert "TOLERANCE_PP" in (repo_root() / "notebook" / "sections" / f"{name}.py").read_text(encoding="utf-8")
+
+
+def test_every_fct_reference_gives_a_url_or_an_isbn_and_the_listed_methods_are_covered():
+    import re
+
+    from leaselens.config import repo_root
+    text = (repo_root() / "docs" / "references" / "FCT.md").read_text(encoding="utf-8")
+    entries = re.split(r"\n- \*\*", text)[1:]
+    assert len(entries) >= 8
+    for entry in entries:
+        assert "http" in entry or "ISBN" in entry, entry[:80]
+        assert re.search(r"\b(19|20)\d{2}\b", entry), entry[:80]                      # a year
+        assert "Used in" in entry, entry[:80]                                        # how it is used
+    for author in ("Durbin", "Hyndman", "Efron", "Cameron", "James", "Hastings"):
+        assert author in text, author
+    for topic in ("state-space", "bootstrap", "winsor", "Laspeyres", "UnobservedComponents"):
+        assert topic.lower() in text.lower(), topic
