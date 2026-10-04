@@ -1,3 +1,6 @@
 # References MSR
 
 Append one bullet per entry, newest last.
+- Government of Ontario, "Rent increase guideline" (states that new buildings first occupied for residential purposes after November 15, 2018 are exempt from rent control; legal text: Residential Tenancies Act, 2006, s. 6.1). https://www.ontario.ca/page/rent-increase-guideline — legal text: https://www.ontario.ca/laws/statute/06r17 (accessed 2026-10-03). Used in section 06 (the Ontario new-build evidence).
+- Kucharsky, D. (2023-06-19). "project doubles down on Ottawa with 2nd downtown multires tower". source – Real Estate News Exchange. https://source.ca/project-doubles-down-on-ottawa-with-2nd-downtown-multires-tower (accessed 2026-10-03). Public fact: the Ontario new-build (180 Street St., 303 units) was completed and "began occupancy last month" (May 2023). Used in section 06 as evidence for the post-2018 exemption scenario; recorded in `config/measure.yaml` `regulation.exemption_evidence`.
+- Civil Code of Québec, art. 1955 (lease clause F: no rent fixing by the TAL for 5 years after a building is ready for habitation) and the mandatory Québec lease form, section G (lowest rent paid in the previous 12 months). Used in section 06 rule texts (scenario design only).

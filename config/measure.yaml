@@ -77,7 +77,14 @@ regulation:
       alternative: "La ligne directrice s'applique aux renouvellements."
       central_reference: false    # matches forecast.yaml scenarios.met_guideline_applies[0] (central = exempt)
       alternative_reference: true
-  post_cutoff_note: "Québec : nouvelle méthode de calcul du TAL annoncée le 17 décembre 2025 et pourcentage 2026 publié le 19 janvier 2026, après la date de coupure du 31 décembre 2025 : scénario séparé seulement."
+  post_cutoff_note: "Québec : le pourcentage du TAL pour 2026 (publié le 19 janvier 2026) est connu à la date d'information du 31 janvier 2026 et sert donc d'intrant à la prévision 2026. Il est calculé avec la nouvelle méthode annoncée le 17 décembre 2025 (« pourcentage de base ») : il ne se compare pas directement aux « estimations moyennes » des années antérieures. Avec la coupure stricte du 31 décembre 2025 (sensibilité), il ne serait pas connu."
+  exemption_evidence:             # section 06 evidence block for the Ontario post-2018 exemption scenario (the Ontario new-build)
+    above_reference_tolerance_pp: 0.05  # a renewal counts as above the guideline only if its 12-month increase exceeds it by more than this (cent rounding)
+    law_url: https://www.ontario.ca/page/rent-increase-guideline  # states the exemption; legal text: RTA 2006 s.6.1 (ontario.ca/laws/statute/06r17)
+    law_quote: "new buildings, additions to existing buildings and most new basement apartments that are occupied for the first time for residential purposes after November 15, 2018 are exempt from rent control."
+    occupancy_url: https://source.ca/project-doubles-down-on-ottawa-with-2nd-downtown-multires-tower  # source, Danny Kucharsky, 2023-06-19 (accessed 2026-10-03)
+    occupancy_quote: "Fresh off the completion of its 303-unit the Ontario new-build multiresidential development at 180 Street St. [...] rentals at the Ontario new-build, which began occupancy last month"
+    occupancy_fact: "the Ontario new-build (180, rue Street, Ottawa), projet locatif de 303 logements, a commencé à être occupée en mai 2023 (source, 19 juin 2023), soit après le 15 novembre 2018."
 
 external:
   sources_file: sources.csv       # verified public observations (under data.public_dir); the only file analysis reads

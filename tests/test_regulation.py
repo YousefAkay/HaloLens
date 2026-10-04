@@ -13,11 +13,12 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from leaselens.config import load_config
+from leaselens.config import cutoff_for, external_cutoff_for, load_config
 from leaselens.contracts import PAIRS_COLUMNS, PERCENT
 from leaselens.market.registry import load_external
-from leaselens.market.regulation import (COMPARISON_COLUMNS, MATRIX_COLUMNS, REFERENCE_COLUMNS, applicability_matrix,
-                                         reference_lines, renewals_vs_reference)
+from leaselens.market.regulation import (COMPARISON_COLUMNS, EVIDENCE_COLUMNS, MATRIX_COLUMNS, REFERENCE_COLUMNS,
+                                         applicability_matrix, exemption_evidence, reference_lines,
+                                         renewals_vs_reference)
 from leaselens.measure.pairs import build_pairs
 from leaselens.measure.renewals import NOTE_THIN_CELL, SPLIT_COLUMNS, split_summary
 
@@ -26,7 +27,8 @@ RENEWAL_GROWTH = 0.03
 TURNOVER_GROWTH = 0.08
 NET_DISCOUNT = 0.01
 BASE_RENT = 1000.0
-CUTOFF = pd.Timestamp("2025-12-31")
+TARGET_YEAR = 2026
+TAL_TARGET_RELEASE = pd.Timestamp("2026-01-19")
 
 
 def pair(unit: str, province: str, renewal: bool, growth: float, year: int = YEAR) -> dict:
@@ -153,12 +155,22 @@ def test_matrix_evidence_from_leases_is_per_building(tables, cfg):
     assert (known["first_lease_year"] <= known["latest_phase_first_lease_year"]).all()
 
 
-def test_reference_lines_split_by_province_and_flag_post_cutoff(real_cfg, public_external):
-    lines = reference_lines(public_external, real_cfg, CUTOFF)
+def test_reference_lines_use_january_31_information_date(real_cfg, public_external):
+    lines = reference_lines(public_external, real_cfg)
     assert list(lines.columns) == REFERENCE_COLUMNS
     assert set(lines["province"]) == {"QC", "ON"}
     assert (lines["metric"] == lines["province"].map(real_cfg["regulation"]["reference_metrics"])).all()
-    assert (lines["known_at_cutoff"] == (lines["release_date"] <= CUTOFF)).all()
+    info_dates = lines["year"].map(lambda year: external_cutoff_for(year, real_cfg))
+    strict_dates = lines["year"].map(lambda year: cutoff_for(year, real_cfg))
+    assert (lines["known_by_info_date"] == (lines["release_date"] <= info_dates)).all()
+    assert (lines["known_by_strict_cutoff"] == (lines["release_date"] <= strict_dates)).all()
+
+
+def test_tal_2026_is_known_for_the_2026_forecast_but_not_under_strict_cutoff(real_cfg, public_external):
+    lines = reference_lines(public_external, real_cfg).set_index(["province", "year"])
+    tal_2026 = lines.loc[("QC", TARGET_YEAR)]
+    assert tal_2026["release_date"] == TAL_TARGET_RELEASE
+    assert bool(tal_2026["known_by_info_date"]) and not bool(tal_2026["known_by_strict_cutoff"])
 
 
 def test_renewals_vs_reference_joins_same_province_only(no_clip_cfg):
@@ -172,9 +184,30 @@ def test_renewals_vs_reference_joins_same_province_only(no_clip_cfg):
         "metric": ["tal_renewal_reference_pct", "ontario_guideline_pct"],
         "reference_pct": [reference_pct["QC"], reference_pct["ON"]],
         "release_date": pd.to_datetime([f"{YEAR}-01-15", f"{YEAR - 1}-08-31"]), "url": ["", ""],
-        "known_at_cutoff": [True, True]})
+        "known_by_info_date": [True, True], "known_by_strict_cutoff": [False, True]})
     comparison = renewals_vs_reference(split, references)
     assert list(comparison.columns) == COMPARISON_COLUMNS
     assert list(comparison["province"]) == ["QC"]     # no Ontario renewals: the guideline is not applied to Québec
     expected_gap = PERCENT * math.expm1(RENEWAL_GROWTH) - reference_pct["QC"]
     assert comparison.loc[0, "gap_pp"] == pytest.approx(expected_gap)
+
+
+def met_renewal(unit: str, year: int, increase_pct: float) -> dict:
+    """One eligible renewal pair of the Ontario new-build with the given 12-month contractual increase."""
+    row = pair(unit, "ON", True, math.log1p(increase_pct / PERCENT), year)
+    return {**row, "building": "the Ontario new-build"}
+
+
+def test_exemption_evidence_counts_renewals_above_guideline(real_cfg):
+    guideline = 2.5
+    years = [YEAR - 1, YEAR]
+    rows = [met_renewal("a", YEAR, guideline), met_renewal("b", YEAR, guideline + 1.0),
+            met_renewal("c", YEAR, guideline + 3.0)]
+    rows.append({**pair("q", "QC", True, 0.2), "building": "Building"})   # Québec renewal: never counted
+    references = pd.DataFrame({"year": years, "province": ["ON", "ON"], "reference_pct": [guideline, guideline]})
+    evidence = exemption_evidence(pairs_frame(rows), references, real_cfg, years).set_index("year")
+    assert list(evidence.reset_index().columns) == EVIDENCE_COLUMNS
+    assert evidence.loc[YEAR - 1, "n_renewals"] == 0 and np.isnan(evidence.loc[YEAR - 1, "share_above_reference"])
+    assert evidence.loc[YEAR, "n_renewals"] == 3              # a renewal exactly at the guideline is not above it
+    assert evidence.loc[YEAR, "n_above_reference"] == 2
+    assert evidence.loc[YEAR, "share_above_reference"] == pytest.approx(2 / 3)

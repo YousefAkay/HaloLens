@@ -1,6 +1,6 @@
 """Québec (TAL) vs Ontario (guideline) applicability matrix and scenarios.
 
-Owner: MSR. Implements `applicability_matrix` (AGENTS.md Section 7.3), plus `reference_lines` and
+Owner: MSR. Implements `applicability_matrix` (AGENTS.md Section 7.3), plus `reference_lines`, `exemption_evidence` and
 `renewals_vs_reference` for notebook section 06.
 
 Five buildings are under Québec's TAL, the Ontario new-build under Ontario's Residential Tenancies Act. A province's rule is only
@@ -11,17 +11,26 @@ legal determination. Reference percentages come from `data/public/sources.csv` w
 
 from __future__ import annotations
 
+import numpy as np
 import pandas as pd
+
+from leaselens.config import cutoff_for, external_cutoff_for
+from leaselens.contracts import PERCENT
 
 MATRIX_COLUMNS = [
     "building", "province", "lease_type", "regime", "rule", "scenario",
     "central", "alternative", "reference_metric_central", "reference_metric_alternative",
     "binding_central", "binding_alternative", "first_lease_year", "latest_phase_first_lease_year",
 ]
-REFERENCE_COLUMNS = ["year", "province", "metric", "reference_pct", "release_date", "url", "known_at_cutoff"]
-COMPARISON_COLUMNS = [
-    "year", "province", "n_pairs", "mean_contract_pct", "reference_pct", "gap_pp", "release_date", "known_at_cutoff",
+REFERENCE_COLUMNS = [
+    "year", "province", "metric", "reference_pct", "release_date", "url", "known_by_info_date", "known_by_strict_cutoff",
 ]
+COMPARISON_COLUMNS = [
+    "year", "province", "n_pairs", "mean_contract_pct", "reference_pct", "gap_pp", "release_date",
+    "known_by_info_date", "known_by_strict_cutoff",
+]
+EVIDENCE_COLUMNS = ["year", "n_renewals", "n_above_reference", "share_above_reference", "reference_pct"]
+EXEMPTION_SCENARIO = "ontario_post_2018_exemption"
 LEASE_TYPES = ("renewal", "turnover")
 NO_SCENARIO = "none"
 CENTRAL_ONLY_TEXT = "Pas de scénario réglementaire distinct."
@@ -81,12 +90,13 @@ def applicability_matrix(cfg: dict, leases: pd.DataFrame | None = None) -> pd.Da
     return matrix[MATRIX_COLUMNS]
 
 
-def reference_lines(external: pd.DataFrame, cfg: dict, cutoff: pd.Timestamp | None = None) -> pd.DataFrame:
+def reference_lines(external: pd.DataFrame, cfg: dict) -> pd.DataFrame:
     """Regulatory reference percentage per year and province from the EXTERNAL table.
 
     Uses `regulation.reference_metrics` (QC: TAL reference %, ON: guideline). `year` is the calendar year the
-    percentage applies to (its reference period). `known_at_cutoff` is True when `release_date` <= `cutoff`
-    (always True when no cutoff is given); post-cutoff values may be shown, never used for forecasting.
+    percentage applies to (its reference period). `known_by_info_date` is True when `release_date` <=
+    `external_cutoff_for(year)` (January 31 of that year, AGENTS.md 9.3): the value was public in time for that
+    year's forecast. `known_by_strict_cutoff` applies the Dec-31-of-y-1 cutoff instead (sensitivity only).
     Output columns REFERENCE_COLUMNS, sorted by province and year.
     """
     metrics = cfg["regulation"]["reference_metrics"]
@@ -95,9 +105,11 @@ def reference_lines(external: pd.DataFrame, cfg: dict, cutoff: pd.Timestamp | No
         rows = external[(external["metric"] == metric) & (external["geography"] == province)]
         parts.append(rows.assign(province=province))
     lines = pd.concat(parts) if parts else external.iloc[:0].assign(province="")
-    lines = lines.assign(year=lines["ref_period_start"].dt.year, reference_pct=lines["value"])
-    lines["known_at_cutoff"] = True if cutoff is None else lines["release_date"] <= pd.Timestamp(cutoff)
-    lines["year"] = lines["year"].astype(int)
+    lines = lines.assign(year=lines["ref_period_start"].dt.year.astype(int), reference_pct=lines["value"])
+    info_dates = lines["year"].map(lambda year: external_cutoff_for(int(year), cfg))
+    strict_dates = lines["year"].map(lambda year: cutoff_for(int(year), cfg))
+    lines["known_by_info_date"] = lines["release_date"] <= info_dates
+    lines["known_by_strict_cutoff"] = lines["release_date"] <= strict_dates
     return lines[REFERENCE_COLUMNS].sort_values(["province", "year"]).reset_index(drop=True)
 
 
@@ -113,3 +125,31 @@ def renewals_vs_reference(split: pd.DataFrame, references: pd.DataFrame) -> pd.D
     merged = renewals.merge(references, on=["year", "province"], how="inner")
     merged["gap_pp"] = merged["mean_contract_pct"] - merged["reference_pct"]
     return merged[COMPARISON_COLUMNS].sort_values(["province", "year"]).reset_index(drop=True)
+
+
+def exemption_evidence(pairs: pd.DataFrame, references: pd.DataFrame, cfg: dict, years: list[int]) -> pd.DataFrame:
+    """Per year: how many renewals of the buildings in the Ontario post-2018 exemption scenario rose above the guideline.
+
+    Inputs: PAIRS (eligible renewal rows of buildings whose `regulation.buildings` scenario is
+    `ontario_post_2018_exemption` are used); `reference_lines` output; config; the years to report (every year gets a
+    row, with zero renewals when none was observed). A renewal is above the guideline when its 12-month contractual
+    increase (rent_contract / rent_contract_prev - 1, in %) exceeds the guideline by more than
+    `regulation.exemption_evidence.above_reference_tolerance_pp`. Output columns EVIDENCE_COLUMNS (aggregates only).
+    Renewals well above the guideline are consistent with an exemption, not proof of it.
+    """
+    settings = cfg["regulation"]
+    tolerance = settings["exemption_evidence"]["above_reference_tolerance_pp"]
+    buildings = [entry["building"] for entry in settings["buildings"] if entry.get("scenario") == EXEMPTION_SCENARIO]
+    provinces = {entry["province"] for entry in settings["buildings"] if entry.get("scenario") == EXEMPTION_SCENARIO}
+    renewals = pairs[pairs["eligible"] & pairs["is_renewal"].astype(bool) & pairs["building"].isin(buildings)]
+    increase_pct = PERCENT * (renewals["rent_contract"] / renewals["rent_contract_prev"] - 1)
+    guideline = references[references["province"].isin(provinces)].set_index("year")["reference_pct"]
+    rows = []
+    for year in years:
+        in_year = renewals["year"] == year
+        reference = float(guideline.get(year, np.nan))
+        above = int((increase_pct[in_year] > reference + tolerance).sum()) if not np.isnan(reference) else 0
+        count = int(in_year.sum())
+        rows.append({"year": year, "n_renewals": count, "n_above_reference": above,
+                     "share_above_reference": above / count if count else np.nan, "reference_pct": reference})
+    return pd.DataFrame(rows, columns=EVIDENCE_COLUMNS)

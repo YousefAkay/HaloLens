@@ -25,10 +25,11 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from IPython.display import Markdown, display
 
-from leaselens.config import cutoff_for
+from leaselens.config import external_cutoff_for
 from leaselens.contracts import COLOR_CONTRACT, COLOR_MARKET, COLOR_NET
 from leaselens.market.registry import load_external
-from leaselens.market.regulation import applicability_matrix, reference_lines, renewals_vs_reference
+from leaselens.market.regulation import (applicability_matrix, exemption_evidence, reference_lines,
+                                         renewals_vs_reference)
 from leaselens.measure.pairs import build_pairs
 from leaselens.measure.renewals import split_summary
 
@@ -61,18 +62,36 @@ display(split_display.round(2))
 # Étape qui transforme les données : les pourcentages publics sont rattachés à l'année à laquelle ils
 # s'appliquent, puis joints aux renouvellements **sur l'année et la province**. Au Québec, le pourcentage du TAL
 # (logement non chauffé, sans travaux majeurs) sert au calcul quand le Tribunal fixe le loyer : c'est un repère, pas
-# un plafond. En Ontario, la ligne directrice plafonne les renouvellements des logements non exemptés. Une valeur
-# publiée après la date de coupure de la prévision 2026 est marquée et n'est jamais utilisée pour prévoir.
+# un plafond. En Ontario, la ligne directrice plafonne les renouvellements des logements non exemptés.
+#
+# **Date d'information :** une donnée publique est utilisable pour l'année *y* si elle est publiée au plus tard le
+# **31 janvier de l'année *y*** (règle approuvée par le mentor, appliquée de la même façon aux backtests ; les baux
+# restent coupés au 31 décembre de *y − 1*). Le pourcentage du TAL, publié à la mi-janvier, est donc connu à temps.
+# La version stricte (publication au plus tard le 31 décembre de *y − 1*) est montrée comme sensibilité.
 
 # %%
 external = load_external(Path(cfg["_root"]) / cfg["data"]["public_dir"] / cfg["external"]["sources_file"])
-forecast_cutoff = cutoff_for(cfg["forecast_years"]["target_year"], cfg)
-references = reference_lines(external, cfg, forecast_cutoff)
+target_year = cfg["forecast_years"]["target_year"]
+references = reference_lines(external, cfg)
 comparison = renewals_vs_reference(split, references)
-display(comparison.rename(columns={
+strict_sensitivity = cfg["forecast_years"]["external_cutoff_strict_sensitivity"]
+known_columns = {"known_by_info_date": "publiée au plus tard le 31 janvier de l'année visée"}
+if strict_sensitivity:
+    known_columns["known_by_strict_cutoff"] = "sensibilité : publiée au plus tard le 31 décembre précédent"
+display(comparison.drop(columns=[] if strict_sensitivity else ["known_by_strict_cutoff"]).rename(columns={
     "year": "année", "n_pairs": "paires (renouvellements)", "mean_contract_pct": "renouvellements contractuel (%)",
     "reference_pct": "référence publique (%)", "gap_pp": "écart (pts de %)", "release_date": "publiée le",
-    "known_at_cutoff": "connue au 31-12-2025"}).round(2))
+    **known_columns}).round(2))
+
+target_lines = references[references["year"] == target_year]
+target_text = "; ".join(
+    f"{row.province} {row.reference_pct:.1f} % (publié le {row.release_date:%Y-%m-%d}, "
+    f"{'connu' if row.known_by_info_date else 'inconnu'} au {external_cutoff_for(target_year, cfg):%Y-%m-%d}"
+    + (f", {'connu' if row.known_by_strict_cutoff else 'inconnu'} au 31 décembre précédent" if strict_sensitivity
+       else "") + ")"
+    for row in target_lines.itertuples())
+display(Markdown(f"**Références pour {target_year} :** {target_text or 'aucune'}.\n\n"
+                 f"{cfg['regulation']['post_cutoff_note']}"))
 
 # %%
 provinces = [province for province in ("QC", "ON") if province in set(split["province"])]
@@ -116,10 +135,44 @@ display(matrix.assign(lease_type=matrix["lease_type"].map(LEASE_TYPE_FR))[
         "rule": "règle", "central": "scénario central", "alternative": "scénario alternatif",
         "binding_central": "contraignant (central)", "binding_alternative": "contraignant (alternatif)",
         "first_lease_year": "premier bail (extrait)", "latest_phase_first_lease_year": "phase la plus récente"}))
-display(Markdown(f"**Après la date de coupure :** {cfg['regulation']['post_cutoff_note']}"))
 
 # %% [markdown]
-# ### 6.4 Lecture
+# ### 6.4 the Ontario new-build : pourquoi le scénario central retient l'exemption
+# Le scénario central suppose que les renouvellements de the Ontario new-build ne sont pas plafonnés par la ligne directrice. Les
+# preuves ci-dessous viennent de trois sources indépendantes : la loi, un fait public sur l'immeuble, et ce que
+# montrent les baux de l'extrait (agrégats seulement). Étape qui transforme les données : pour chaque
+# renouvellement admissible de the Ontario new-build, la hausse contractuelle sur 12 mois (loyer / loyer précédent − 1) est
+# comparée à la ligne directrice de son année ; un renouvellement est « au-dessus » s'il la dépasse de plus de
+# `regulation.exemption_evidence.above_reference_tolerance_pp` point (arrondi au cent).
+
+# %%
+evidence_settings = cfg["regulation"]["exemption_evidence"]
+evidence_years = list(cfg["forecast_years"]["backtest_years"])
+met_buildings = [entry["building"] for entry in cfg["regulation"]["buildings"]
+                 if entry.get("scenario") == "ontario_post_2018_exemption"]
+met_evidence = exemption_evidence(pairs, references, cfg, evidence_years)
+met_first_year = matrix.loc[matrix["building"].isin(met_buildings), "first_lease_year"].dropna()
+display(met_evidence.rename(columns={
+    "year": "année", "n_renewals": "renouvellements admissibles", "n_above_reference": "au-dessus de la ligne directrice",
+    "share_above_reference": "part au-dessus", "reference_pct": "ligne directrice (%)"}).round(2))
+
+share_text = ", ".join(
+    f"{int(row.year)} : {row.n_above_reference}/{row.n_renewals} ({row.share_above_reference:.0%})" if row.n_renewals
+    else f"{int(row.year)} : aucun renouvellement admissible" for row in met_evidence.itertuples())
+first_text = f"{int(met_first_year.min())}" if len(met_first_year) else "non observée (données synthétiques)"
+display(Markdown(
+    f"1. **Loi** — Loi de 2006 sur la location à usage d'habitation, art. 6.1, résumée par le gouvernement de "
+    f"l'Ontario ([ontario.ca]({evidence_settings['law_url']})) : les nouveaux immeubles occupés pour la première "
+    f"fois à des fins résidentielles après le 15 novembre 2018 sont exemptés du contrôle des loyers.\n"
+    f"2. **Fait public** — {evidence_settings['occupancy_fact']} ([source]({evidence_settings['occupancy_url']}))\n"
+    f"3. **Extrait interne** — premier bail de the Ontario new-build dans l'extrait : **{first_text}**.\n"
+    f"4. **Comportement observé** — renouvellements au-dessus de la ligne directrice, par année : {share_text}.\n\n"
+    f"**Conclusion :** scénario central = **exemption** (la ligne directrice ne plafonne pas les renouvellements de "
+    f"the Ontario new-build) ; scénario alternatif = **la ligne directrice s'applique**. Ce choix repose sur des preuves publiques "
+    f"et internes concordantes ; ce n'est pas une détermination juridique."))
+
+# %% [markdown]
+# ### 6.5 Lecture
 
 # %%
 readable = comparison.dropna(subset=["mean_contract_pct"])
