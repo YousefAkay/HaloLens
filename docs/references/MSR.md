@@ -64,8 +64,8 @@ for every entry below: 2026-10-03.
   rows were never sent to Claude outside the sponsor-approved local session (approval on record 2026-10-03).
 - **Claude API** (Anthropic, `claude-opus-5-5`, via `scripts/extract_sources.py`): read **public pages only** (TAL,
   Government of Ontario, CMHC report page) and returned structured observations into `data/public/sources_draft.csv`.
-  Page text and answers are cached in `data/public/extraction_cache/`. A human checked every value against its
-  official page (`verified_by`) before it was copied to `sources.csv`. Analysis code never reads the draft file.
+    Page text and answers are cached in `data/public/extraction_cache/`. Each value was checked against its
+  official page by Claude, and a human spot-checked a named sample (docs/assumptions/MSR.md, M-03) before the table was used. Analysis code never reads the draft file.
 - **Claude API source watcher** (Anthropic, `claude-opus-5-5`, `python scripts/extract_sources.py --watch`, task
   M-11): re-reads the official **public pages only** (TAL, Government of Ontario, CMHC, StatCan WDS) live, never from
   the cache, and writes observations not yet in `sources.csv` to `data/public/sources_watch.csv` with an empty
