@@ -142,3 +142,94 @@ axis.set_xlabel(f"Hausse nette {target_year} (%)")
 axis.set_title("Scénarios E2 (pas des intervalles de prédiction)")
 plt.tight_layout()
 plt.show()
+
+# %% [markdown]
+# ### 11b.4 Sensibilité à chaque hypothèse (diagramme en tornade)
+#
+# **Entrée :** `tables`, `external`, `cfg` et le modèle retenu en section 9 ; les tailles des variantes viennent de
+# `config/forecast.yaml` (`sensitivity`, `scenarios`) et de `config/measure.yaml`. **Opération :** on relance le modèle retenu
+# en changeant **une seule** hypothèse à la fois : règle d'information des données publiques, bornes de l'écart entre baux
+# (y compris les baux courts), seuils de winsorisation, fenêtre des poids ; on relance E2 pour les leviers
+# réglementaires (the Ontario new-build, concessions, part des renouvellements) et on compare les modèles entre eux. Rien n'est combiné.
+# **Pourquoi :** montrer quelles hypothèses déplacent vraiment la hausse et lesquelles n'ont aucun effet. **Vérification :** chaque
+# écart est la hausse de la variante moins celle du même modèle dans le cas de base ; une variante impossible reste visible avec sa
+# raison. Ce sont des **sensibilités**, pas des intervalles de prédiction : les effets ne s'additionnent pas.
+
+# %%
+import numpy as np
+
+from leaselens.evaluate.backtest import champion_pipeline
+from leaselens.forecast.scenarios import sensitivity_table
+
+if "champion" not in globals():
+    champion = champion_pipeline(tables, external, cfg)["champion"]
+sensitivities = sensitivity_table(tables, external, cfg, champion=champion)
+
+assumption_fr = {
+    "information_rule": "Règle d'information (données publiques)", "gap_bounds": "Bornes de l'écart entre baux",
+    "winsorization": "Winsorisation", "weight_window": "Fenêtre des poids",
+    "met_applicability": "Ligne directrice à the Ontario new-build", "incentive_intensity": "Intensité des concessions",
+    "renewal_mix": "Part des renouvellements", "model_choice": "Choix du modèle"}
+
+
+def variant_fr(row):
+    setting = row["setting"]
+    labels = {
+        "strict_dec31": "coupure stricte (même date que le CRM)",
+        "include_six_month_leases": f"baux courts inclus (borne basse {setting} an)",
+        "max_gap": f"écart maximal {setting} ans", "quantiles": f"quantiles {setting}",
+        "years": f"{setting} ans", "met_guideline_applies": "ligne directrice applicable",
+        "incentives_deeper": f"concessions plus profondes ({float(setting):+.1f} pp)" if row["variant"] == "incentives_deeper" else "",
+        "incentives_shallower": f"concessions plus légères ({float(setting):+.1f} pp)" if row["variant"] == "incentives_shallower" else "",
+        "more_renewals": f"plus de renouvellements ({float(setting):+.1f} pp)" if row["variant"] == "more_renewals" else "",
+        "fewer_renewals": f"moins de renouvellements ({float(setting):+.1f} pp)" if row["variant"] == "fewer_renewals" else ""}
+    return labels.get(row["variant"], row["variant"])
+
+
+sensitivities["libellé"] = [
+    f"{assumption_fr[row.assumption]} : {variant_fr(row._asdict())}" + ("" if row.assumption == "model_choice" else f" [{row.model}]")
+    for row in sensitivities.itertuples()]
+display(sensitivities[["libellé", "headline_net_pct", "base_net_pct", "delta_pp", "note"]].rename(columns={
+    "headline_net_pct": "net variante %", "base_net_pct": "net base %", "delta_pp": "écart pp", "note": "raison si impossible"
+}).round(2))
+
+# %%
+ran = sensitivities.dropna(subset=["delta_pp"])
+fig, axis = plt.subplots(figsize=(8, max(3.5, 0.32 * len(ran))))
+palette_models = {champion: "#0072B2", "E2_regulated": "#E69F00"}
+ordered = ran.iloc[::-1]
+axis.barh(ordered["libellé"], ordered["delta_pp"], color=[palette_models.get(model, "#999999") for model in ordered["model"]])
+axis.axvline(0, color="black", linewidth=0.8)
+axis.set_xlabel("Écart de la hausse nette par rapport au cas de base du même modèle (pp)")
+axis.set_title("Sensibilités, une hypothèse à la fois (pas des intervalles de prédiction)")
+for model, color in palette_models.items():
+    axis.barh([], [], color=color, label=f"modèle {model}")
+axis.barh([], [], color="#999999", label="autre modèle (choix du modèle)")
+axis.legend(fontsize=8, frameon=False, loc="lower right")
+plt.tight_layout()
+plt.show()
+
+# %%
+champion_rows = ran[(ran["model"] == champion) & (ran["assumption"] != "model_choice")]
+unchanged = int((champion_rows["abs_delta_pp"] < 1e-9).sum())
+largest = ran.iloc[0]
+largest_champion = champion_rows.iloc[0] if len(champion_rows) else None
+rule_rows = sensitivities[sensitivities["assumption"] == "information_rule"].set_index("model")
+unavailable = int(sensitivities["delta_pp"].isna().sum())
+text = (f"**Lecture des sensibilités.** L'hypothèse qui déplace le plus la hausse nette est « {largest['libellé']} » "
+        f"(**{largest['delta_pp']:+.2f} pp**). ")
+if largest_champion is not None:
+    text += (f"Pour le modèle retenu ({champion}), le plus grand effet d'un choix de données ou de règle est "
+             f"« {largest_champion['libellé']} » (**{largest_champion['delta_pp']:+.2f} pp**) ; "
+             f"**{unchanged}** de ces variantes laissent la hausse inchangée. ")
+if champion in rule_rows.index and np.isfinite(rule_rows.loc[champion, "delta_pp"]):
+    text += (f"La règle d'information des données publiques déplace le modèle retenu de "
+             f"**{rule_rows.loc[champion, 'delta_pp']:+.2f} pp**")
+    if "E2_regulated" in rule_rows.index and np.isfinite(rule_rows.loc["E2_regulated", "delta_pp"]):
+        text += f", mais E2, qui lit le pourcentage du TAL, de **{rule_rows.loc['E2_regulated', 'delta_pp']:+.2f} pp**"
+    text += ". "
+if unavailable:
+    text += f"**{unavailable}** variante(s) n'ont pas pu être calculées (raison dans le tableau). "
+text += ("Ce sont des **sensibilités**, pas des intervalles de prédiction : chaque ligne modifie une seule hypothèse et les "
+         "effets ne s'additionnent pas.")
+display(Markdown(text))

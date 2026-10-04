@@ -11,6 +11,7 @@ prediction intervals (AGENTS.md 9.4).
 
 from __future__ import annotations
 
+import copy
 import itertools
 
 import numpy as np
@@ -149,3 +150,115 @@ def headline_by_province(result: ForecastResult, province_of: pd.Series) -> pd.D
     rows = [aggregate(province, group) for province, group in usable.groupby("province", sort=True)]
     rows.append(aggregate("all", usable))
     return pd.DataFrame(rows)
+
+
+# ---------------------------------------------------------------------------
+# Sensitivity of the headline to one assumption at a time (tornado chart, F-10)
+# ---------------------------------------------------------------------------
+SENSITIVITY_COLUMNS = ["assumption", "variant", "setting", "model", "headline_net_pct", "base_net_pct", "delta_pp",
+                       "abs_delta_pp", "note"]
+E2_NAME = "E2_regulated"
+
+
+def _with_values(cfg: dict, updates: dict[tuple, object]) -> dict:
+    """Deep copy of the config with the given (path -> value) changes; the original is never modified."""
+    changed = copy.deepcopy(cfg)
+    for path, value in updates.items():
+        node = changed
+        for key in path[:-1]:
+            node = node[key]
+        node[path[-1]] = value
+    return changed
+
+
+def sensitivity_table(tables, external: pd.DataFrame, cfg: dict, champion: str | None = None, models: dict | None = None,
+                      year: int | None = None) -> pd.DataFrame:
+    """Headline change from altering ONE assumption at a time, sorted by absolute change. Aggregates only.
+
+    The champion model (chosen once under the base configuration and held fixed) is rerun with each data or rule choice
+    changed alone: public-data information rule (agreed vs strict), pair gap bounds (including 6-month leases and two
+    alternative upper bounds), winsorization quantiles, and the weight window moved by plus and minus a step.
+    E2_regulated is rerun for the regulatory levers (Met exempt vs guideline applies, incentive intensity, renewal mix,
+    which are the scenario levers) and for the information rule, because it is the model that reads the TAL rate.
+    Model choice compares every model in `sensitivity.model_choices` with the champion. Each row's `delta_pp` is
+    relative to the base run of the SAME model (champion base or E2 central; model-choice rows: relative to the champion),
+    so the sign says whether the assumption raises or lowers that model's headline. Values and sizes of the variants are
+    in forecast.yaml (`sensitivity`, `scenarios`); nothing is combined. These are sensitivities, not prediction intervals.
+    A variant that cannot run keeps its row with NaN values and the reason in `note`.
+    """
+    from leaselens.evaluate.backtest import all_models, champion_pipeline
+    from leaselens.forecast.asof import snapshot_for_year
+
+    models = models if models is not None else all_models()
+    year = cfg["forecast_years"]["target_year"] if year is None else year
+    champion = champion if champion is not None else champion_pipeline(tables, external, cfg)["champion"]
+    settings = cfg["sensitivity"]
+    rows: list[dict] = []
+
+    def run(model: str, variant_cfg: dict, strict: bool = False) -> float:
+        snapshot = snapshot_for_year(tables, external, year, variant_cfg, strict=strict)
+        return models[model](snapshot, variant_cfg).headline_net_pct
+
+    def add(assumption: str, variant: str, setting, model: str, base: float, variant_cfg: dict | None = None,
+            strict: bool = False, value: float | None = None) -> None:
+        row = {"assumption": assumption, "variant": variant, "setting": str(setting), "model": model,
+               "headline_net_pct": np.nan, "base_net_pct": base, "delta_pp": np.nan, "abs_delta_pp": np.nan, "note": ""}
+        try:
+            net = value if value is not None else run(model, variant_cfg or cfg, strict)
+        except ValueError as problem:
+            row["note"] = str(problem)
+        else:
+            row.update(headline_net_pct=net, delta_pp=net - base, abs_delta_pp=abs(net - base))
+        rows.append(row)
+
+    def unavailable(assumption: str, variant: str, setting, model: str, note: str) -> None:
+        rows.append({"assumption": assumption, "variant": variant, "setting": str(setting), "model": model,
+                     "headline_net_pct": np.nan, "base_net_pct": np.nan, "delta_pp": np.nan, "abs_delta_pp": np.nan,
+                     "note": note})
+
+    base_champion = run(champion, cfg)
+
+    # data and rule choices, rerun on the champion
+    add("information_rule", "strict_dec31", "dec31_strict", champion, base_champion, strict=True)
+    add("gap_bounds", "include_six_month_leases", cfg["pairs"]["sensitivity_min_gap_years"], champion, base_champion,
+        _with_values(cfg, {("pairs", "min_gap_years"): cfg["pairs"]["sensitivity_min_gap_years"]}))
+    for upper in settings["max_gap_alternatives_years"]:
+        add("gap_bounds", "max_gap", upper, champion, base_champion, _with_values(cfg, {("pairs", "max_gap_years"): upper}))
+    for lower_q, upper_q in settings["winsor_alternatives"]:
+        add("winsorization", "quantiles", [lower_q, upper_q], champion, base_champion,
+            _with_values(cfg, {("winsorize", "lower_quantile"): lower_q, ("winsorize", "upper_quantile"): upper_q}))
+    window = cfg["headline"]["weight_window_years"]
+    for shifted in (window - settings["weight_window_step_years"], window + settings["weight_window_step_years"]):
+        add("weight_window", "years", shifted, champion, base_champion,
+            _with_values(cfg, {("headline", "weight_window_years"): shifted}))
+
+    # regulatory levers, rerun on E2 (central base)
+    try:
+        e2_result = models[E2_NAME](snapshot_for_year(tables, external, year, cfg), cfg)
+        scenarios = scenario_table(e2_result, cfg).set_index("scenario")
+        e2_base = float(scenarios.loc[CENTRAL, "headline_net_pct"])
+    except ValueError as problem:
+        e2_base, scenarios, e2_note = np.nan, None, str(problem)
+    lever_rows = [("met_applicability", "met_guideline_applies", "guideline_applies", "met_guideline_applies"),
+                  ("incentive_intensity", "incentives_deeper", cfg["scenarios"]["incentive_intensity_shift_pp"], "incentives_deeper"),
+                  ("incentive_intensity", "incentives_shallower", -cfg["scenarios"]["incentive_intensity_shift_pp"], "incentives_shallower"),
+                  ("renewal_mix", "more_renewals", cfg["scenarios"]["renewal_share_shift_pp"], "more_renewals"),
+                  ("renewal_mix", "fewer_renewals", -cfg["scenarios"]["renewal_share_shift_pp"], "fewer_renewals")]
+    for assumption, variant, setting, scenario in lever_rows:
+        if scenarios is None:
+            unavailable(assumption, variant, setting, E2_NAME, e2_note)
+        else:
+            add(assumption, variant, setting, E2_NAME, e2_base, value=float(scenarios.loc[scenario, "headline_net_pct"]))
+    if champion != E2_NAME:
+        if scenarios is None:
+            unavailable("information_rule", "strict_dec31", "dec31_strict", E2_NAME, e2_note)
+        else:
+            add("information_rule", "strict_dec31", "dec31_strict", E2_NAME, e2_base, strict=True)
+
+    # model choice, relative to the champion
+    for name in settings["model_choices"]:
+        if name != champion:
+            add("model_choice", name, name, name, base_champion, cfg)
+
+    table = pd.DataFrame(rows)[SENSITIVITY_COLUMNS]
+    return table.sort_values("abs_delta_pp", ascending=False, na_position="last", kind="stable").reset_index(drop=True)

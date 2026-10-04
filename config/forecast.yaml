@@ -45,6 +45,13 @@ anchors:
   tal_method_change_year: 2026            # first lease year under the new TAL method; gap learned on older years is flagged, not adjusted
   tal_method_announced: "2025-12-17"      # date of the TAL method change (AGENTS.md 9.3); quoted in notebook text, which reads it from here
 
+sensitivity:
+  # One-at-a-time variants for the tornado chart (notebook section 11b); each is run against the base setting, never combined.
+  max_gap_alternatives_years: [2.0, 3.0]      # alternative upper bounds of the pair gap (base: measure.yaml pairs.max_gap_years)
+  winsor_alternatives: [[0.0, 1.0], [0.05, 0.95]]  # [lower, upper] quantiles: no clipping, and heavier clipping than the base
+  weight_window_step_years: 1                 # the weight window is moved by plus and minus this many years
+  model_choices: [B0_last_year, B1_trailing_mean, E1_engine_blend, E2_regulated]  # models compared in the model-choice rows
+
 champion:
   top_n: 3                        # number of best models shown in the backtest reading (notebook section 9)
 
