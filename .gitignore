@@ -36,3 +36,6 @@ Thumbs.db
 
 # ---- Local install record (scripts/preflight.py) ----
 .last_install
+
+# ---- Submission zip (scripts/make_submission.py) ----
+outputs/submission/

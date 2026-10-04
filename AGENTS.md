@@ -127,14 +127,14 @@ HALO/
 │  ├─ 05_concessions.py  08_forecast_method.py  09_backtest.py  10_forecast_2026.py  11b_scenarios.py  (FCT)
 │  ├─ 11a_uncertainty.py                                 (FCT)
 ├─ scripts/
-│  ├─ build_notebook.py  make_synthetic.py  export_aggregates.py  board_status.py  smoke_real_data.py  preflight.py   (INT)
+│  ├─ build_notebook.py  make_synthetic.py  export_aggregates.py  board_status.py  smoke_real_data.py  preflight.py  make_submission.py   (INT)
 │  └─ extract_sources.py                                  (MSR)
 ├─ app/  streamlit_app.py  narrative.py  number_guard.py  cache/      (INT)
 ├─ data/  private/ (gitignored)  synthetic/ (INT)  public/sources.csv + sources_draft.csv (MSR)
 ├─ outputs/  private/ (gitignored)  public/ (INT)
 ├─ models/  (gitignored; FCT writes, nobody commits)
 ├─ tests/
-│  ├─ conftest.py  test_contracts.py  test_io.py  test_privacy_guard.py  test_build_notebook.py  test_board_status.py  test_aggregates_schema.py  test_app_shell.py  test_export.py  test_smoke_real_data.py  test_preflight.py  test_number_guard.py  test_narrative.py  (INT)
+│  ├─ conftest.py  test_contracts.py  test_io.py  test_privacy_guard.py  test_build_notebook.py  test_board_status.py  test_aggregates_schema.py  test_app_shell.py  test_export.py  test_smoke_real_data.py  test_preflight.py  test_number_guard.py  test_narrative.py  test_forced_champion.py  test_make_submission.py  (INT)
 │  ├─ test_pairs.py  test_composition.py  test_registry.py  test_asking.py  test_regulation.py           (MSR)
 │  └─ test_asof_leakage.py  test_baselines.py  test_incentives.py  test_linking.py  test_backtest.py  test_combine.py  test_uncertainty.py  (FCT)
 └─ docs/
@@ -155,7 +155,7 @@ Each `docs/*/XXX.md` file is owned by the track in its name.
 
 | Owner | Files |
 |---|---|
-| INT | `AGENTS.md`, `CLAUDE.md`, `TEAMMATE_KICKOFF.md`, `.githooks/*`, `.claude/*`, `docs/board/*` (task lists change only through INT), `scripts/board_status.py`, `scripts/smoke_real_data.py`, `scripts/preflight.py`, `README.md`, `requirements.txt`, `pyproject.toml`, `.gitignore`, `.gitattributes`, `.env.example`, `.pre-commit-config.yaml`, `project_analysis.ipynb`, `config/core.yaml`, `src/leaselens/__init__.py`, `contracts.py`, `config.py`, `io/*`, `export/*`, sections `00`, `01`, `02`, `scripts/build_notebook.py`, `scripts/make_synthetic.py`, `scripts/export_aggregates.py`, `app/*`, `data/synthetic/*`, `outputs/public/*`, tests listed as INT above, `docs/rubric_checklist.md`, `docs/*/INT.md`, every `__init__.py` |
+| INT | `AGENTS.md`, `CLAUDE.md`, `TEAMMATE_KICKOFF.md`, `.githooks/*`, `.claude/*`, `docs/board/*` (task lists change only through INT), `scripts/board_status.py`, `scripts/smoke_real_data.py`, `scripts/preflight.py`, `scripts/make_submission.py`, `README.md`, `requirements.txt`, `pyproject.toml`, `.gitignore`, `.gitattributes`, `.env.example`, `.pre-commit-config.yaml`, `project_analysis.ipynb`, `config/core.yaml`, `src/leaselens/__init__.py`, `contracts.py`, `config.py`, `io/*`, `export/*`, sections `00`, `01`, `02`, `scripts/build_notebook.py`, `scripts/make_synthetic.py`, `scripts/export_aggregates.py`, `app/*`, `data/synthetic/*`, `outputs/public/*`, tests listed as INT above, `docs/rubric_checklist.md`, `docs/*/INT.md`, every `__init__.py` |
 | MSR | `config/measure.yaml`, `measure/*`, `market/*`, sections `03`, `04`, `06`, `07`, `12`, `scripts/extract_sources.py`, `data/public/*`, tests listed as MSR above, `docs/*/MSR.md` |
 | FCT | `config/forecast.yaml`, `incentives/*`, `forecast/*`, `evaluate/backtest.py`, `evaluate/metrics.py`, `evaluate/uncertainty.py`, sections `05`, `08`, `09`, `10`, `11a`, `11b`, `models/*` (local only), tests listed as FCT above (incl. `test_uncertainty.py`), `docs/*/FCT.md` |
 
