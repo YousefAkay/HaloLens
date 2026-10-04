@@ -32,8 +32,8 @@ NOTEBOOK_SOURCE = Path("outputs") / "private" / "project_analysis.ipynb"
 NOTEBOOK_NAME = "project_analysis.ipynb"
 ALLOW_DIRECTORIES = ("src", "config", "scripts", "notebook/sections", "app", "tests", "data/public", "data/synthetic",
                      "docs", "outputs/public", ".streamlit")
-ALLOW_FILES = ("README.md", "AGENTS.md", "requirements.txt", "pyproject.toml")
-ALLOW_FILES = ("README.md", "AGENTS.md", "requirements.txt", "pyproject.toml", ".env.example")
+  ALLOW_FILES = ("README.md", "AGENTS.md", "requirements.txt", "pyproject.toml", ".env.example")
+  SKIP_PARTS = {"__pycache__", ".pytest_cache", ".ipynb_checkpoints"}
 SKIP_SUFFIXES = (".pyc", ".pyo")
 SKIP_DIRECTORY_SUFFIX = ".egg-info"
 FORBIDDEN_PARTS = {".venv", "venv", ".git", "models"}
