@@ -62,3 +62,12 @@ def output_dir(cfg: dict) -> Path:
 def cutoff_for(year: int, cfg: dict) -> pd.Timestamp:
     """Forecast cutoff for target `year`: December 31 of year − 1 (configurable month-day)."""
     return pd.Timestamp(f"{year - 1}-{cfg['forecast_years']['cutoff_month_day']}")
+
+
+def external_cutoff_for(year: int, cfg: dict) -> pd.Timestamp:
+    """Information date for external (public) data used for target `year`: January 31 of `year` by default.
+
+    Public data released on or before this day may be used (mentor-approved 2026-10-03). The CRM cutoff from
+    `cutoff_for` is unchanged; the Dec-31 version is kept as a sensitivity via `external_cutoff_strict_sensitivity`.
+    """
+    return pd.Timestamp(f"{year}-{cfg['forecast_years']['external_cutoff_month_day']}")
