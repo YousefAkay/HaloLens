@@ -26,7 +26,7 @@ LEASE_TYPE = {True: "renewal", False: "turnover"}
 NOTE_THIN_CELL = "fewer pairs than renewals.min_pairs_per_cell: growth not shown"
 
 
-def _clip_by_year(eligible: pd.DataFrame, cfg: dict) -> pd.DataFrame:
+def clip_by_year(eligible: pd.DataFrame, cfg: dict) -> pd.DataFrame:
     """Clip each year's growth at thresholds learned on the pairs known at that year's cutoff (training only)."""
     clipped = []
     for year, group in eligible.groupby("year"):
@@ -54,7 +54,7 @@ def split_summary(pairs: pd.DataFrame, cfg: dict) -> pd.DataFrame:
     eligible = pairs[pairs["eligible"]]
     if eligible.empty:
         return pd.DataFrame(columns=SPLIT_COLUMNS)
-    clipped = _clip_by_year(eligible, cfg)
+    clipped = clip_by_year(eligible, cfg)
     cells = clipped.groupby(SPLIT_KEYS, observed=True).agg(
         n_pairs=("unit_id", "size"),
         mean_log_contract=(GROWTH_CONTRACT, "mean"), mean_log_net=(GROWTH_NET, "mean"),
