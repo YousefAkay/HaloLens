@@ -76,12 +76,19 @@ display(coverage.rename_axis(index=["année", "province"]))
 
 # %%
 min_gap, max_gap = cfg["pairs"]["min_gap_years"], cfg["pairs"]["max_gap_years"]
+
+
+def year_unit(value: float) -> str:
+    """French unit for a year count: singular below 2, plural otherwise."""
+    return "an" if value < 2 else "ans"
+
+
 gaps = pairs["gap_years"].dropna()
 fig, ax = plt.subplots(figsize=(8, 4))
 ax.hist(gaps, bins="auto", color=COLOR_CONTRACT, edgecolor="white", linewidth=0.5)
 for bound, label, align in ((min_gap, "borne inférieure", "left"), (max_gap, "borne supérieure", "right")):
     ax.axvline(bound, color=COLOR_NAIVE, linestyle="--", linewidth=1.5)
-    ax.text(bound, 1, f" {label} ({bound} an) ", transform=ax.get_xaxis_transform(), va="top", ha=align,
+    ax.text(bound, 1, f" {label} ({bound} {year_unit(bound)}) ", transform=ax.get_xaxis_transform(), va="top", ha=align,
             fontsize=9)
 ax.set_title("Écart entre deux baux consécutifs d'une même unité")
 ax.set_xlabel("Écart entre débuts de bail (années)")
@@ -97,10 +104,11 @@ plt.show()
 # exact du scénario est généré ci-dessous à partir de la configuration.
 
 # %%
-sensitivity_label = f"les baux dont l'écart égale la borne de base ({min_gap} an)"
+sensitivity_min_gap = cfg["pairs"]["sensitivity_min_gap_years"]
+sensitivity_label = f"les baux dont l'écart égale la borne de base ({min_gap} {year_unit(min_gap)})"
 display(Markdown(
     f"Scénario élargi : on admet aussi {sensitivity_label}, en abaissant la borne inférieure à "
-    f"{cfg['pairs']['sensitivity_min_gap_years']} an (borne supérieure inchangée : {max_gap} an)."))
+    f"{sensitivity_min_gap} {year_unit(sensitivity_min_gap)} (borne supérieure inchangée : {max_gap} {year_unit(max_gap)})."))
 
 # %%
 sensitivity = gap_sensitivity(pairs, cfg).rename(columns={
