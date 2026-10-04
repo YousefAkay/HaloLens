@@ -34,7 +34,7 @@
 # - **Claude Code** : implémentation du code, des tests et des sections du notebook dans le dépôt local ; chaque
 #   changement a été relu par un humain avant fusion.
 # - **API Claude** : (1) extraction de valeurs à partir de **pages publiques** (TAL, gouvernement de l'Ontario, SCHL),
-#   chaque valeur étant ensuite vérifiée à la main contre sa page officielle avant d'entrer dans
+#   chaque valeur étant ensuite contrôlée contre sa page officielle par Claude, puis vérifiée par un humain sur un échantillon nommé (`docs/assumptions/MSR.md`) avant d'entrer dans
 #   `data/public/sources.csv` ; (2) récit du tableau de bord, produit à partir d'un JSON d'**agrégats** seulement et
 #   contrôlé par un garde-fou qui rejette tout nombre absent de ce JSON.
 #

@@ -6,6 +6,7 @@ The app runs headlessly through Streamlit's AppTest on the synthetic aggregates 
 from __future__ import annotations
 
 import copy
+import html
 import json
 
 import jsonschema
@@ -33,20 +34,26 @@ def test_app_runs_without_exceptions(app):
     assert not app.exception
 
 
-def test_app_shows_the_six_tabs_in_order(app):
-    assert [tab.label for tab in app.tabs] == list(VIEWS) == [
-        "Overview", "Validation", "Scenarios", "By building", "Ask the analysis", "Trust"]
+def test_page_shows_the_seven_tabs_in_order_and_a_sidebar(app):
+    """Seven tabs in story order (the app opens in French), the controls in the sidebar, no anchor navigation."""
+    from app.ui import t
+
+    assert list(VIEWS) == ["01 · Answer", "02 · Why", "03 · Validation", "04 · Scenario Lab", "05 · Buildings",
+                           "06 · Questions", "07 · Sources"]
+    assert [tab.label for tab in app.tabs] == [t(f"tab_{key}", "fr") for key in streamlit_app.TAB_KEYS]
+    assert [radio.key for radio in app.sidebar.radio] == ["lang", "data_mode"]
+    assert 'class="ll-nav"' not in "\n".join(element.value for element in app.markdown)
 
 
 def test_headline_comes_from_the_synthetic_json(app):
-    values = {metric.label: metric.value for metric in app.metric}
     document = json.loads(synthetic_path().read_text(encoding="utf-8"))
     headline = document["headline"]["net_pct"]
-    assert values["Headline, net of incentives"] == f"{headline:.1f} %"
+    hero = next(element.value for element in app.markdown if 'class="ll-hero-number"' in element.value)
+    assert f"{headline:.1f}" in hero
 
 
 def test_synthetic_banner_is_shown(app):
-    assert any("SYNTHÉTIQUE" in warning.value for warning in app.warning)
+    assert any("ll-notice" in element.value and "SYNTHÉTIQUE" in element.value for element in app.markdown)
 
 
 def test_app_reads_only_the_aggregates_files_and_no_network_library():
@@ -75,7 +82,7 @@ def test_loader_rejects_a_non_conforming_file(tmp_path):
 def _qa_view(document):
     from app.streamlit_app import ask_analysis_view
 
-    ask_analysis_view(document)
+    ask_analysis_view(document, "en")              # NO_KEY_MESSAGES are the English texts; the app itself opens in French
 
 
 @pytest.mark.parametrize("mode, cached, reason", [
@@ -97,20 +104,20 @@ def test_no_key_qa_view_explains_unavailability_without_rendering_cache(monkeypa
 
     monkeypatch.setattr(narrative, "load_preset_cache", load_cache)
     at = AppTest.from_function(_qa_view, args=(document,), default_timeout=TIMEOUT_SECONDS).run()
-    at.selectbox(key="preset").select(question).run()
-    at.button(key="answer_go").click().run()
+    at.button(key="pill_0").click().run()          # the first preset question, as a pill
     assert not at.exception
-    assert any(streamlit_app.NO_KEY_MESSAGES[reason] == info.value for info in at.info)
-    assert all("SYNTHETIC CACHED TEXT" not in element.value for element in at.markdown)
-    assert not any("Preset answers are not cached" in element.value for element in at.markdown)
-    assert at.selectbox(key="lever_incentive").value == "zero"
-    assert any("precomputed grid" in element.value for element in at.markdown)
+    page = html.unescape(" ".join(element.value for element in at.markdown))
+    assert streamlit_app.NO_KEY_MESSAGES[reason] in page          # a plain paragraph, no info box
+    assert not at.info
+    assert "SYNTHETIC CACHED TEXT" not in page
+    assert "Preset answers are not cached" not in page
 
 
-def test_header_and_page_title_show_halo_lens(app):
-    """I-16: the display name is Halo Lens in the header (both languages) and the browser page title."""
-    from app import ui
+def test_masthead_and_page_title_show_halo_lens(app):
+    """I-16: the display name is Halo Lens in the masthead (both languages) and in the browser page title."""
+    from app.ui import labels
 
-    assert any("Halo Lens" in element.value for element in app.markdown)
-    assert ui.LABELS["fr"]["app_title"] == ui.LABELS["en"]["app_title"] == "Halo Lens"
+    page = html.unescape(" ".join(element.value for element in app.markdown))
+    assert "Halo Lens" in page and "LeaseLens" not in page
+    assert labels.LABELS["en"]["app_title"] == labels.LABELS["fr"]["app_title"] == "Halo Lens"
     assert 'page_title="Halo Lens"' in APP.read_text(encoding="utf-8")

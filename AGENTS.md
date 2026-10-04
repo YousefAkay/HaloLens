@@ -134,7 +134,7 @@ HALO/
 ├─ outputs/  private/ (gitignored)  public/ (INT)
 ├─ models/  (gitignored; FCT writes, nobody commits)
 ├─ tests/
-│  ├─ conftest.py  test_contracts.py  test_io.py  test_privacy_guard.py  test_build_notebook.py  test_board_status.py  test_aggregates_schema.py  test_app_shell.py  test_export.py  test_smoke_real_data.py  test_preflight.py  test_number_guard.py  test_narrative.py  test_forced_champion.py  test_make_submission.py  (INT)
+│  ├─ conftest.py  test_contracts.py  test_io.py  test_privacy_guard.py  test_build_notebook.py  test_board_status.py  test_aggregates_schema.py  test_app_shell.py  test_export.py  test_smoke_real_data.py  test_preflight.py  test_number_guard.py  test_narrative.py  test_forced_champion.py  test_make_submission.py  test_notebook_text.py  (INT)
 │  ├─ test_pairs.py  test_composition.py  test_registry.py  test_asking.py  test_regulation.py           (MSR)
 │  └─ test_asof_leakage.py  test_baselines.py  test_incentives.py  test_linking.py  test_backtest.py  test_combine.py  test_uncertainty.py  (FCT)
 └─ docs/
@@ -361,7 +361,7 @@ Task IDs are referenced in branches, PRs and Handback Reports. Do tasks in order
 | M-06 | H8–H10 | `measure/renewals.py` + `market/regulation.py` (QC/ON applicability matrix, regulatory reference lines, Met scenarios); section `06_renewals_regulation.py` | Renewal vs turnover by province with counts |
 | M-07 | H10–H11 | `market/reconcile_market.py`: internal same-unit vs CMHC/CPI trends per CMA; section `07_external.py` with provenance table | Reconciliation chart + source table |
 | M-08 | H11–H11.5 | French Markdown pass on own sections; `docs/references/MSR.md` complete | Ready for final build |
-| M-10 | H11.5–H12 | Section `12_references.py` in French, built to compile itself: at build time it reads and renders `docs/references/INT.md`, `MSR.md` and `FCT.md` (no copied text). Only fixed parts are written in the section: credit to the sponsor `template.ipynb` (what we reused), the challenge documents, the AI tools (Claude chat for planning and review, Claude Code for implementation, Claude API for public-source extraction checked by hand and for the dashboard narrative with a number guard), and the statement that no CRM data was sent to any API. Later additions go into each track's own references file | Section 12 compiles from the three reference files; no text copied into the notebook |
+| M-10 | H11.5–H12 | Section `12_references.py` in French, built to compile itself: at build time it reads and renders `docs/references/INT.md`, `MSR.md` and `FCT.md` (no copied text). Only fixed parts are written in the section: credit to the sponsor `template.ipynb` (what we reused), the challenge documents, the AI tools (Claude chat for planning and review, Claude Code for implementation, Claude API for public-source extraction, checked against the official pages by Claude with a human spot-check of a named sample, and for the dashboard narrative with a number guard), and the statement that no CRM data was sent to any API. Later additions go into each track's own references file | Section 12 compiles from the three reference files; no text copied into the notebook |
 | M-09 | H12.5–H14 | Slides for own sections; rehearsal | — |
 
 ### FCT — Incentives & Forecast (Yousif) — ~13 h

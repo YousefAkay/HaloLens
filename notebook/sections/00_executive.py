@@ -7,10 +7,14 @@
 # %% [markdown]
 # # Halo Lens — Hausse de loyer 2026, the portfolio
 #
-# _Résumé exécutif complété à la fin (I-13) à partir des résultats calculés : hausse 2026, définition,
-# compagnons (loyer contractuel, médianes), plage de scénarios et erreurs de backtest._
-#
 # Ce notebook est dérivé du notebook de départ fourni par project (`template.ipynb`).
+
+# %% [markdown]
+# **Abstract (English).** Halo Lens estimates the rent increase of the portfolio for the target year, for residential
+# buildings in Québec and Ontario, from lease history up to the data cutoff and from public market data. The increase is
+# defined as same-unit growth in rent net of all incentives, at fixed composition, and the method is backtested on the three
+# previous years. Every number in this notebook is computed by code from the data and the configuration. The notebook text
+# is in French, and the sponsor's starter notebook is credited in section 12.
 
 # %% [markdown]
 # ### Configuration commune
@@ -91,7 +95,7 @@ except ValueError as error:
     _stop(f"Contrôle des empreintes SHA-256 échoué : {error}. Vérifiez que les fichiers correspondent au manifeste.",
           f"SHA-256 check failed: {error}. Check that the files match manifest.json.")
 tables = canonicalize(raw)
-external = None                      # chargé en section 7 (MSR) via market.registry.load_external
+external = None                      # chargé en section 7 via market.registry.load_external
 display(Markdown(f"Mode des données : **{cfg['data']['mode']}**"))
 
 # %% [markdown]
@@ -99,15 +103,15 @@ display(Markdown(f"Mode des données : **{cfg['data']['mode']}**"))
 # **Entrée :** `tables`, `cfg` (configuration commune ci-dessus) et les sources publiques de `data/public/sources.csv`,
 # chargées ici sans modifier `external`, qui reste `None` pour les sections suivantes.
 # **Opération :** calculer une seule fois l'agrégat complet (`build_aggregates`), c'est-à-dire le même chemin que
-# `estimate_2026()` (modèle champion, règle de l'information du 31 janvier), puis lire le classement de la règle déclarée
-# et quelques repères réglementaires. Le résultat est exposé sous le nom `summary` pour réutilisation.
+# `estimate_2026()` (modèle champion, avec la date d'information des données publiques), puis lire le classement de la règle déclarée
+# et quelques repères réglementaires. Le résultat est exposé sous le nom `results` pour réutilisation.
 # **Pourquoi :** tous les chiffres du résumé viennent de ce calcul ; rien n'est saisi à la main.
 # **Vérification :** la hausse 2026 affichée ici doit être égale à celle de la section 10 (estimate_2026).
 
 # %%
 from leaselens.config import repo_root
 from leaselens.evaluate.backtest import champion_pipeline, headline_table
-from leaselens.export.aggregates import build_aggregates
+from leaselens.export.aggregates import MODEL_RANGE_NAMES, build_aggregates
 from leaselens.forecast.asof import snapshot_for_year
 from leaselens.forecast.baselines import rate_logs_by_year, to_pct
 from leaselens.forecast.combine import REGULATED_MODEL_NAME
@@ -118,13 +122,13 @@ PCT_DECIMALS = 2   # two decimals, the same display as section 10's estimate
 PP_DECIMALS = 2    # backtest errors and ranking gaps, in percentage points
 TARGET_YEAR = cfg["forecast_years"]["target_year"]
 
-summary_external = load_external(repo_root() / cfg["data"]["public_dir"] / cfg["external"]["sources_file"])
-summary = build_aggregates(tables, summary_external, cfg)          # résultats calculés une fois
-champion_info = champion_pipeline(tables, summary_external, cfg)   # classement de la règle déclarée
-snapshot_target = snapshot_for_year(tables, summary_external, TARGET_YEAR, cfg)
+results_external = load_external(repo_root() / cfg["data"]["public_dir"] / cfg["external"]["sources_file"])
+results = build_aggregates(tables, results_external, cfg)          # résultats calculés une fois
+champion_info = champion_pipeline(tables, results_external, cfg)   # classement de la règle déclarée
+snapshot_target = snapshot_for_year(tables, results_external, TARGET_YEAR, cfg)
 tal_rates = rate_logs_by_year(snapshot_target.external, cfg["anchors"]["tal_metric"], cfg["anchors"]["tal_geography"])
 tal_now, tal_before = to_pct(tal_rates[TARGET_YEAR]), to_pct(tal_rates[TARGET_YEAR - 1])
-headlines = headline_table(tables, summary_external, cfg)
+headlines = headline_table(tables, results_external, cfg)
 e2_net = float(headlines[(headlines["rule"] == "jan31") & (headlines["model"] == REGULATED_MODEL_NAME)]["net_pct"].iloc[0])
 
 eligible_ranking = champion_info["ranking"][champion_info["ranking"]["eligible"]]
@@ -134,7 +138,7 @@ champion_row = champion_info["ranking"][champion_info["ranking"]["model"] == cha
 
 # %% [markdown]
 # ### Réponse
-# **Entrée :** `summary` (calcul ci-dessus). **Opération :** lire la hausse 2026, ses compagnons et les dates de référence.
+# **Entrée :** `results` (calcul ci-dessus). **Opération :** lire la hausse 2026, ses compagnons et les dates de référence.
 # **Pourquoi :** la réponse doit tenir en quelques lignes, avec ses dates. **Vérification :** les dates viennent de la configuration.
 
 # %%
@@ -146,7 +150,7 @@ def pp(value) -> str:
     return "n/a" if value is None or value != value else f"{value:.{PP_DECIMALS}f} pp"
 
 
-headline, companions, as_of = summary["headline"], summary["companions"], summary["as_of"]
+headline, companions, as_of = results["headline"], results["companions"], results["as_of"]
 display(Markdown(
     f"**Hausse 2026, nette de toutes les concessions : {pct(headline['net_pct'])}** "
     f"(loyer contractuel : {pct(headline['contract_pct'])}).\n\n"
@@ -158,19 +162,21 @@ display(Markdown(
 
 # %% [markdown]
 # ### Graphique-réponse
-# **Entrée :** `summary` (prévision contractuelle, hausse nette, plage de scénarios) et la ligne E2 de `headline_table`.
-# **Opération :** tracer la prévision contractuelle, l'effet des incitatifs (contractuel − net) et la hausse nette ; la
-# plage bas-haut des scénarios est une barre d'erreur autour du scénario central ; E2 est un repère séparé.
+# **Entrée :** `results` (prévision contractuelle, hausse nette, plage de scénarios) et la ligne E2 de `headline_table`.
+# **Opération :** tracer, pour le modèle retenu, la prévision contractuelle, l'effet des incitatifs (contractuel − net) et la
+# hausse nette ; puis, à part, la vue réglementaire du modèle E2 : sa hausse nette et la plage bas–central–haut de ses
+# scénarios, qui sont des quantités de E2 et non du modèle retenu.
 # **Pourquoi :** une seule figure donne la réponse, son ajustement par les incitatifs et son incertitude.
-# **Vérification :** toutes les valeurs viennent de `summary` et du calcul E2 ci-dessus.
+# **Vérification :** toutes les valeurs viennent de `results` et du calcul E2 ci-dessus ; les couleurs viennent de `leaselens.contracts`.
 
 # %%
 from leaselens.contracts import COLOR_CONTRACT, COLOR_MARKET, COLOR_NAIVE, COLOR_NET
 
 BAR_WIDTH = 0.5
+E2_POSITION = 3  # le modèle E2 est tracé à part, après les trois barres du modèle retenu
 contract_value, net_value = headline["contract_pct"], headline["net_pct"]
 incentive_value = net_value - contract_value
-scenario_values = summary["scenarios"]
+scenario_values = results["scenarios"]
 low, central, high = scenario_values["low_net_pct"], scenario_values["central_net_pct"], scenario_values["high_net_pct"]
 
 fig, ax = plt.subplots(figsize=(7.5, 4.8))
@@ -178,14 +184,14 @@ ax.bar(0, contract_value, width=BAR_WIDTH, color=COLOR_CONTRACT, label="Prévisi
 ax.bar(1, abs(incentive_value), width=BAR_WIDTH, bottom=min(contract_value, net_value), color=COLOR_NAIVE,
        hatch="//", label="Effet des incitatifs")
 ax.bar(2, net_value, width=BAR_WIDTH, color=COLOR_NET, label="Hausse nette")
-ax.errorbar(2, central, yerr=[[central - low], [high - central]], fmt="o", color="black", capsize=8, zorder=3,
-            label="Plage des scénarios (bas-haut, central)")
-ax.scatter(2, e2_net, marker="D", s=60, color=COLOR_MARKET, zorder=4, label="E2 : vue réglementaire")
-ax.axhline(0, color="black", linewidth=0.8)
-ax.set_xticks([0, 1, 2], ["Prévision\ncontractuelle", "Effet des\nincitatifs", "Hausse\nnette"])
+ax.errorbar(E2_POSITION, central, yerr=[[central - low], [high - central]], fmt="_", markersize=14, color=COLOR_MARKET,
+            capsize=8, zorder=3, label="Scénarios E2 (bas–central–haut)")
+ax.scatter(E2_POSITION, e2_net, marker="D", s=60, color=COLOR_MARKET, zorder=4, label="E2 : hausse nette")
+ax.axhline(0, color=COLOR_NAIVE, linewidth=0.8)
+ax.set_xticks([0, 1, 2, E2_POSITION], ["Prévision\ncontractuelle", "Effet des\nincitatifs", "Hausse\nnette", "Vue réglementaire\nE2"])
 ax.set_ylabel("Hausse annualisée 2026 (%)")
-ax.set_title(f"Hausse {TARGET_YEAR} : contractuelle, incitatifs, nette")
-ax.legend(frameon=False, fontsize=8, loc="upper right")
+ax.set_title(f"Hausse {TARGET_YEAR} : modèle retenu (barres) et vue réglementaire E2")
+ax.legend(frameon=False, fontsize=8, loc="upper center", bbox_to_anchor=(0.5, -0.2), ncol=2)  # sous le graphique
 ax.grid(axis="y", alpha=0.3)
 ax.spines[["top", "right"]].set_visible(False)
 fig.tight_layout()
@@ -193,7 +199,7 @@ plt.show()
 
 # %% [markdown]
 # ### Définition, pourquoi cette mesure, validation
-# **Entrée :** `summary` et la configuration des années. **Opération :** énoncer la définition, la raison de la mesure et
+# **Entrée :** `results` et la configuration des années. **Opération :** énoncer la définition, la raison de la mesure et
 # la validation sur les années de backtest. **Pourquoi :** un chiffre sans définition ni validation ne se lit pas.
 # **Vérification :** le classement vient du calcul de la règle déclarée ; aucune année de validation n'a servi à choisir.
 
@@ -202,7 +208,7 @@ backtest_years = ", ".join(str(year) for year in cfg["forecast_years"]["backtest
 selection_years = ", ".join(str(year) for year in cfg["forecast_years"]["selection_years"])
 holdout_year = cfg["forecast_years"]["holdout_year"]
 display(Markdown(
-    f"**Définition :** {summary['definition']}\n\n"
+    f"**Définition :** {results['definition']}\n\n"
     f"**Pourquoi cette mesure :** la médiane annuelle des loyers signés mélange l'évolution des loyers et le changement "
     f"de logements loués (effet de composition). Comparer chaque unité à son propre bail précédent isole la hausse ; les "
     f"poids figés à la coupure empêchent le mix de déplacer le résultat. Les incitatifs sont isolés en comparant le loyer "
@@ -216,21 +222,39 @@ display(Markdown(
 
 # %% [markdown]
 # ### Fourchette, réglementation, scénarios, provinces, limites
-# **Entrée :** `summary`, les taux du TAL (`tal_rates`) et la ligne E2 de `headline_table`. **Opération :** lire la
+# **Entrée :** `results`, les taux du TAL (`tal_rates`) et la ligne E2 de `headline_table`. **Opération :** lire la
 # fourchette des modèles, la vue réglementaire, les scénarios, la répartition par province et les limites.
 # **Pourquoi :** une hausse isolée se lit avec sa fourchette, ses règles et ses limites. **Vérification :** chaque
 # valeur est lue dans les résultats ou la configuration.
 
 # %%
-model_range, provinces, scenarios = headline["model_range"], headline["provinces"], summary["scenarios"]
+model_range, provinces, scenarios = headline["model_range"], headline["provinces"], results["scenarios"]
+model_names = ", ".join(name.split("_")[0] for name in MODEL_RANGE_NAMES)
+ranking = champion_info["ranking"]
+best_holdout = ranking.dropna(subset=["mae_holdout_pp"]).sort_values("mae_holdout_pp").iloc[0]
+tal_direction = "la baisse" if tal_now < tal_before else "la hausse" if tal_now > tal_before else "la stabilité"
+champion_name = headline["model"]
+holdout_clause = (f"{best_holdout['model']} a la meilleure erreur sur {holdout_year} ({pp(best_holdout['mae_holdout_pp'])}) ; "
+                  f"passer à ce modèle reviendrait à choisir sur l'année de validation"
+                  if best_holdout["model"] != champion_name else
+                  f"le modèle retenu est aussi le meilleur sur {holdout_year} ({pp(best_holdout['mae_holdout_pp'])}), "
+                  f"mais ce n'est pas ce qui a décidé le choix")
+gap_to_e2_pp = headline["net_pct"] - e2_net
 regulation = cfg["regulation"]["scenarios"]["ontario_post_2018_exemption"]
 display(Markdown(
-    f"**Fourchette 2026 entre les modèles candidats (B0, B1, E1, E2) :** de {pct(model_range['low_net_pct'])} à "
+    f"**Fourchette {TARGET_YEAR} entre les modèles candidats ({model_names}) :** de {pct(model_range['low_net_pct'])} à "
     f"{pct(model_range['high_net_pct'])} (net).\n\n"
     f"**Vue réglementaire :** le pourcentage du TAL pour {TARGET_YEAR} est de {pct(tal_now)}, contre {pct(tal_before)} "
-    f"pour {TARGET_YEAR - 1}. Il suit la nouvelle méthode annoncée le "
-    f"{french_date(cfg['anchors']['tal_method_announced'])}, à comparer avec les années antérieures. Le modèle E2 "
+    f"pour {TARGET_YEAR - 1}. Il provient de la nouvelle méthode annoncée le "
+    f"{french_date(cfg['anchors']['tal_method_announced'])} et n'est pas directement comparable aux années précédentes. Le modèle E2 "
     f"(renouvellements québécois ancrés sur le TAL) donne {pct(e2_net)} net.\n\n"
+    f"**Pourquoi garder {champion_name} malgré {tal_direction} du TAL ?** "
+    f"(a) La règle de choix a été déclarée avant tout résultat ; {holdout_clause}. "
+    f"(b) L'avance de {champion_name} sur le deuxième modèle, sur les années de sélection, n'est que de "
+    f"{pp(ranking_gap_pp)} : le classement est faible, et nous le disons. "
+    f"(c) E2 est montré à côté comme vue réglementaire : {pct(e2_net)} net, avec une plage de scénarios de "
+    f"{pct(scenarios['low_net_pct'])} à {pct(scenarios['high_net_pct'])}. "
+    f"(d) L'écart {champion_name} − E2 est de {gap_to_e2_pp:+.{PP_DECIMALS}f} pp.\n\n"
     f"**Scénarios (net) :** bas {pct(scenarios['low_net_pct'])}, central {pct(scenarios['central_net_pct'])}, haut "
     f"{pct(scenarios['high_net_pct'])}. Ce sont des scénarios, pas des intervalles de prédiction.\n\n"
     f"**Québec :** {pct(provinces['QC']['net_pct'])} net ({pct(provinces['QC']['contract_pct'])} contractuel), sous "
