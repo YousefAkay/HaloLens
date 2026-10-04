@@ -142,11 +142,8 @@ def _engine(snapshot: Snapshot, cfg: dict, regulated: bool, model_name: str,
     table = weights[keys + ["weight", "n_pairs_window"]].merge(_history(pairs, weights, bounds, cutoff, cfg), on=keys)
     province_of = pairs.drop_duplicates("prop_code").set_index("prop_code")["province"]
     table["province"] = table["prop_code"].map(province_of)
-    # TODO(REQUEST-FCT-01): market.asking.turnover_signal raises on an empty asking table; skip the signal then.
-    signal = (turnover_signal(snapshot, cfg) if len(snapshot.asking)
-              else pd.DataFrame(columns=["prop_code", "beds", "is_renewal", "expected_loggrowth_contract",
-                                         "signal_source"]))
-    signal = signal[["prop_code", "beds", "is_renewal", "expected_loggrowth_contract", "signal_source"]]
+    signal = turnover_signal(snapshot, cfg)[["prop_code", "beds", "is_renewal", "expected_loggrowth_contract",
+                                             "signal_source"]]
     table = table.merge(signal.rename(columns={"expected_loggrowth_contract": "signal_contract"}),
                         on=["prop_code", "beds", "is_renewal"], how="left")
     table["signal_contract"] = table["signal_contract"].astype(float)

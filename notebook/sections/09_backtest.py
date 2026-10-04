@@ -1,21 +1,9 @@
-# ---
-# jupyter:
-#   jupytext:
-#     formats: py:percent
-# ---
-
 # %% [markdown]
-# ## 9. Backtest 2023–2025
+# ## 9. Backtest
 #
 # **Objectif :** valider chaque modèle en prévoyant, avec les seules informations connues à la coupure, des années dont
-# on connaît le résultat, puis appliquer la règle de choix annoncée en section 8.
-#
-# **Entrée :** `tables`, `external`, `cfg`. **Opération :** pour chaque année cible (2023, 2024, 2025) et chaque modèle,
-# un instantané coupé au 31 décembre précédent (données publiques au 31 janvier de l'année cible, ou au 31 décembre pour la
-# sensibilité stricte) alimente le modèle ; la prévision est comparée au réalisé, calculé avec la même définition et les mêmes
-# poids fixes. **Pourquoi :** un modèle qui ne se valide pas sur le passé n'a pas de crédibilité pour 2026.
-# **Vérification :** erreur = prévision − réalisé, en points de pourcentage (pp), pour le loyer net et le loyer contractuel,
-# pour **tous** les modèles, y compris ceux qui perdent.
+# on connaît le résultat, puis appliquer la règle de choix annoncée en section 8. Les années et les dates exactes sont
+# affichées par le code, lues de la configuration.
 
 # %%
 from pathlib import Path
@@ -23,18 +11,39 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from leaselens.evaluate.backtest import backtest_both_rules, select_champion, summarize_models
+from leaselens.config import cutoff_for, external_cutoff_for
+from leaselens.evaluate.backtest import backtest_both_rules, french_day_month, select_champion, summarize_models
 from leaselens.market.registry import load_external
 
 if external is None:
     external = load_external(Path(cfg["_root"]) / cfg["data"]["public_dir"] / cfg["external"]["sources_file"])
 
+# %% [markdown]
+# ### 9.0 Prévoir des années connues
+#
+# **Entrée :** `tables` (baux, rabais, loyers affichés), `external` (sources publiques vérifiées avec leur date de
+# publication) et `cfg` (années de backtest, dates de coupure). **Opération :** pour chaque année cible et chaque modèle,
+# un instantané coupé à la date de coupure du CRM alimente le modèle ; les données publiques sont coupées à leur propre date
+# (règle retenue) ou à celle du CRM (sensibilité stricte) ; la prévision est ensuite comparée au réalisé, calculé avec la même
+# définition et les mêmes poids fixes. Cette étape ne modifie aucune donnée source : elle crée un tableau de résultats.
+# **Pourquoi :** un modèle qui ne se valide pas sur le passé n'a aucune crédibilité pour l'année à prévoir.
+# **Vérification :** erreur = prévision − réalisé, en points de pourcentage (pp), pour le loyer net et le loyer contractuel,
+# pour **tous** les modèles, y compris ceux qui perdent ; un modèle qui ne peut pas tourner reste visible avec sa raison.
+
 # %%
 backtest_all = backtest_both_rules(tables, external, cfg)
+backtest_years = cfg["forecast_years"]["backtest_years"]
+crm_day = french_day_month(cutoff_for(backtest_years[0], cfg))
+public_day = french_day_month(external_cutoff_for(backtest_years[0], cfg))
+display(Markdown(
+    f"Années cibles : **{', '.join(map(str, backtest_years))}**. Coupure du CRM : **{crm_day}** de l'année précédente ; "
+    f"données publiques coupées au **{public_day}** de l'année cible (règle retenue) ou au **{crm_day}** de l'année "
+    f"précédente (sensibilité stricte)."))
+rule_labels = {"jan31": f"règle retenue : données publiques au {public_day}",
+               "dec31_strict": f"sensibilité : données publiques au {crm_day}"}
 columns = ["model", "year", "forecast_net_pct", "actual_net_pct", "error_pp_net", "forecast_contract_pct",
            "actual_contract_pct", "error_pp_contract"]
-for rule, label in (("jan31", "règle retenue : données publiques au 31 janvier"),
-                    ("dec31_strict", "sensibilité : données publiques au 31 décembre")):
+for rule, label in rule_labels.items():
     block = backtest_all[backtest_all["rule"] == rule]
     if block.empty:
         continue
@@ -53,12 +62,17 @@ for rule, label in (("jan31", "règle retenue : données publiques au 31 janvier
 #
 # **Opération :** erreur absolue moyenne (EAM) du loyer net sur les années de sélection, sur l'année de validation et sur
 # toutes les années, pour chaque règle. Le champion est choisi par la règle déclarée à l'avance : EAM la plus faible sur
-# 2023–2024, règle du 31 janvier.
+# les années de sélection (affichées ci-dessous), avec la règle de coupure retenue.
 
 # %%
+display(Markdown(
+    f"Années de sélection : **{', '.join(map(str, cfg['forecast_years']['selection_years']))}** ; année de validation : "
+    f"**{cfg['forecast_years']['holdout_year']}** ; règle de coupure retenue : données publiques au **{public_day}**."))
+selection_years = cfg["forecast_years"]["selection_years"]
+holdout_year = cfg["forecast_years"]["holdout_year"]
 summary = summarize_models(backtest_all, cfg).rename(columns={
-    "rule": "règle", "model": "modèle", "mae_selection_pp": "EAM sélection (2023–24) pp",
-    "mae_holdout_pp": "EAM validation (2025) pp", "mae_all_pp": "EAM toutes années pp", "n_folds_run": "années calculées"})
+    "rule": "règle", "model": "modèle", "mae_selection_pp": f"EAM sélection ({selection_years[0]}–{selection_years[-1]}) pp",
+    "mae_holdout_pp": f"EAM validation ({holdout_year}) pp", "mae_all_pp": "EAM toutes années pp", "n_folds_run": "années calculées"})
 display(summary.round(2))
 chosen = select_champion(backtest_all, cfg)
 champion = chosen["champion"]
@@ -77,7 +91,7 @@ display(Markdown(
     f"**Lecture honnête du classement.** La règle de choix a été déclarée **avant** de voir les résultats. B3 et E2 ont été "
     f"ajoutés **après** le premier backtest réel (tâche F-05b), à cause de la structure réglementaire du TAL et de l'Ontario ; "
     f"ils sont soumis à la même règle et ne la modifient pas. Avec seulement **{len(selection_years)} années de sélection**, "
-    f"le classement des trois premiers modèles ({', '.join(top_three['model'])}) tient dans **{spread_top_three:.2f} point de "
+    f"le classement des {len(top_three)} meilleurs modèles ({', '.join(top_three['model'])}) tient dans **{spread_top_three:.2f} point de "
     f"pourcentage** : il est statistiquement faible. **{best_holdout['model']}** a la meilleure erreur sur la validation "
     f"{chosen['holdout_year']} (**{best_holdout['mae_holdout_pp']:.2f} pp**), mais {chosen['holdout_year']} n'a pas servi à "
     f"choisir : le modèle retenu reste **{champion}**."))
@@ -86,7 +100,7 @@ display(Markdown(
 # ### 9.2 Erreurs du loyer net par modèle et par année
 #
 # **Opération :** graphique des erreurs signées (prévision − réalisé) du loyer net. Une barre au-dessus de zéro est une
-# surestimation. Les deux panneaux montrent la règle retenue et la sensibilité stricte ; seuls les modèles qui utilisent des
+# surestimation. Les panneaux montrent la règle retenue et la sensibilité stricte ; seuls les modèles qui utilisent des
 # données publiques (B2, B3, E2) diffèrent d'un panneau à l'autre.
 
 # %%
@@ -107,7 +121,7 @@ for axis, rule in zip(axes[0], rules_shown):
     axis.axhline(0, color="black", linewidth=0.8)
     axis.set_xticks(range(len(years)))
     axis.set_xticklabels(years)
-    axis.set_title("Règle du 31 janvier (retenue)" if rule == "jan31" else "Sensibilité : 31 décembre")
+    axis.set_title(f"Public au {public_day} (retenue)" if rule == "jan31" else f"Sensibilité : public au {crm_day}")
     axis.set_xlabel("Année cible")
 axes[0][0].set_ylabel("Erreur du loyer net (pp)")
 fig.legend(loc="lower center", ncol=3, fontsize=8, frameon=False)

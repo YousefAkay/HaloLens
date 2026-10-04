@@ -5,16 +5,16 @@
 # ---
 
 # %% [markdown]
-# ## 11b. Scénarios 2026
+# ## 11b. Scénarios de l'année cible
 #
-# **Objectif :** montrer comment la hausse nette 2026 varie quand on déplace, un à la fois puis ensemble, trois leviers
+# **Objectif :** montrer comment la hausse nette de l'année cible varie quand on déplace, un à la fois puis ensemble, des leviers
 # incertains : l'intensité des concessions, la part des renouvellements et l'application de la ligne directrice ontarienne à
 # the Ontario new-build.
 #
 # **Entrée :** `tables`, `external`, `cfg`. **Opération :** le moteur réglementé E2 (renouvellements québécois ancrés sur le TAL)
-# est recalculé pour 2026 ; chaque levier est appliqué aux prévisions par segment, puis les segments sont agrégés avec les
+# est recalculé pour l'année cible ; chaque levier est appliqué aux prévisions par segment, puis les segments sont agrégés avec les
 # mêmes poids fixes. **Pourquoi :** la hausse retenue est une valeur centrale ; les scénarios montrent ce qui la ferait bouger.
-# **Important :** ce sont des **scénarios**, pas des intervalles de prédiction : trois années de backtest ne permettent pas
+# **Important :** ce sont des **scénarios**, pas des intervalles de prédiction : un petit nombre d'années de backtest ne permet pas
 # de calibrer une probabilité.
 
 # %%
@@ -23,11 +23,15 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from leaselens.evaluate.backtest import headline_table
+from leaselens.config import cutoff_for
+from leaselens.evaluate.backtest import french_date, headline_table
 from leaselens.forecast.asof import snapshot_for_year
 from leaselens.forecast.combine import forecast_regulated
 from leaselens.forecast.scenarios import scenario_table
+from leaselens.incentives.engine import discount_share
 from leaselens.market.registry import load_external
+from leaselens.market.regulation import applicability_matrix
+from leaselens.measure.pairs import build_pairs
 
 if external is None:
     external = load_external(Path(cfg["_root"]) / cfg["data"]["public_dir"] / cfg["external"]["sources_file"])
@@ -38,18 +42,42 @@ levers = cfg["scenarios"]
 # ### 11b.1 Les leviers
 #
 # - **Intensité des concessions** : on déplace de ± `incentive_intensity_shift_pp` point la part de rabais prévue de chaque
-#   segment (les concessions ont gagné 2 à 3 points de loyer par an ces deux dernières années).
+#   segment ; l'ordre de grandeur vient de l'évolution récente de la part de rabais moyenne (chiffrée ci-dessous).
 # - **Part des renouvellements** : on déplace de ± `renewal_share_shift_pp` point la part des renouvellements dans les poids
-#   fixes (ordre de grandeur des variations annuelles observées).
-# - **the Ontario new-build** : au scénario central, l'exemption des premières occupations après le 15 novembre 2018 est jugée plausible
-#   (immeuble loué pour la première fois en 2023) ; au scénario alternatif, la ligne directrice ontarienne s'applique.
-#   Ce n'est pas une détermination juridique.
+#   fixes ; l'ordre de grandeur vient des variations annuelles observées (chiffrées ci-dessous).
+# - **the Ontario new-build** : au scénario central, l'exemption des premières occupations résidentielles postérieures à la date prévue par
+#   la loi est jugée plausible ; au scénario alternatif, la ligne directrice ontarienne s'applique. Ce n'est pas une
+#   détermination juridique (date et première année de bail affichées ci-dessous).
 
 # %%
+cutoff = cutoff_for(target_year, cfg)
+known_leases = tables.leases[tables.leases["lease_start"] <= cutoff]
+yearly_discount = (known_leases.assign(year=known_leases["lease_start"].dt.year, discount=discount_share(known_leases))
+                   .dropna(subset=["discount"]).groupby("year")["discount"].mean())
+discount_changes_pp = 100 * yearly_discount.diff().dropna().tail(2)
+pairs_all = build_pairs(tables.leases, cfg)
+renewal_share = pairs_all[pairs_all["eligible"]].groupby("year")["is_renewal"].mean()
+renewal_swing_pp = 100 * renewal_share.diff().abs().dropna()
+
+met_entries = [entry for entry in cfg["regulation"]["buildings"] if entry.get("scenario") == "ontario_post_2018_exemption"]
+met_names = [entry["building"] for entry in met_entries]
+matrix = applicability_matrix(cfg, tables.leases)
+met_first_years = matrix.loc[matrix["building"].isin(met_names), "first_lease_year"].dropna()
+met_first_year = f"**{int(met_first_years.min())}**" if len(met_first_years) else "non disponible dans ces données"
+exemption_date = french_date(cfg["regulation"]["ontario_post_2018_exemption_cutoff"])
+
 display(Markdown(
-    f"Leviers retenus : concessions ± **{levers['incentive_intensity_shift_pp']:.1f} pp**, part des renouvellements ± "
-    f"**{levers['renewal_share_shift_pp']:.1f} pp**, the Ontario new-build : ligne directrice {'et exemption' if len(levers['met_guideline_applies']) > 1 else ''} "
-    f"(valeurs de `config/forecast.yaml`)."))
+    f"Leviers retenus (valeurs de `config/forecast.yaml`) : concessions ± **{levers['incentive_intensity_shift_pp']:.1f} pp**, "
+    f"part des renouvellements ± **{levers['renewal_share_shift_pp']:.1f} pp**."))
+display(Markdown(
+    "- **Concessions** : la part de rabais moyenne des baux a varié de "
+    + " puis de ".join(f"**{change:+.1f} pp** en {year}" for year, change in discount_changes_pp.items())
+    + " (baux connus à la coupure du CRM).\n"
+    f"- **Renouvellements** : la part des renouvellements parmi les paires admissibles varie en moyenne de "
+    f"**{renewal_swing_pp.mean():.1f} pp** par an (maximum **{renewal_swing_pp.max():.1f} pp**).\n"
+    f"- **{', '.join(met_names)}** : premier bail de l'extrait : {met_first_year} ; exemption plausible pour les "
+    f"premières occupations résidentielles postérieures au **{exemption_date}** (scénario central), ligne directrice "
+    f"ontarienne appliquée (scénario alternatif)."))
 
 # %% [markdown]
 # ### 11b.2 Tableau des scénarios

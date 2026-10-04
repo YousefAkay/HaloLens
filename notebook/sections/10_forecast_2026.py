@@ -5,18 +5,19 @@
 # ---
 
 # %% [markdown]
-# ## 10. Prévision 2026
+# ## 10. Prévision de l'année cible
 #
-# **Objectif :** fournir `estimate_2026()` et `backtest()` avec les signatures du commanditaire, annoncer la hausse 2026 du
+# **Objectif :** fournir `estimate_2026()` et `backtest()` avec les signatures du commanditaire, annoncer la hausse de l'année cible du
 # modèle retenu, la situer parmi les autres modèles et expliquer la lecture réglementaire.
 #
 # **Entrée :** `tables`, `external`, `cfg`. **Opération :** le modèle retenu est celui que choisit la règle déclarée en
 # section 8 (`select_champion`) ; `estimate_2026()` et `backtest()` appellent **le même** pipeline du modèle retenu, jamais une
-# méthode plus facile. **Pourquoi :** la prévision 2026 doit avoir été validée par la procédure qui a servi au backtest.
+# méthode plus facile. **Pourquoi :** la prévision de l'année cible doit avoir été validée par la procédure qui a servi au backtest.
 # **Vérification :** le résultat de `estimate_2026()` est comparé au pipeline direct, et chaque pli de `backtest()` porte le
 # nom du même modèle.
 #
-# **Définition retenue :** croissance à composition fixe, à unité constante, du loyer net de tous les incitatifs, en 2026.
+# **Définition retenue :** croissance à composition fixe, à unité constante, du loyer net de tous les incitatifs, pour
+# l'année cible (affichée par le code).
 
 # %%
 from pathlib import Path
@@ -25,8 +26,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+from leaselens.config import cutoff_for, external_cutoff_for
 from leaselens.evaluate.backtest import (backtest_both_rules, champion_backtest, champion_forecast, champion_pipeline,
-                                         empty_external, headline_table, tables_from_leases)
+                                         french_date, french_day_month, headline_table, tables_from_leases)
 from leaselens.forecast.asof import snapshot_for_year
 from leaselens.forecast.baselines import rate_logs_by_year, to_pct
 from leaselens.market.registry import load_external
@@ -36,25 +38,29 @@ if external is None:
 if "backtest_all" not in globals():
     backtest_all = backtest_both_rules(tables, external, cfg)
 target_year = cfg["forecast_years"]["target_year"]
+crm_cutoff = french_date(cutoff_for(target_year, cfg))
+public_cutoff = french_date(external_cutoff_for(target_year, cfg))
+crm_day = french_day_month(cutoff_for(target_year, cfg))
+public_day = french_day_month(external_cutoff_for(target_year, cfg))
 pipeline = champion_pipeline(tables, external, cfg, backtest_all)
 champion = pipeline["champion"]
 
 # %% [markdown]
 # ### 10.1 Fonctions du commanditaire
 #
-# `estimate_2026(leases, asking, external=None)` renvoie la hausse 2026 en % (loyer net). `backtest(leases, target_year)`
+# `estimate_2026(leases, asking, external=None)` renvoie la hausse de l'année cible en % (loyer net). `backtest(leases, target_year)`
 # renvoie un `BacktestResult`. Les signatures ne contiennent ni les loyers affichés ni les données publiques pour
 # `backtest()` : la fonction reprend ceux de la session (`tables.asking`, `external`), car le choix du modèle en a besoin.
 
 # %%
 def estimate_2026(leases, asking, external=None):
-    """Hausse 2026 (%, loyer net) du modèle retenu par la règle déclarée ; `external` : sources publiques (facultatif)."""
+    """Hausse de l'année cible (%, loyer net) du modèle retenu par la règle déclarée ; `external` : sources publiques (facultatif)."""
     result = champion_forecast(tables_from_leases(leases, asking), external, cfg)
     return result.headline_net_pct
 
 
 def backtest(leases, target_year):
-    """Pli de backtest du modèle retenu (même pipeline que estimate_2026), avec la sensibilité du 31 décembre."""
+    """Pli de backtest du modèle retenu (même pipeline que estimate_2026), avec la sensibilité stricte."""
     return champion_backtest(tables_from_leases(leases, tables.asking), external, target_year, cfg)
 
 
@@ -68,13 +74,16 @@ display(Markdown(
     + "."))
 
 # %% [markdown]
-# ### 10.2 La hausse 2026
+# ### 10.2 La hausse de l'année cible
 #
-# **Opération :** prévision du modèle retenu avec les données du CRM jusqu'au 31 décembre 2025 et les données publiques
-# publiées au plus tard le 31 janvier 2026. Les médianes sont une vérification de robustesse. Les valeurs sont des
-# **prévisions** de la hausse du loyer net à unité constante, pas des mesures de l'occupation ni du parc locatif.
+# **Opération :** prévision du modèle retenu avec les données du CRM jusqu'à la coupure du CRM et les données publiques
+# publiées au plus tard à la date de coupure publique (dates affichées ci-dessous). Les médianes sont une vérification de
+# robustesse. Les valeurs sont des **prévisions** de la hausse du loyer net à unité constante, pas des mesures de
+# l'occupation ni du parc locatif.
 
 # %%
+display(Markdown(
+    f"Données du CRM jusqu'au **{crm_cutoff}** ; données publiques publiées au plus tard le **{public_cutoff}**."))
 display(Markdown(
     f"### Hausse {target_year} (modèle {champion})\n\n"
     f"- **Loyer net de tous les incitatifs : {final.headline_net_pct:.2f} %** (médiane {final.median_net_pct:.2f} %)\n"
@@ -85,7 +94,7 @@ display(Markdown(
 # %% [markdown]
 # ### 10.3 Québec et Ontario
 #
-# **Opération :** même agrégation à poids fixes, restreinte aux segments de chaque province. Le Québec (cinq immeubles) et
+# **Opération :** même agrégation à poids fixes, restreinte aux segments de chaque province. Le Québec et
 # l'Ontario (the Ontario new-build) relèvent de régimes de loyers différents (TAL et loi ontarienne) ; aucun plafond d'une province n'est
 # appliqué à l'autre.
 
@@ -103,10 +112,10 @@ display(Markdown(
     f"renormalisés, comme dans la hausse elle-même ; c'est pourquoi les parts ne totalisent pas tout à fait 100 %."))
 
 # %% [markdown]
-# ### 10.4 Les autres modèles pour 2026
+# ### 10.4 Les autres modèles pour l'année cible
 #
-# **Opération :** la même prévision 2026 pour les six modèles, avec la règle du 31 janvier et la sensibilité du 31 décembre.
-# L'étendue (minimum–maximum) porte sur B0, B1, E1 et E2. B2 et B3 sont montrés à part : B2 dépend de l'IPC, B3 suppose que
+# **Opération :** la même prévision pour tous les modèles, avec la règle de coupure publique retenue et la sensibilité
+# stricte. L'étendue (minimum–maximum) porte sur B0, B1, E1 et E2. B2 et B3 sont montrés à part : B2 dépend de l'IPC, B3 suppose que
 # l'écart contractuel → net de l'an dernier se répète en entier.
 
 # %%
@@ -117,7 +126,7 @@ jan31 = headlines[headlines["rule"] == "jan31"].set_index("model")
 range_models = ["B0_last_year", "B1_trailing_mean", "E1_engine_blend", "E2_regulated"]
 range_net = jan31.loc[range_models, "net_pct"].dropna()
 display(Markdown(
-    f"**Étendue de la hausse nette 2026 sur {', '.join(range_net.index)} : de {range_net.min():.2f} % "
+    f"**Étendue de la hausse nette {target_year} sur {', '.join(range_net.index)} : de {range_net.min():.2f} % "
     f"({range_net.idxmin()}) à {range_net.max():.2f} % ({range_net.idxmax()}).** Le modèle retenu ({champion}) donne "
     f"{final.headline_net_pct:.2f} %."))
 
@@ -126,16 +135,16 @@ shown = jan31["net_pct"].dropna()
 colors = ["#0072B2" if name == champion else "#999999" for name in shown.index]
 axis.barh(shown.index[::-1], shown.values[::-1], color=colors[::-1])
 axis.axvline(0, color="black", linewidth=0.8)
-axis.set_xlabel("Hausse nette 2026 (%)")
-axis.set_title("Hausse nette 2026 par modèle (règle du 31 janvier ; modèle retenu en bleu)")
+axis.set_xlabel(f"Hausse nette {target_year} (%)")
+axis.set_title(f"Hausse nette {target_year} par modèle (public au {public_day} ; modèle retenu en bleu)")
 plt.tight_layout()
 plt.show()
 
 # %% [markdown]
 # ### 10.5 Lecture réglementaire
 #
-# **Opération :** comparer la prévision du modèle retenu, qui prolonge l'historique récent, au pourcentage du TAL de 2026 et à
-# la prévision du modèle réglementé E2. **Pourquoi :** les renouvellements québécois sont encadrés par le TAL ; si le
+# **Opération :** comparer la prévision du modèle retenu, qui prolonge l'historique récent, au pourcentage du TAL de l'année
+# cible et à la prévision du modèle réglementé E2. **Pourquoi :** les renouvellements québécois sont encadrés par le TAL ; si le
 # pourcentage baisse fortement, un modèle qui répète l'an dernier peut s'écarter de ce que le cadre réglementaire permet.
 
 # %%
@@ -146,8 +155,8 @@ e2 = jan31.loc["E2_regulated"]
 overshoot = "surestimer" if final.headline_contract_pct > e2["contract_pct"] else "s'écarter de"
 display(Markdown(
     f"**Vue réglementaire.** Le pourcentage du TAL pour {target_year} est de **{tal_now:.1f} %** (contre **{tal_before:.1f} %** "
-    f"en {target_year - 1}) ; il provient de la nouvelle méthode en vigueur depuis le 2025-12-17 et n'est pas directement "
-    f"comparable aux années précédentes. Un modèle fondé sur l'an dernier peut donc {overshoot} la croissance contractuelle "
+    f"en {target_year - 1}) ; il provient de la nouvelle méthode annoncée le {french_date(cfg['anchors']['tal_method_announced'])} "
+    f"et n'est pas directement comparable aux années précédentes. Un modèle fondé sur l'an dernier peut donc {overshoot} la croissance contractuelle "
     f"{target_year} : {champion} donne **{final.headline_contract_pct:.1f} %** de croissance contractuelle, alors que le "
     f"modèle réglementé E2 donne **{e2['net_pct']:.1f} %** net et **{e2['contract_pct']:.1f} %** contractuel. "
     f"Au scénario central, the Ontario new-build est considéré exempté de la ligne directrice ontarienne (hypothèse, pas une "

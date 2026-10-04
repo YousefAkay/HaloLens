@@ -28,7 +28,7 @@ from pathlib import Path
 import pandas as pd
 
 from leaselens.config import cutoff_for, external_cutoff_for
-from leaselens.evaluate.backtest import all_models, empty_external
+from leaselens.evaluate.backtest import all_models, french_day_month
 from leaselens.forecast.asof import snapshot_for_year
 from leaselens.forecast.baselines import frozen_weights, training_pairs
 from leaselens.market.registry import load_external
@@ -39,20 +39,22 @@ if external is None:
 # %% [markdown]
 # ### 8.1 Ce qui est connu à la date de coupure
 #
-# **Opération :** les données du CRM (baux, rabais, loyers affichés) sont coupées au 31 décembre de l'année précédant la
-# prévision. Les données publiques (TAL, IPC, SCHL, ligne directrice ontarienne) sont coupées au 31 janvier de l'année
-# prévue, règle approuvée par le mentor : le pourcentage du TAL et l'IPC de décembre sont publiés à la mi-janvier. La version
-# stricte (31 décembre) est conservée comme sensibilité. Un bail compte comme connu seulement si sa **signature et son début**
-# précèdent la coupure.
+# **Opération :** les données du CRM (baux, rabais, loyers affichés) sont coupées à la fin de l'année précédant la
+# prévision. Les données publiques (TAL, IPC, SCHL, ligne directrice ontarienne) sont coupées un peu plus tard, règle
+# approuvée par le mentor : le pourcentage du TAL et l'IPC annuel sont publiés tôt dans l'année cible. La version stricte
+# (même date que le CRM) est conservée comme sensibilité. Les dates exactes sont affichées ci-dessous, lues de la
+# configuration. Un bail compte comme connu seulement si sa **signature et son début** précèdent la coupure.
 
 # %%
 target_year = cfg["forecast_years"]["target_year"]
 snapshot_jan31 = snapshot_for_year(tables, external, target_year, cfg)
 snapshot_strict = snapshot_for_year(tables, external, target_year, cfg, strict=True)
+crm_day = french_day_month(cutoff_for(target_year, cfg))
+public_day = french_day_month(external_cutoff_for(target_year, cfg))
 display(Markdown(
-    f"Prévision **{target_year}** : coupure du CRM au **{cutoff_for(target_year, cfg):%Y-%m-%d}** ; données publiques au "
-    f"**{external_cutoff_for(target_year, cfg):%Y-%m-%d}** (règle retenue, {len(snapshot_jan31.external)} observations) ou au "
-    f"**{cutoff_for(target_year, cfg):%Y-%m-%d}** (sensibilité stricte, {len(snapshot_strict.external)} observations)."))
+    f"Prévision **{target_year}** : coupure du CRM au **{crm_day} {target_year - 1}** ; données publiques au "
+    f"**{public_day} {target_year}** (règle retenue, {len(snapshot_jan31.external)} observations) ou au "
+    f"**{crm_day} {target_year - 1}** (sensibilité stricte, {len(snapshot_strict.external)} observations)."))
 display(pd.DataFrame({
     "table": ["baux", "rabais (concessions)", "loyers affichés"],
     "lignes dans les données": [len(tables.leases), len(tables.concessions), len(tables.asking)],
@@ -61,7 +63,7 @@ display(pd.DataFrame({
 # %% [markdown]
 # ### 8.2 Les modèles
 #
-# **Opération :** quatre modèles de référence simples et deux moteurs sont comparés avec exactement le même protocole.
+# **Opération :** des modèles de référence simples et des moteurs sont comparés avec exactement le même protocole.
 # Les modèles de référence servent d'étalon : un moteur qui ne les bat pas ne mérite pas sa complexité.
 #
 # | Modèle | Idée | Données publiques |
@@ -107,12 +109,15 @@ display(Markdown(
 # %% [markdown]
 # ### 8.4 Règle de choix, déclarée avant les résultats
 #
-# **Le modèle retenu est celui dont l'erreur absolue moyenne sur le loyer net est la plus faible sur les années de sélection
-# (2023 et 2024), avec la règle du 31 janvier.** L'année 2025 est conservée comme année de validation finale : elle est
-# rapportée mais ne sert jamais à choisir. Un modèle n'est admissible que s'il produit une prévision pour chaque année de
-# sélection ; en cas d'égalité, le modèle le plus simple (premier dans la liste) l'emporte. La section 9 applique cette règle.
+# **Le modèle retenu est celui dont l'erreur absolue moyenne sur le loyer net est la plus faible sur les années de sélection,
+# avec la règle de coupure des données publiques décrite ci-dessus.** L'année de validation est conservée pour la fin : elle
+# est rapportée mais ne sert jamais à choisir. Un modèle n'est admissible que s'il produit une prévision pour chaque année
+# de sélection ; en cas d'égalité, le modèle le plus simple (premier dans la liste) l'emporte. La section 9 applique cette
+# règle ; les années exactes sont affichées ci-dessous, lues de la configuration.
 
 # %%
+selection_years = cfg["forecast_years"]["selection_years"]
 display(Markdown(
-    f"Années de sélection : **{', '.join(map(str, cfg['forecast_years']['selection_years']))}** ; année de validation : "
-    f"**{cfg['forecast_years']['holdout_year']}** ; mesure : **{cfg['selection']['metric']}**."))
+    f"Années de sélection : **{', '.join(map(str, selection_years))}** ; année de validation : "
+    f"**{cfg['forecast_years']['holdout_year']}** ; règle de coupure des données publiques : **{public_day}** de l'année "
+    f"cible ; mesure : **{cfg['selection']['metric']}**."))

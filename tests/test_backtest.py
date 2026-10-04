@@ -375,3 +375,32 @@ def test_headline_table_matches_the_champion_forecast_for_the_champion(raw, cfg)
     champion = champion_forecast(synthetic, None, cfg)
     row = headline_table(synthetic, None, cfg).query("rule == 'jan31' and model == @champion.model_name").iloc[0]
     assert row["net_pct"] == pytest.approx(champion.headline_net_pct)
+
+
+def test_french_date_helpers_write_dates_from_values_not_literals(cfg):
+    from leaselens.config import cutoff_for, external_cutoff_for
+    from leaselens.evaluate.backtest import french_date, french_day_month
+    assert french_day_month(external_cutoff_for(2026, cfg)) == "31 janvier"
+    assert french_day_month(cutoff_for(2026, cfg)) == "31 décembre"
+    assert french_date(cfg["regulation"]["ontario_post_2018_exemption_cutoff"]) == "15 novembre 2018"
+    assert french_date(cfg["anchors"]["tal_method_announced"]) == "17 décembre 2025"
+    assert french_date("2024-08-01") == "1 août 2024" and french_date("2024-02-29").startswith("29 février")
+
+
+def test_sections_08_09_10_11b_type_no_dates_years_or_figures_in_markdown():
+    """Numbers, dates and years in the notebook text must come from code (f-strings), not from typed Markdown."""
+    import re
+
+    import jupytext
+    from leaselens.config import repo_root
+    allowed = re.compile(r"`[^`]*`|\\bB[0-3]\\b|\\bE[12]\\b|F-05b|estimate_2026|\\|[-| ]+\\||section \\d+")
+    for name in ("08_forecast_method", "09_backtest", "10_forecast_2026", "11b_scenarios"):
+        notebook = jupytext.read(repo_root() / "notebook" / "sections" / f"{name}.py")
+        for cell in notebook.cells:
+            if cell.cell_type != "markdown":
+                continue
+            for line in cell.source.splitlines():
+                text = allowed.sub("", re.sub(r"^#+\\s*\\d+[ab]?(\\.\\d+)*\\.?\\s*", "", line) if line.startswith("#") else line)
+                assert not re.search(r"\\d", text), f"{name}: typed figure in Markdown: {line.strip()[:80]}"
+                assert not re.search(r"\\b(janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)\\b",
+                                     text, re.I), f"{name}: typed month in Markdown: {line.strip()[:80]}"

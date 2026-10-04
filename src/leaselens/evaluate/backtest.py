@@ -292,3 +292,21 @@ def headline_table(tables: CanonicalTables, external: pd.DataFrame | None, cfg: 
                            median_net_pct=result.median_net_pct, median_contract_pct=result.median_contract_pct)
             rows.append(row)
     return pd.DataFrame(rows)
+
+
+# ---------------------------------------------------------------------------
+# Presentation helpers for notebook text (dates are generated from config, never typed in Markdown)
+# ---------------------------------------------------------------------------
+MONTHS_FR = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre",
+             "novembre", "décembre"]
+
+
+def french_day_month(date) -> str:
+    """'31 janvier' for any date-like value."""
+    date = pd.Timestamp(date)
+    return f"{date.day} {MONTHS_FR[date.month - 1]}"
+
+
+def french_date(date) -> str:
+    """'15 novembre 2018' for any date-like value."""
+    return f"{french_day_month(date)} {pd.Timestamp(date).year}"
