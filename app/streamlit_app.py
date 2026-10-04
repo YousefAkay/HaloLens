@@ -431,7 +431,7 @@ def sidebar() -> tuple[str, str]:
 
 
 def main() -> None:
-    st.set_page_config(page_title="LeaseLens", layout="wide", initial_sidebar_state="expanded")
+    st.set_page_config(page_title="Halo Lens", layout="wide", initial_sidebar_state="expanded")
     inject_css()
     st.session_state.setdefault("lang", DEFAULT_LANG)  # initialised here, not with `default=`, so tests and callbacks can set them
     st.session_state.setdefault("data_mode", MODE_DEMO)

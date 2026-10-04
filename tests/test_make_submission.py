@@ -92,3 +92,8 @@ def test_figures_are_counted():
 def test_build_refuses_without_the_executed_notebook(tmp_path):
     assert sub.build(tmp_path) == sub.EXIT_REFUSED
     assert not (tmp_path / sub.ZIP_RELATIVE).exists()
+
+
+def test_zip_is_named_halo_lens():
+    """I-16: the display name is Halo Lens, so the submission zip is HaloLens_submission.zip."""
+    assert sub.ZIP_RELATIVE.name == "HaloLens_submission.zip"

@@ -111,3 +111,13 @@ def test_no_key_qa_view_explains_unavailability_without_rendering_cache(monkeypa
     assert not at.info
     assert "SYNTHETIC CACHED TEXT" not in page
     assert "Preset answers are not cached" not in page
+
+
+def test_masthead_and_page_title_show_halo_lens(app):
+    """I-16: the display name is Halo Lens in the masthead (both languages) and in the browser page title."""
+    from app.ui import labels
+
+    page = html.unescape(" ".join(element.value for element in app.markdown))
+    assert "Halo Lens" in page and "LeaseLens" not in page
+    assert labels.LABELS["en"]["app_title"] == labels.LABELS["fr"]["app_title"] == "Halo Lens"
+    assert 'page_title="Halo Lens"' in APP.read_text(encoding="utf-8")

@@ -907,7 +907,7 @@ def test_the_script_runs_from_outside_the_repository_without_a_pythonpath(tmp_pa
 def test_the_old_module_name_still_resolves_to_the_package():
     from app.ui import t as label
 
-    assert label("app_title", "en") == "LeaseLens" and DEFAULT_LANG in LANGS
+    assert label("app_title", "en") == "Halo Lens" and DEFAULT_LANG in LANGS
 
 
 def test_no_app_constant_is_defined_and_never_used():

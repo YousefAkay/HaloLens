@@ -1,10 +1,12 @@
-# LeaseLens — the portfolio 2026 rent forecast
+# Halo Lens — the portfolio 2026 rent forecast
+
+Halo Lens (code package: `leaselens`).
 
 **project ·  2026 · Défi « Clés en main »**
 
-> **FR —** LeaseLens estime la hausse de loyer 2026 de the portfolio (six immeubles au Québec et en Ontario) à partir de l'historique des baux et de données publiques. Nous définissons précisément la hausse mesurée, comparons chaque unité à elle-même, traitons explicitement les concessions, séparons renouvellements et relocations selon les règles de chaque province, et validons la méthode par backtest sur 2023, 2024 et 2025.
+> **FR —** Halo Lens estime la hausse de loyer 2026 de the portfolio (six immeubles au Québec et en Ontario) à partir de l'historique des baux et de données publiques. Nous définissons précisément la hausse mesurée, comparons chaque unité à elle-même, traitons explicitement les concessions, séparons renouvellements et relocations selon les règles de chaque province, et validons la méthode par backtest sur 2023, 2024 et 2025.
 
-> **EN —** LeaseLens estimates the portfolio's 2026 rent increase from lease history and public market data. We define exactly what "rent increase" means, compare each unit with itself, handle incentives explicitly, separate renewals from turnovers under each province's rules, and validate the method by backtesting 2023, 2024 and 2025.
+> **EN —** Halo Lens estimates the portfolio's 2026 rent increase from lease history and public market data. We define exactly what "rent increase" means, compare each unit with itself, handle incentives explicitly, separate renewals from turnovers under each province's rules, and validate the method by backtesting 2023, 2024 and 2025.
 
 ---
 
@@ -25,7 +27,7 @@ jupyter lab project_analysis.ipynb  # puis / then : Run > Run All Cells (kernel 
 
 Si un fichier manque, le notebook s'arrête et indique les fichiers attendus. Si un paquet manque, il indique `pip install -r requirements.txt`. Les empreintes SHA-256 sont vérifiées avant toute lecture. / If a file is missing, the notebook stops and lists the expected files. If a package is missing, it asks you to run `pip install -r requirements.txt`. The SHA-256 hashes are checked before any file is read.
 
-**Durée attendue / Expected run time:** environ / about 4 minutes (Python 3.13 : 213 s sur la machine d'essai, hors installation / on the test machine, excluding installation).
+**Durée attendue / Expected run time :** environ 6 à 12 minutes selon la machine (le bootstrap §11a et les sensibilités §11b sont les plus longs), plus environ 8 minutes pour `pip install` / about 6–12 minutes depending on the machine (bootstrap §11a and sensitivities §11b are the slowest), plus about 8 minutes for `pip install`.
 
 **Sorties / Outputs:** les figures sont intégrées au notebook. Les sorties calculées sur vos fichiers restent sur votre machine. / The figures are embedded in the notebook. Outputs computed from your files stay on your machine.
 
@@ -60,6 +62,42 @@ Si un fichier manque, le notebook s'arrête et indique les fichiers attendus. Si
 Every figure is produced by `project_analysis.ipynb`; none is typed by hand, and this README carries no real figure.
 
 **Modèle entraîné / Trained model:** none. The champion (B0) is a transparent rule; all parameters live in `config/*.yaml`.
+
+### 1.1 What makes Halo Lens different
+
+- **Same-unit pairs on a safe key.** Each lease is compared with the previous lease of the same unit, matched on `hUnit` and on `sPropCode + sUnitCode`, never on `sSite + sUnitCode`, which merges distinct apartments. The notebook shows the collision with counts.
+- **Concession → lease reconciliation.** A matcher links each concession credit to the lease it belongs to. `PromoPay` is treated as a lump credit and accessory credits are included, so net rent is explained rather than assumed.
+- **Québec and Ontario kept apart.** Renewals and turnovers are separated, and the five Québec buildings and the Ontario new-build are read under their own rules (TAL, Ontario guideline). the Ontario new-build's exemption is shown with its evidence as a scenario, never as a legal determination.
+- **Information-date discipline.** CRM data stops at December 31 of the previous year; public data counts if released by January 31 of the target year (approved by the mentor); the strict December 31 version is reported as a sensitivity; a leakage test shows that appending future rows does not change the forecast.
+- **A champion chosen before the results.** The selection rule was declared in advance and is kept even when another model did better on the holdout year.
+- **Three ways of showing uncertainty.** Scenarios, one-at-a-time sensitivities (a tornado chart), and a unit-cluster bootstrap that resamples whole unit histories. They are not prediction intervals.
+- **An AI layer behind a privacy wall.** The Claude API sees only public pages or the aggregates file, never CRM rows. A number guard rejects any figure that is not in the results, and a source watcher re-checks the official pages.
+
+### 1.2 Deliverables
+
+| Item | Where |
+|---|---|
+| Notebook with `estimate_2026()` and `backtest()` | Section 10 of `project_analysis.ipynb` |
+| Final percentage and its definition | Sections 00 and 10 (computed, not written in this README); the definition is section 01 |
+| Run instructions, versions, references | This README (jury section and quick start) and section 12 of the notebook |
+| Trained model | None saved. The champion is a rule over the data, not a fitted artefact; all parameters live in `config/*.yaml` |
+| Jury presentation | Prepared by the team separately; it is not part of this repository |
+| Submission package | `python scripts/make_submission.py` writes `outputs/submission/HaloLens_submission.zip` (code, synthetic fixtures and the executed notebook; no CRM files) |
+
+Tested on Python 3.11, 3.12 and 3.13. Expected run time: see the jury section above (about 6 to 12 minutes for the notebook, plus about 8 minutes for `pip install`).
+
+### 1.3 Rubric → evidence
+
+| Criterion | Where in the notebook |
+|---|---|
+| Definition of the increase | Section 01 (and the answer in section 00) |
+| Data analysis and composition effects | Sections 02 and 03 |
+| Same-unit lease matching | Section 04 |
+| Concessions | Section 05 |
+| Renewals vs turnovers, Québec vs Ontario | Section 06 |
+| External data | Section 07 |
+| Forecast and backtest | Sections 08 to 10, 11a and 11b |
+| Notebook quality | A Markdown cell before every data-changing step; the notebook is built from jupytext sources in `notebook/sections/`; the code is covered by tests |
 
 ## 2. Method in one page
 
@@ -226,7 +264,7 @@ As required by the challenge rules:
 |---|---|
 | Claude (Anthropic), chat | Planning and review of the method and the tasks |
 | Claude Code (Anthropic) | Implementation, tests, and an AI pre-merge review of every pull request |
-| Claude API (Anthropic) | (1) Extracting values from public web pages into a draft source table, verified by hand; (2) the source watcher, which re-reads the official pages (public pages only); (3) the dashboard's scenario copilot and Q&A over the aggregates, with a number guard that rejects any figure absent from the results |
+| Claude API (Anthropic) | (1) Extracting values from public web pages into a draft source table, checked against the official pages by Claude, with a human spot-check of a named sample (`docs/assumptions/MSR.md`); (2) the source watcher, which re-reads the official pages (public pages only); (3) the dashboard's scenario copilot and Q&A over the aggregates, with a number guard that rejects any figure absent from the results |
 
 **No CRM data was sent to any API.** The API receives only public pages, the aggregates file (counts and percentages, no unit-level field by schema), committed notes with real-data numbers removed, and the user's question. The forecast itself is produced by the documented statistical method, not by an AI model.
 

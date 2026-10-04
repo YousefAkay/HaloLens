@@ -1,4 +1,4 @@
-# Newsprint theme of the LeaseLens demo. The five colours repeat the tokens in app/ui/theme.py (a test keeps them equal).
+# Newsprint theme of the Halo Lens demo. The five colours repeat the tokens in app/ui/theme.py (a test keeps them equal).
 [theme]
 base = "light"
 backgroundColor = "#f3f2f2"

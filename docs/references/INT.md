@@ -17,4 +17,4 @@ Append one bullet per entry, newest last. Format: title, author or publisher, UR
 - **Claude API documentation (tool use, structured outputs)**, Anthropic, https://docs.anthropic.com/ — the scenario copilot (one enum-restricted tool that selects a precomputed row) and the Q&A over the aggregates (`app/narrative.py`).
 
 ## Our own design
-- **Privacy wall and number guard**, LeaseLens team, `AGENTS.md` §3 and §15, `app/number_guard.py`, `app/narrative.py` — the Claude API receives only public pages, the aggregates file, committed notes with real-data numbers removed, and the question; every generated number must appear in the aggregates or the text is replaced by a deterministic fallback.
+- **Privacy wall and number guard**, Halo Lens team, `AGENTS.md` §3 and §15, `app/number_guard.py`, `app/narrative.py` — the Claude API receives only public pages, the aggregates file, committed notes with real-data numbers removed, and the question; every generated number must appear in the aggregates or the text is replaced by a deterministic fallback.

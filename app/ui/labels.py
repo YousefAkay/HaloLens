@@ -15,7 +15,7 @@ LANG_NAMES = {"en": "English", "fr": "Français"}
 LABELS: dict[str, dict[str, str]] = {
     "en": {
         # masthead and navigation
-        "app_title": "LeaseLens", "masthead_sub": "the portfolio · residential buildings, Québec & Ontario",
+        "app_title": "Halo Lens", "masthead_sub": "the portfolio · residential buildings, Québec & Ontario",
         "tab_answer": "01 · Answer", "tab_why": "02 · Why", "tab_validation": "03 · Validation",
         "tab_lab": "04 · Scenario Lab", "tab_buildings": "05 · Buildings", "tab_ask": "06 · Questions",
         "tab_sources": "07 · Sources", "badge_real": "Real data", "badge_demo": "Synthetic demo",
@@ -136,7 +136,7 @@ LABELS: dict[str, dict[str, str]] = {
         "bad_file": "Aggregates file not usable: {error}. Check outputs/public or outputs/private.",
     },
     "fr": {
-        "app_title": "LeaseLens", "masthead_sub": "the portfolio · immeubles résidentiels, Québec et Ontario",
+        "app_title": "Halo Lens", "masthead_sub": "the portfolio · immeubles résidentiels, Québec et Ontario",
         "tab_answer": "01 · Réponse", "tab_why": "02 · Pourquoi", "tab_validation": "03 · Validation",
         "tab_lab": "04 · Laboratoire de scénarios", "tab_buildings": "05 · Immeubles", "tab_ask": "06 · Questions",
         "tab_sources": "07 · Sources", "badge_real": "Données réelles", "badge_demo": "Démo synthétique",
