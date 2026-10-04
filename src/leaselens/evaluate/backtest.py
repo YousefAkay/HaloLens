@@ -13,10 +13,11 @@ import numpy as np
 import pandas as pd
 from leaselens.config import cutoff_for
 from leaselens.contracts import BacktestResult, CanonicalTables, ForecastResult, Snapshot
-from leaselens.evaluate.metrics import absolute_error_pp, signed_error_pp
+from leaselens.evaluate.metrics import absolute_error_pp, mean_absolute_error_pp, signed_error_pp
 from leaselens.forecast.asof import make_snapshot
 from leaselens.forecast.baselines import (BASELINES, frozen_weights, headline_summary, to_pct, training_pairs,
                                           winsor_bounds)
+from leaselens.forecast.combine import MODEL_NAME as ENGINE_MODEL_NAME
 from leaselens.forecast.combine import forecast
 from leaselens.measure.pairs import build_pairs
 
@@ -67,16 +68,16 @@ def run_backtest(tables: CanonicalTables, external: pd.DataFrame, target_year: i
     return _fold(forecast, tables, external, target_year, cfg)
 
 
-def backtest_baselines(tables: CanonicalTables, external: pd.DataFrame, cfg: dict,
-                       years: list[int] | None = None) -> pd.DataFrame:
-    """Backtest table for B0-B2: one row per model x year with forecast, actual and errors (pp). Aggregates only.
+def backtest_table(tables: CanonicalTables, external: pd.DataFrame, cfg: dict, models: dict[str, Forecaster],
+                   years: list[int] | None = None) -> pd.DataFrame:
+    """Backtest table: one row per model x year with forecast, actual and errors (pp). Aggregates only.
 
-    A baseline that cannot run for a fold (for example B2 without released market data) keeps its row with NaN
+    A model that cannot run for a fold (for example B2 without released market data) keeps its row with NaN
     values and the reason in `note`, so a losing or missing model stays visible.
     """
     years = years if years is not None else cfg["forecast_years"]["backtest_years"]
     rows = []
-    for name, forecaster in BASELINES.items():
+    for name, forecaster in models.items():
         for year in years:
             row = {"model": name, "year": year, "forecast_net_pct": np.nan, "actual_net_pct": np.nan,
                    "error_pp_net": np.nan, "abs_error_pp_net": np.nan, "error_pp_contract": np.nan, "note": ""}
@@ -90,4 +91,35 @@ def backtest_baselines(tables: CanonicalTables, external: pd.DataFrame, cfg: dic
                            abs_error_pp_net=absolute_error_pp(fold.forecast.headline_net_pct, fold.actual_net_pct),
                            error_pp_contract=fold.error_pp_contract)
             rows.append(row)
+    return pd.DataFrame(rows)
+
+
+def backtest_baselines(tables: CanonicalTables, external: pd.DataFrame, cfg: dict,
+                       years: list[int] | None = None) -> pd.DataFrame:
+    """Backtest table for B0-B2 only (same columns as `backtest_table`)."""
+    return backtest_table(tables, external, cfg, dict(BASELINES), years)
+
+
+def backtest_all_models(tables: CanonicalTables, external: pd.DataFrame, cfg: dict,
+                        years: list[int] | None = None) -> pd.DataFrame:
+    """Backtest table for B0-B2 and the engine model E1 (forecast.combine.forecast), every model through the same folds."""
+    return backtest_table(tables, external, cfg, {**BASELINES, ENGINE_MODEL_NAME: forecast}, years)
+
+
+def summarize_models(table: pd.DataFrame, cfg: dict) -> pd.DataFrame:
+    """Per model: mean absolute net error (pp) over the selection years, over the holdout year and over all years.
+
+    Selection and holdout years come from core.yaml (forecast_years). The champion is chosen on the selection years only
+    (F-07); the holdout column is for the final comparison. Columns: model, mae_selection_pp, mae_holdout_pp,
+    mae_all_pp, n_folds_run (folds that produced a forecast).
+    """
+    selection = cfg["forecast_years"]["selection_years"]
+    holdout = cfg["forecast_years"]["holdout_year"]
+    rows = []
+    for name, group in table.groupby("model", sort=False):
+        errors = group.set_index("year")["abs_error_pp_net"]
+        rows.append({"model": name,
+                     "mae_selection_pp": mean_absolute_error_pp(errors.reindex(selection)),
+                     "mae_holdout_pp": mean_absolute_error_pp(errors.reindex([holdout])),
+                     "mae_all_pp": mean_absolute_error_pp(errors), "n_folds_run": int(errors.notna().sum())})
     return pd.DataFrame(rows)

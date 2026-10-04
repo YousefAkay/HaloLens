@@ -46,7 +46,8 @@ def annual_leases(growth: dict[int, float] = YEARLY_GROWTH, units=UNITS) -> pd.D
 
 def tables_from(leases: pd.DataFrame) -> CanonicalTables:
     return CanonicalTables(leases=leases, concessions=pd.DataFrame(columns=CONCESSIONS_COLUMNS),
-                           asking=pd.DataFrame(columns=ASKING_COLUMNS), units=pd.DataFrame(columns=UNITS_COLUMNS))
+                           asking=pd.DataFrame(columns=ASKING_COLUMNS).astype({"month": "period[M]"}),
+                           units=pd.DataFrame(columns=UNITS_COLUMNS))
 
 
 def market_rows(include_post_cutoff: bool = True) -> pd.DataFrame:

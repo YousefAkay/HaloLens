@@ -15,3 +15,6 @@ Append one bullet per entry, newest last.
 - F-06: Assumes (unit_id, lease_start) identifies a lease; two leases of one unit starting the same day would be indistinguishable in LINKS.
 - F-06: Assumes the hypothesis net = contract - (lump + monthly x months) / term holds on the real data; section 05 reports the real reconciliation rate and the failure of the alternatives. On the synthetic data PromoPay always has months = 1, so the lump-times-months comparison cannot discriminate there; it can on real data.
 - F-06: A monthly credit with missing `months` counts as 0 months. Tolerance 1.0 dollar/month is a starting value to revisit after seeing real error distributions (aggregates only).
+- F-05: Component weights in `combine` (0.5/0.5 for renewals; 0.3/0.4/0.3 for turnovers) are untuned starting values. They can only be re-examined on 2023-24, never on the 2025 holdout; F-07 does the champion selection.
+- F-05: Synthetic backtest errors are not informative (the generator draws growth at random); real accuracy must be read from a counts/aggregates-only run on the real data once the user confirms the sponsor approval covers this session.
+- F-05: The monthly nowcast is a portfolio-wide level shared by all segments; it carries no segment information and no regulatory information.

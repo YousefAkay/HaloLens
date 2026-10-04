@@ -1,7 +1,7 @@
 """Tests for error metrics and the backtest skeleton (evaluate.metrics, evaluate.backtest). Owner: FCT.
 
-Uses the same hand-made leases as test_baselines (known yearly growth). `run_backtest` depends on
-`forecast.combine.forecast` (F-05) and is marked `expected_until_f05`: F-05 must remove the marker.
+Uses the same hand-made leases as test_baselines (known yearly growth). `run_backtest` uses
+`forecast.combine.forecast` (F-05).
 """
 
 from __future__ import annotations
@@ -10,16 +10,14 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from leaselens.evaluate.backtest import actual_for_year, backtest_baselines, run_backtest
+from leaselens.evaluate.backtest import (actual_for_year, backtest_all_models, backtest_baselines, run_backtest,
+                                         summarize_models)
 from leaselens.evaluate.metrics import absolute_error_pp, mean_absolute_error_pp, signed_error_pp
 from leaselens.forecast.asof import make_snapshot
 from leaselens.forecast.baselines import BASELINES, frozen_weights, training_pairs
 from leaselens.config import cutoff_for
 from tests.test_baselines import (ABS_TOLERANCE_PP, YEARLY_GROWTH, annual_leases, empty_external, market_rows,
                                   tables_from)
-
-expected_until_f05 = pytest.mark.xfail(raises=NotImplementedError, strict=True,
-                                       reason="forecast.combine.forecast is implemented in F-05")
 
 PERCENT_OF_GROWTH = 100
 
@@ -127,6 +125,33 @@ def test_baseline_backtest_runs_on_the_synthetic_fixtures(raw, cfg):
     assert result[result["model"] != "B2_market_anchor"]["error_pp_net"].notna().any()
 
 
-@expected_until_f05
-def test_run_backtest_uses_the_combined_forecast(tables, cfg):
-    run_backtest(tables, market_rows(), 2025, cfg)
+def test_run_backtest_uses_the_same_forecast_as_the_engine_pipeline(raw, cfg):
+    """backtest() must call the very forecast() behind estimate_2026(): same snapshot, same numbers."""
+    from leaselens.forecast.combine import forecast
+    from leaselens.io import canonicalize
+    synthetic = canonicalize(raw)
+    fold = run_backtest(synthetic, empty_external(), 2025, cfg)
+    direct = forecast(make_snapshot(synthetic, empty_external(), cutoff_for(2025, cfg)), cfg)
+    assert fold.forecast.headline_net_pct == direct.headline_net_pct
+    assert fold.error_pp_net == pytest.approx(direct.headline_net_pct - fold.actual_net_pct)
+    assert fold.target_year == 2025 and fold.coverage["n_pairs_actual"] > 0
+
+
+def test_all_models_table_adds_the_engine_to_the_baselines(raw, cfg):
+    from leaselens.io import canonicalize
+    table = backtest_all_models(canonicalize(raw), empty_external(), cfg)
+    assert set(table["model"]) == set(BASELINES) | {"E1_engine_blend"}
+    engine = table[table["model"] == "E1_engine_blend"]
+    assert engine["forecast_net_pct"].notna().all() and engine["note"].eq("").all()
+
+
+def test_model_summary_separates_selection_years_from_the_holdout(raw, cfg):
+    from leaselens.io import canonicalize
+    table = backtest_all_models(canonicalize(raw), empty_external(), cfg)
+    summary = summarize_models(table, cfg).set_index("model")
+    engine = table[table["model"] == "E1_engine_blend"].set_index("year")["abs_error_pp_net"]
+    selection = cfg["forecast_years"]["selection_years"]
+    assert summary.loc["E1_engine_blend", "mae_selection_pp"] == pytest.approx(engine.loc[selection].mean())
+    assert summary.loc["E1_engine_blend", "mae_holdout_pp"] == pytest.approx(engine.loc[cfg["forecast_years"]["holdout_year"]])
+    assert summary.loc["E1_engine_blend", "n_folds_run"] == len(engine)
+    assert summary.loc["B2_market_anchor", "n_folds_run"] == 0   # no external data in this fixture
