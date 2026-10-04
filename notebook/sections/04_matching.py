@@ -71,8 +71,8 @@ display(coverage.rename_axis(index=["année", "province"]))
 # %% [markdown]
 # ### 4.4 Écart entre baux consécutifs et sensibilité aux bornes
 # Le graphique montre la distribution des écarts (en années) entre deux débuts de bail d'une même unité, avec
-# les bornes retenues. Le tableau compare la médiane de croissance annualisée avec les bornes de base et avec
-# une borne inférieure qui admet les baux de 6 mois.
+# les bornes retenues (`config/measure.yaml`). Le tableau qui suit compare la médiane de croissance annualisée
+# avec les bornes de base et avec une borne inférieure abaissée.
 
 # %%
 min_gap, max_gap = cfg["pairs"]["min_gap_years"], cfg["pairs"]["max_gap_years"]
@@ -90,6 +90,18 @@ ax.spines[["top", "right"]].set_visible(False)
 fig.tight_layout()
 plt.show()
 
+# %% [markdown]
+# #### Sensibilité à la borne inférieure
+# Le scénario `base` applique les bornes retenues. Le scénario `include_six_month` abaisse la borne inférieure
+# à la valeur de sensibilité de `config/measure.yaml`, sans toucher aux autres règles d'exclusion. Le libellé
+# exact du scénario est généré ci-dessous à partir de la configuration.
+
+# %%
+sensitivity_label = f"les baux dont l'écart égale la borne de base ({min_gap} an)"
+display(Markdown(
+    f"Scénario élargi : on admet aussi {sensitivity_label}, en abaissant la borne inférieure à "
+    f"{cfg['pairs']['sensitivity_min_gap_years']} an (borne supérieure inchangée : {max_gap} an)."))
+
 # %%
 sensitivity = gap_sensitivity(pairs, cfg).rename(columns={
     "scenario": "scénario", "min_gap_years": "écart min (ans)", "max_gap_years": "écart max (ans)",
@@ -100,7 +112,7 @@ base, wide = sensitivity.iloc[0], sensitivity.iloc[1]
 shift_pp = wide["médiane net (%)"] - base["médiane net (%)"]
 tolerance_pp = cfg["headline"]["change_tolerance_pp"]
 display(Markdown(
-    f"Admettre les baux de 6 mois ajoute **{int(wide['paires admissibles'] - base['paires admissibles'])}** paires "
+    f"Admettre {sensitivity_label} ajoute **{int(wide['paires admissibles'] - base['paires admissibles'])}** paires "
     f"et déplace la médiane nette de **{shift_pp:+.2f} point(s)**, "
     f"{'sous' if abs(shift_pp) < tolerance_pp else 'au-delà de'} la tolérance de {tolerance_pp} point "
     f"fixée dans `config/core.yaml` : la mesure est {'peu' if abs(shift_pp) < tolerance_pp else 'sensiblement'} "
