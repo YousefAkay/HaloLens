@@ -52,6 +52,9 @@ sensitivity:
   weight_window_step_years: 1                 # the weight window is moved by plus and minus this many years
   model_choices: [B0_last_year, B1_trailing_mean, E1_engine_blend, E2_regulated]  # models compared in the model-choice rows
 
+headline_range:
+  models: [B0_last_year, B1_trailing_mean, E1_engine_blend, E2_regulated]  # models whose minimum-maximum is quoted as the range of the target-year net increase (notebook section 10.4); B2 and B3 are shown apart
+
 champion:
   top_n: 3                        # number of best models shown in the backtest reading (notebook section 9)
 
