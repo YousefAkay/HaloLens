@@ -18,4 +18,5 @@ Task details and "done when" criteria: AGENTS.md Section 10.
 | F-06 | Concession→lease reconciliation matcher + section 05 | F-02 |  |
 | F-07 | Champion selection, scenarios, per building × beds, model | F-05 |  |
 | F-08 | Sections 08, 09, 10, 11b | F-05 |  |
+| F-10 | Tornado chart of assumptions in forecast/scenarios.py (sensitivity_table) + section 11b: rerun the champion (and E2 for regulatory levers) changing ONE config key at a time: information rule (Jan-31 vs strict Dec-31), gap bounds incl. 6-month leases, winsor quantiles, weight window ±1 year, Met exempt vs guideline, incentive ±shift, renewal mix ±shift, model choice B0/B1/E1/E2; chart sorted by absolute delta in pp; French text generated from the table; 'sensitivities, not prediction intervals'; tests on synthetic | F-08 | priority |
 | F-09 | Slides + rehearsal | F-08 |  |
