@@ -173,9 +173,31 @@ AGGREGATES_SCHEMA = {
         "definition": _TEXT,
         "headline": {
             "type": "object", "additionalProperties": False,
-            "required": ["net_pct", "contract_pct", "information_rule"],
-            "properties": {"net_pct": _NUMBER, "contract_pct": _NUMBER,
-                           "information_rule": {"enum": list(INFORMATION_RULES)}},
+            "required": ["net_pct", "contract_pct", "information_rule", "model", "model_range", "provinces"],
+            "properties": {
+                "net_pct": _NUMBER, "contract_pct": _NUMBER,
+                "information_rule": {"enum": list(INFORMATION_RULES)},
+                # the pre-declared champion (I-09 wires this to F-08's champion_forecast)
+                "model": {"type": ["string", "null"]},
+                # low and high 2026 net headline across the candidate models (B0, B1, E1, E2)
+                "model_range": {
+                    "type": "object", "additionalProperties": False,
+                    "required": ["low_net_pct", "high_net_pct"],
+                    "properties": {"low_net_pct": _NUMBER, "high_net_pct": _NUMBER},
+                },
+                # headline split by province (never cross-applied: QC under the TAL, ON under the guideline)
+                "provinces": {
+                    "type": "object", "additionalProperties": False,
+                    "required": ["QC", "ON"],
+                    "properties": {
+                        province: {
+                            "type": "object", "additionalProperties": False,
+                            "required": ["net_pct", "contract_pct"],
+                            "properties": {"net_pct": _NUMBER, "contract_pct": _NUMBER},
+                        } for province in ("QC", "ON")
+                    },
+                },
+            },
         },
         "companions": {
             "type": "object", "additionalProperties": False,
@@ -198,9 +220,11 @@ AGGREGATES_SCHEMA = {
         },
         "coverage": {
             "type": "object", "additionalProperties": False,
-            "required": ["leases", "units", "eligible_pairs", "excluded_pairs", "segments"],
+            "required": ["leases", "units", "eligible_pairs", "excluded_pairs", "segments",
+                         "concessions", "asking_rows", "external_rows"],
             "properties": {"leases": _COUNT, "units": _COUNT, "eligible_pairs": _COUNT,
-                           "excluded_pairs": _COUNT, "segments": _COUNT},
+                           "excluded_pairs": _COUNT, "segments": _COUNT, "concessions": _COUNT,
+                           "asking_rows": _COUNT, "external_rows": _COUNT},
         },
         "scenarios": {
             "type": "object", "additionalProperties": False,

@@ -11,7 +11,22 @@
   "headline": {
     "net_pct": 3.1,
     "contract_pct": 3.6,
-    "information_rule": "jan31"
+    "information_rule": "jan31",
+    "model": "E1_engine_blend",
+    "model_range": {
+      "low_net_pct": 2.4,
+      "high_net_pct": 3.8
+    },
+    "provinces": {
+      "QC": {
+        "net_pct": 3.4,
+        "contract_pct": 3.9
+      },
+      "ON": {
+        "net_pct": 2.2,
+        "contract_pct": 2.8
+      }
+    }
   },
   "companions": {
     "median_net_pct": 2.8,
@@ -156,7 +171,10 @@
     "units": 32,
     "eligible_pairs": 134,
     "excluded_pairs": 4,
-    "segments": 12
+    "segments": 12,
+    "concessions": 88,
+    "asking_rows": 157,
+    "external_rows": 0
   },
   "scenarios": {
     "low_net_pct": 1.2,
@@ -171,5 +189,5 @@
       "url": "https://example.invalid/synthetic"
     }
   ],
-  "note": "SYNTHETIC EXAMPLE. Headline, companions, backtest, scenarios and sources are invented for app development. Coverage counts are the synthetic smoke-run counts, except segments (invented)."
+  "note": "SYNTHETIC EXAMPLE. Headline, companions, backtest, scenarios and sources are invented for app development. Coverage counts are the synthetic smoke-run counts, except segments (invented). Headline model, model range and province split are also invented."
 }
