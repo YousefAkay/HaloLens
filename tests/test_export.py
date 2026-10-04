@@ -1,7 +1,7 @@
 """Tests for the aggregate export (I-09). Owner: INT.
 
 Synthetic fixtures only (conftest). The public sources file supplies the external table; it holds no CRM data.
-Headline tests are skipped until F-08's champion pipeline is merged (TODO(F-08) in export/aggregates.py).
+The headline tests check the document against the champion pipeline (the path estimate_2026() uses).
 """
 
 from __future__ import annotations
@@ -15,12 +15,11 @@ from jsonschema import Draft202012Validator, FormatChecker
 
 from leaselens.config import cutoff_for, external_cutoff_for, repo_root
 from leaselens.contracts import AGGREGATES_SCHEMA
-from leaselens.evaluate.backtest import all_models
-from leaselens.export.aggregates import DEFINITION, build_aggregates, export
+from leaselens.evaluate.backtest import (RULE_JAN31, all_models, champion_forecast, champion_pipeline,
+                                         headline_table, tables_from_leases)
+from leaselens.export.aggregates import DEFINITION, MODEL_RANGE_NAMES, build_aggregates, export
 from leaselens.market.registry import load_external
 from leaselens.measure.pairs import build_pairs
-
-F08_REASON = "TODO(F-08): headline comes from champion_forecast, which lands with PR #32 (FCT F-08)"
 
 
 @pytest.fixture(scope="module")
@@ -128,16 +127,24 @@ def test_export_refuses_a_unit_level_field_and_writes_nothing(document, tmp_path
     assert not path.exists()
 
 
-@pytest.mark.skip(reason=F08_REASON)
-def test_headline_equals_estimate_2026(document):
-    """Headline net and contract must equal estimate_2026() on the same data (same champion pipeline)."""
+def test_headline_equals_estimate_2026(document, tables, external, cfg):
+    """Headline net and contract equal estimate_2026() (notebook section 10: champion_forecast on the same tables)."""
+    estimate = champion_forecast(tables_from_leases(tables.leases, tables.asking), external, cfg)
+    assert document["headline"]["net_pct"] == pytest.approx(estimate.headline_net_pct)
+    assert document["headline"]["contract_pct"] == pytest.approx(estimate.headline_contract_pct)
 
 
-@pytest.mark.skip(reason=F08_REASON)
-def test_headline_model_is_the_declared_champion(document):
-    """The headline model is the champion selected by the rule declared before results."""
+def test_headline_model_is_the_declared_champion(document, tables, external, cfg):
+    """The headline model is the champion selected by the rule declared before results (no holdout use)."""
+    champion = champion_pipeline(tables, external, cfg)["champion"]
+    assert document["headline"]["model"] == champion
 
 
-@pytest.mark.skip(reason=F08_REASON)
-def test_model_range_covers_the_candidate_models(document):
+def test_model_range_covers_the_candidate_models(document, tables, external, cfg):
     """The 2026 model range is the min and max over B0, B1, E1 and E2 under the January-31 rule."""
+    candidates = headline_table(tables, external, cfg, year=cfg["forecast_years"]["target_year"])
+    candidates = candidates[(candidates["rule"] == RULE_JAN31) & candidates["model"].isin(MODEL_RANGE_NAMES)]
+    headline_range = document["headline"]["model_range"]
+    assert headline_range["low_net_pct"] == pytest.approx(candidates["net_pct"].min())
+    assert headline_range["high_net_pct"] == pytest.approx(candidates["net_pct"].max())
+    assert headline_range["low_net_pct"] <= document["headline"]["net_pct"] <= headline_range["high_net_pct"]

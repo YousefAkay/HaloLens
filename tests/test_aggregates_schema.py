@@ -47,7 +47,7 @@ def test_example_validates_against_schema(example):
 
 def test_example_is_marked_synthetic(example):
     assert example["mode"] == "synthetic"
-    assert "SYNTHETIC" in example["note"]
+    assert "SYNTHÉTIQUE" in example["note"]
 
 
 def test_backtest_errors_are_forecast_minus_actual(example):

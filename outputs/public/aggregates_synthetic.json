@@ -7,163 +7,427 @@
     "external_cutoff": "2026-01-31",
     "external_strict_cutoff": "2025-12-31"
   },
-  "definition": "Croissance à composition fixe et à unité constante du loyer net de toutes concessions, pour 2026 (AGENTS.md §9.1). Les poids reflètent les transitions de baux observées, pas l'occupation ni le taux de roulement.",
+  "definition": "Croissance à composition fixe et à unité constante du loyer net de toutes concessions, pour l'année cible (AGENTS.md §9.1). Chaque paire compare un bail à son bail précédent dans la même unité ; les poids de segment sont figés à la date de coupure et décrivent les transitions de baux observées, pas l'occupation ni le taux de roulement du portefeuille. Les compagnons (loyer contractuel, médianes) sont toujours présentés à côté.",
   "headline": {
-    "net_pct": 3.1,
-    "contract_pct": 3.6,
+    "net_pct": 4.856032690252625,
+    "contract_pct": 5.663026413306089,
     "information_rule": "jan31",
-    "model": "E1_engine_blend",
+    "model": "B0_last_year",
     "model_range": {
-      "low_net_pct": 2.4,
-      "high_net_pct": 3.8
+      "low_net_pct": 2.2158230584957437,
+      "high_net_pct": 4.856032690252625
     },
     "provinces": {
       "QC": {
-        "net_pct": 3.4,
-        "contract_pct": 3.9
+        "net_pct": 5.1912646879820254,
+        "contract_pct": 5.7303588763835895
       },
       "ON": {
-        "net_pct": 2.2,
-        "contract_pct": 2.8
+        "net_pct": 3.547786564155169,
+        "contract_pct": 5.398601158936119
       }
     }
   },
   "companions": {
-    "median_net_pct": 2.8,
-    "median_contract_pct": 3.3
+    "median_net_pct": 4.854003163919742,
+    "median_contract_pct": 5.388864272461979
   },
   "backtest": [
     {
       "year": 2023,
       "model": "B0_last_year",
+      "information_rule": "dec31_strict",
+      "forecast_net_pct": 4.486915536180443,
+      "actual_net_pct": 0.5191364034384834,
+      "error_pp_net": 3.9677791327419594,
+      "forecast_contract_pct": 3.9734880623579873,
+      "actual_contract_pct": 2.034132904319653,
+      "error_pp_contract": 1.9393551580383344
+    },
+    {
+      "year": 2024,
+      "model": "B0_last_year",
+      "information_rule": "dec31_strict",
+      "forecast_net_pct": 0.5913804109862352,
+      "actual_net_pct": -0.1864369213467116,
+      "error_pp_net": 0.7778173323329468,
+      "forecast_contract_pct": 2.073527986251033,
+      "actual_contract_pct": 2.2102786948883226,
+      "error_pp_contract": -0.13675070863728944
+    },
+    {
+      "year": 2025,
+      "model": "B0_last_year",
+      "information_rule": "dec31_strict",
+      "forecast_net_pct": 0.4334083513353467,
+      "actual_net_pct": 4.355205668138593,
+      "error_pp_net": -3.9217973168032465,
+      "forecast_contract_pct": 2.3310513320435993,
+      "actual_contract_pct": 5.322238152131733,
+      "error_pp_contract": -2.9911868200881333
+    },
+    {
+      "year": 2023,
+      "model": "B1_trailing_mean",
+      "information_rule": "dec31_strict",
+      "forecast_net_pct": 3.39559264059522,
+      "actual_net_pct": 0.5191364034384834,
+      "error_pp_net": 2.8764562371567366,
+      "forecast_contract_pct": 3.2655677278659505,
+      "actual_contract_pct": 2.034132904319653,
+      "error_pp_contract": 1.2314348235462975
+    },
+    {
+      "year": 2024,
+      "model": "B1_trailing_mean",
+      "information_rule": "dec31_strict",
+      "forecast_net_pct": 2.8014044729028917,
+      "actual_net_pct": -0.1864369213467116,
+      "error_pp_net": 2.987841394249603,
+      "forecast_contract_pct": 3.267937445171247,
+      "actual_contract_pct": 2.2102786948883226,
+      "error_pp_contract": 1.0576587502829242
+    },
+    {
+      "year": 2025,
+      "model": "B1_trailing_mean",
+      "information_rule": "dec31_strict",
+      "forecast_net_pct": 1.786518088807838,
+      "actual_net_pct": 4.355205668138593,
+      "error_pp_net": -2.568687579330755,
+      "forecast_contract_pct": 2.731329780685869,
+      "actual_contract_pct": 5.322238152131733,
+      "error_pp_contract": -2.5909083714458636
+    },
+    {
+      "year": 2023,
+      "model": "B2_market_anchor",
+      "information_rule": "dec31_strict",
+      "forecast_net_pct": 3.6381422138163937,
+      "actual_net_pct": 0.5191364034384834,
+      "error_pp_net": 3.11900581037791,
+      "forecast_contract_pct": 3.6977974955574395,
+      "actual_contract_pct": 2.034132904319653,
+      "error_pp_contract": 1.6636645912377865
+    },
+    {
+      "year": 2024,
+      "model": "B2_market_anchor",
+      "information_rule": "dec31_strict",
+      "forecast_net_pct": 4.354771209650689,
+      "actual_net_pct": -0.1864369213467116,
+      "error_pp_net": 4.541208130997401,
+      "forecast_contract_pct": 4.300361555387898,
+      "actual_contract_pct": 2.2102786948883226,
+      "error_pp_contract": 2.0900828604995754
+    },
+    {
+      "year": 2025,
+      "model": "B2_market_anchor",
+      "information_rule": "dec31_strict",
+      "forecast_net_pct": 3.5031777681649405,
+      "actual_net_pct": 4.355205668138593,
+      "error_pp_net": -0.8520278999736526,
+      "forecast_contract_pct": 3.96999992524809,
+      "actual_contract_pct": 5.322238152131733,
+      "error_pp_contract": -1.3522382268836424
+    },
+    {
+      "year": 2023,
+      "model": "B3_tal_anchor",
+      "information_rule": "dec31_strict",
+      "forecast_net_pct": 3.967343132318166,
+      "actual_net_pct": 0.5191364034384834,
+      "error_pp_net": 3.4482067288796823,
+      "forecast_contract_pct": 3.4564687317241996,
+      "actual_contract_pct": 2.034132904319653,
+      "error_pp_contract": 1.4223358274045466
+    },
+    {
+      "year": 2024,
+      "model": "B3_tal_anchor",
+      "information_rule": "dec31_strict",
+      "forecast_net_pct": 2.612946774268883,
+      "actual_net_pct": -0.1864369213467116,
+      "error_pp_net": 2.7993836956155946,
+      "forecast_contract_pct": 4.124880795164851,
+      "actual_contract_pct": 2.2102786948883226,
+      "error_pp_contract": 1.9146021002765288
+    },
+    {
+      "year": 2025,
+      "model": "B3_tal_anchor",
+      "information_rule": "dec31_strict",
+      "forecast_net_pct": 2.2812732796595547,
+      "actual_net_pct": 4.355205668138593,
+      "error_pp_net": -2.0739323884790384,
+      "forecast_contract_pct": 4.213830816869412,
+      "actual_contract_pct": 5.322238152131733,
+      "error_pp_contract": -1.1084073352623207
+    },
+    {
+      "year": 2023,
+      "model": "E1_engine_blend",
+      "information_rule": "dec31_strict",
+      "forecast_net_pct": 2.9229958344730096,
+      "actual_net_pct": 0.5191364034384834,
+      "error_pp_net": 2.403859431034526,
+      "forecast_contract_pct": 3.338762538892618,
+      "actual_contract_pct": 2.034132904319653,
+      "error_pp_contract": 1.304629634572965
+    },
+    {
+      "year": 2024,
+      "model": "E1_engine_blend",
+      "information_rule": "dec31_strict",
+      "forecast_net_pct": 2.3387696721721736,
+      "actual_net_pct": -0.1864369213467116,
+      "error_pp_net": 2.525206593518885,
+      "forecast_contract_pct": 2.465452390647628,
+      "actual_contract_pct": 2.2102786948883226,
+      "error_pp_contract": 0.2551736957593054
+    },
+    {
+      "year": 2025,
+      "model": "E1_engine_blend",
+      "information_rule": "dec31_strict",
+      "forecast_net_pct": 0.29725502945048604,
+      "actual_net_pct": 4.355205668138593,
+      "error_pp_net": -4.057950638688107,
+      "forecast_contract_pct": 2.5743928166155845,
+      "actual_contract_pct": 5.322238152131733,
+      "error_pp_contract": -2.747845335516148
+    },
+    {
+      "year": 2023,
+      "model": "E2_regulated",
+      "information_rule": "dec31_strict",
+      "forecast_net_pct": 3.0589758811991614,
+      "actual_net_pct": 0.5191364034384834,
+      "error_pp_net": 2.539839477760678,
+      "forecast_contract_pct": 3.4752918892552978,
+      "actual_contract_pct": 2.034132904319653,
+      "error_pp_contract": 1.4411589849356448
+    },
+    {
+      "year": 2024,
+      "model": "E2_regulated",
+      "information_rule": "dec31_strict",
+      "forecast_net_pct": 3.449619077014564,
+      "actual_net_pct": -0.1864369213467116,
+      "error_pp_net": 3.6360559983612752,
+      "forecast_contract_pct": 3.5776768894341124,
+      "actual_contract_pct": 2.2102786948883226,
+      "error_pp_contract": 1.3673981945457898
+    },
+    {
+      "year": 2025,
+      "model": "E2_regulated",
+      "information_rule": "dec31_strict",
+      "forecast_net_pct": 1.256103649806994,
+      "actual_net_pct": 4.355205668138593,
+      "error_pp_net": -3.099102018331599,
+      "forecast_contract_pct": 3.5550110300177225,
+      "actual_contract_pct": 5.322238152131733,
+      "error_pp_contract": -1.7672271221140101
+    },
+    {
+      "year": 2023,
+      "model": "B0_last_year",
       "information_rule": "jan31",
-      "forecast_net_pct": 2.5,
-      "actual_net_pct": 2.0,
-      "error_pp_net": 0.5,
-      "forecast_contract_pct": 3.1,
-      "actual_contract_pct": 2.6,
-      "error_pp_contract": 0.5
+      "forecast_net_pct": 4.486915536180443,
+      "actual_net_pct": 0.5191364034384834,
+      "error_pp_net": 3.9677791327419594,
+      "forecast_contract_pct": 3.9734880623579873,
+      "actual_contract_pct": 2.034132904319653,
+      "error_pp_contract": 1.9393551580383344
     },
     {
       "year": 2024,
       "model": "B0_last_year",
       "information_rule": "jan31",
-      "forecast_net_pct": 3.0,
-      "actual_net_pct": 2.6,
-      "error_pp_net": 0.4,
-      "forecast_contract_pct": 3.5,
-      "actual_contract_pct": 3.2,
-      "error_pp_contract": 0.3
+      "forecast_net_pct": 0.5913804109862352,
+      "actual_net_pct": -0.1864369213467116,
+      "error_pp_net": 0.7778173323329468,
+      "forecast_contract_pct": 2.073527986251033,
+      "actual_contract_pct": 2.2102786948883226,
+      "error_pp_contract": -0.13675070863728944
     },
     {
       "year": 2025,
       "model": "B0_last_year",
       "information_rule": "jan31",
-      "forecast_net_pct": 2.8,
-      "actual_net_pct": 4.4,
-      "error_pp_net": -1.6,
-      "forecast_contract_pct": 3.0,
-      "actual_contract_pct": 4.9,
-      "error_pp_contract": -1.9
+      "forecast_net_pct": 0.4334083513353467,
+      "actual_net_pct": 4.355205668138593,
+      "error_pp_net": -3.9217973168032465,
+      "forecast_contract_pct": 2.3310513320435993,
+      "actual_contract_pct": 5.322238152131733,
+      "error_pp_contract": -2.9911868200881333
     },
     {
       "year": 2023,
       "model": "B1_trailing_mean",
       "information_rule": "jan31",
-      "forecast_net_pct": 2.2,
-      "actual_net_pct": 2.0,
-      "error_pp_net": 0.2,
-      "forecast_contract_pct": 2.9,
-      "actual_contract_pct": 2.6,
-      "error_pp_contract": 0.3
+      "forecast_net_pct": 3.39559264059522,
+      "actual_net_pct": 0.5191364034384834,
+      "error_pp_net": 2.8764562371567366,
+      "forecast_contract_pct": 3.2655677278659505,
+      "actual_contract_pct": 2.034132904319653,
+      "error_pp_contract": 1.2314348235462975
     },
     {
       "year": 2024,
       "model": "B1_trailing_mean",
       "information_rule": "jan31",
-      "forecast_net_pct": 2.4,
-      "actual_net_pct": 2.6,
-      "error_pp_net": -0.2,
-      "forecast_contract_pct": 3.0,
-      "actual_contract_pct": 3.2,
-      "error_pp_contract": -0.2
+      "forecast_net_pct": 2.8014044729028917,
+      "actual_net_pct": -0.1864369213467116,
+      "error_pp_net": 2.987841394249603,
+      "forecast_contract_pct": 3.267937445171247,
+      "actual_contract_pct": 2.2102786948883226,
+      "error_pp_contract": 1.0576587502829242
     },
     {
       "year": 2025,
       "model": "B1_trailing_mean",
       "information_rule": "jan31",
-      "forecast_net_pct": 3.5,
-      "actual_net_pct": 4.4,
-      "error_pp_net": -0.9,
-      "forecast_contract_pct": 3.9,
-      "actual_contract_pct": 4.9,
-      "error_pp_contract": -1.0
+      "forecast_net_pct": 1.786518088807838,
+      "actual_net_pct": 4.355205668138593,
+      "error_pp_net": -2.568687579330755,
+      "forecast_contract_pct": 2.731329780685869,
+      "actual_contract_pct": 5.322238152131733,
+      "error_pp_contract": -2.5909083714458636
     },
     {
       "year": 2023,
       "model": "B2_market_anchor",
       "information_rule": "jan31",
-      "forecast_net_pct": 2.7,
-      "actual_net_pct": 2.0,
-      "error_pp_net": 0.7,
-      "forecast_contract_pct": 3.2,
-      "actual_contract_pct": 2.6,
-      "error_pp_contract": 0.6
+      "forecast_net_pct": 4.4942866413405085,
+      "actual_net_pct": 0.5191364034384834,
+      "error_pp_net": 3.975150237902025,
+      "forecast_contract_pct": 4.362880068253048,
+      "actual_contract_pct": 2.034132904319653,
+      "error_pp_contract": 2.328747163933395
     },
     {
       "year": 2024,
       "model": "B2_market_anchor",
       "information_rule": "jan31",
-      "forecast_net_pct": 3.1,
-      "actual_net_pct": 2.6,
-      "error_pp_net": 0.5,
-      "forecast_contract_pct": 3.6,
-      "actual_contract_pct": 3.2,
-      "error_pp_contract": 0.4
+      "forecast_net_pct": 4.5928485053471055,
+      "actual_net_pct": -0.1864369213467116,
+      "error_pp_net": 4.779285426693817,
+      "forecast_contract_pct": 5.067511402623721,
+      "actual_contract_pct": 2.2102786948883226,
+      "error_pp_contract": 2.857232707735398
     },
     {
       "year": 2025,
       "model": "B2_market_anchor",
       "information_rule": "jan31",
-      "forecast_net_pct": 3.8,
-      "actual_net_pct": 4.4,
-      "error_pp_net": -0.6,
-      "forecast_contract_pct": 4.2,
-      "actual_contract_pct": 4.9,
-      "error_pp_contract": -0.7
+      "forecast_net_pct": 4.224813881881994,
+      "actual_net_pct": 4.355205668138593,
+      "error_pp_net": -0.13039178625659886,
+      "forecast_contract_pct": 5.192258535539342,
+      "actual_contract_pct": 5.322238152131733,
+      "error_pp_contract": -0.129979616592391
+    },
+    {
+      "year": 2023,
+      "model": "B3_tal_anchor",
+      "information_rule": "jan31",
+      "forecast_net_pct": 5.014407606991985,
+      "actual_net_pct": 0.5191364034384834,
+      "error_pp_net": 4.495271203553502,
+      "forecast_contract_pct": 4.498388144306729,
+      "actual_contract_pct": 2.034132904319653,
+      "error_pp_contract": 2.4642552399870756
+    },
+    {
+      "year": 2024,
+      "model": "B3_tal_anchor",
+      "information_rule": "jan31",
+      "forecast_net_pct": 4.318147258298767,
+      "actual_net_pct": -0.1864369213467116,
+      "error_pp_net": 4.504584179645478,
+      "forecast_contract_pct": 5.855206282474532,
+      "actual_contract_pct": 2.2102786948883226,
+      "error_pp_contract": 3.644927587586209
+    },
+    {
+      "year": 2025,
+      "model": "B3_tal_anchor",
+      "information_rule": "jan31",
+      "forecast_net_pct": 4.149873464576412,
+      "actual_net_pct": 4.355205668138593,
+      "error_pp_net": -0.20533220356218074,
+      "forecast_contract_pct": 6.117737341408373,
+      "actual_contract_pct": 5.322238152131733,
+      "error_pp_contract": 0.7954991892766401
     },
     {
       "year": 2023,
       "model": "E1_engine_blend",
       "information_rule": "jan31",
-      "forecast_net_pct": 2.3,
-      "actual_net_pct": 2.0,
-      "error_pp_net": 0.3,
-      "forecast_contract_pct": 2.9,
-      "actual_contract_pct": 2.6,
-      "error_pp_contract": 0.3
+      "forecast_net_pct": 2.9229958344730096,
+      "actual_net_pct": 0.5191364034384834,
+      "error_pp_net": 2.403859431034526,
+      "forecast_contract_pct": 3.338762538892618,
+      "actual_contract_pct": 2.034132904319653,
+      "error_pp_contract": 1.304629634572965
     },
     {
       "year": 2024,
       "model": "E1_engine_blend",
       "information_rule": "jan31",
-      "forecast_net_pct": 2.9,
-      "actual_net_pct": 2.6,
-      "error_pp_net": 0.3,
-      "forecast_contract_pct": 3.4,
-      "actual_contract_pct": 3.2,
-      "error_pp_contract": 0.2
+      "forecast_net_pct": 2.3387696721721736,
+      "actual_net_pct": -0.1864369213467116,
+      "error_pp_net": 2.525206593518885,
+      "forecast_contract_pct": 2.465452390647628,
+      "actual_contract_pct": 2.2102786948883226,
+      "error_pp_contract": 0.2551736957593054
     },
     {
       "year": 2025,
       "model": "E1_engine_blend",
       "information_rule": "jan31",
-      "forecast_net_pct": 3.6,
-      "actual_net_pct": 4.4,
-      "error_pp_net": -0.8,
-      "forecast_contract_pct": 4.0,
-      "actual_contract_pct": 4.9,
-      "error_pp_contract": -0.9
+      "forecast_net_pct": 0.29725502945048604,
+      "actual_net_pct": 4.355205668138593,
+      "error_pp_net": -4.057950638688107,
+      "forecast_contract_pct": 2.5743928166155845,
+      "actual_contract_pct": 5.322238152131733,
+      "error_pp_contract": -2.747845335516148
+    },
+    {
+      "year": 2023,
+      "model": "E2_regulated",
+      "information_rule": "jan31",
+      "forecast_net_pct": 3.8087675841790167,
+      "actual_net_pct": 0.5191364034384834,
+      "error_pp_net": 3.289631180740533,
+      "forecast_contract_pct": 4.228112443298239,
+      "actual_contract_pct": 2.034132904319653,
+      "error_pp_contract": 2.1939795389785863
+    },
+    {
+      "year": 2024,
+      "model": "E2_regulated",
+      "information_rule": "jan31",
+      "forecast_net_pct": 4.616991635374567,
+      "actual_net_pct": -0.1864369213467116,
+      "error_pp_net": 4.803428556721278,
+      "forecast_contract_pct": 4.746494510399817,
+      "actual_contract_pct": 2.2102786948883226,
+      "error_pp_contract": 2.536215815511494
+    },
+    {
+      "year": 2025,
+      "model": "E2_regulated",
+      "information_rule": "jan31",
+      "forecast_net_pct": 2.3973101340554646,
+      "actual_net_pct": 4.355205668138593,
+      "error_pp_net": -1.9578955340831286,
+      "forecast_contract_pct": 4.722127340088216,
+      "actual_contract_pct": 5.322238152131733,
+      "error_pp_contract": -0.6001108120435168
     }
   ],
   "coverage": {
@@ -171,23 +435,113 @@
     "units": 32,
     "eligible_pairs": 134,
     "excluded_pairs": 4,
-    "segments": 12,
+    "segments": 18,
     "concessions": 88,
     "asking_rows": 157,
-    "external_rows": 0
+    "external_rows": 274
   },
   "scenarios": {
-    "low_net_pct": 1.2,
-    "central_net_pct": 3.1,
-    "high_net_pct": 5.0
+    "low_net_pct": 1.046505150968635,
+    "central_net_pct": 3.535312230641093,
+    "high_net_pct": 5.71229313038693
   },
   "sources": [
     {
-      "series_id": "SYNTHETIC-RENT",
-      "publisher": "Invented for app development (not a real source)",
-      "release_date": "2025-01-01",
-      "url": "https://example.invalid/synthetic"
+      "series_id": "cmhc_montreal_same_sample_2br_all",
+      "publisher": "CMHC",
+      "url": "https://assets.cmhc-schl.gc.ca/sites/cmhc/professional/housing-markets-data-and-research/housing-data-tables/rental-market/rental-market-report-data-tables/2021/rmr-montreal-2021-en.xlsx",
+      "release_date": "2025-12-11"
+    },
+    {
+      "series_id": "cmhc_montreal_same_sample_2br_non_turnover",
+      "publisher": "CMHC",
+      "url": "https://assets.cmhc-schl.gc.ca/sites/cmhc/professional/housing-markets-data-and-research/housing-data-tables/rental-market/rental-market-report-data-tables/2022/rmr-canada-2022-en.xlsx",
+      "release_date": "2025-12-11"
+    },
+    {
+      "series_id": "cmhc_montreal_same_sample_2br_turnover",
+      "publisher": "CMHC",
+      "url": "https://assets.cmhc-schl.gc.ca/sites/cmhc/professional/housing-markets-data-and-research/housing-data-tables/rental-market/rental-market-report-data-tables/2022/rmr-canada-2022-en.xlsx",
+      "release_date": "2025-12-11"
+    },
+    {
+      "series_id": "cmhc_montreal_same_sample_total_all",
+      "publisher": "CMHC",
+      "url": "https://assets.cmhc-schl.gc.ca/sites/cmhc/professional/housing-markets-data-and-research/housing-data-tables/rental-market/rental-market-report-data-tables/2021/rmr-montreal-2021-en.xlsx",
+      "release_date": "2025-12-11"
+    },
+    {
+      "series_id": "cmhc_montreal_vacancy_total",
+      "publisher": "CMHC",
+      "url": "https://assets.cmhc-schl.gc.ca/sites/cmhc/professional/housing-markets-data-and-research/housing-data-tables/rental-market/rental-market-report-data-tables/2021/rmr-montreal-2021-en.xlsx",
+      "release_date": "2025-12-11"
+    },
+    {
+      "series_id": "cmhc_ottawa_same_sample_2br_all",
+      "publisher": "CMHC",
+      "url": "https://assets.cmhc-schl.gc.ca/sites/cmhc/professional/housing-markets-data-and-research/housing-data-tables/rental-market/rental-market-report-data-tables/2021/rmr-ottawa-2021-en.xlsx",
+      "release_date": "2025-12-11"
+    },
+    {
+      "series_id": "cmhc_ottawa_same_sample_2br_non_turnover",
+      "publisher": "CMHC",
+      "url": "https://assets.cmhc-schl.gc.ca/sites/cmhc/professional/housing-markets-data-and-research/housing-data-tables/rental-market/rental-market-report-data-tables/2022/rmr-canada-2022-en.xlsx",
+      "release_date": "2024-12-17"
+    },
+    {
+      "series_id": "cmhc_ottawa_same_sample_2br_turnover",
+      "publisher": "CMHC",
+      "url": "https://assets.cmhc-schl.gc.ca/sites/cmhc/professional/housing-markets-data-and-research/housing-data-tables/rental-market/rental-market-report-data-tables/2022/rmr-canada-2022-en.xlsx",
+      "release_date": "2024-12-17"
+    },
+    {
+      "series_id": "cmhc_ottawa_same_sample_total_all",
+      "publisher": "CMHC",
+      "url": "https://assets.cmhc-schl.gc.ca/sites/cmhc/professional/housing-markets-data-and-research/housing-data-tables/rental-market/rental-market-report-data-tables/2021/rmr-ottawa-2021-en.xlsx",
+      "release_date": "2025-12-11"
+    },
+    {
+      "series_id": "cmhc_ottawa_vacancy_total",
+      "publisher": "CMHC",
+      "url": "https://assets.cmhc-schl.gc.ca/sites/cmhc/professional/housing-markets-data-and-research/housing-data-tables/rental-market/rental-market-report-data-tables/2021/rmr-ottawa-2021-en.xlsx",
+      "release_date": "2025-12-11"
+    },
+    {
+      "series_id": "ontario_guideline_ontario_guideline_pct_on",
+      "publisher": "Government of Ontario",
+      "url": "https://www.ontario.ca/page/rent-increase-guideline",
+      "release_date": "2025-08-31"
+    },
+    {
+      "series_id": "statcan_18100004_rent_on_annual_avg_pct",
+      "publisher": "Statistics Canada",
+      "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1810000401",
+      "release_date": "2026-01-19"
+    },
+    {
+      "series_id": "statcan_18100004_rent_on_monthly_index",
+      "publisher": "Statistics Canada",
+      "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1810000401",
+      "release_date": "2026-01-19"
+    },
+    {
+      "series_id": "statcan_18100004_rent_qc_annual_avg_pct",
+      "publisher": "Statistics Canada",
+      "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1810000401",
+      "release_date": "2026-01-19"
+    },
+    {
+      "series_id": "statcan_18100004_rent_qc_monthly_index",
+      "publisher": "Statistics Canada",
+      "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1810000401",
+      "release_date": "2026-01-19"
+    },
+    {
+      "series_id": "tal_renewal_reference_pct_qc_unheated",
+      "publisher": "Tribunal administratif du logement",
+      "url": "https://www.tal.gouv.qc.ca/fr/actualites/detail?code=le-calcul-de-l-augmentation-des-loyers-en-2019",
+      "release_date": "2026-01-19"
     }
   ],
-  "note": "SYNTHETIC EXAMPLE. Headline, companions, backtest, scenarios and sources are invented for app development. Coverage counts are the synthetic smoke-run counts, except segments (invented). Headline model, model range and province split are also invented."
+  "note": "EXEMPLE SYNTHÉTIQUE calculé sur les données fictives du dépôt : la mode, les comptes et les chiffres ne décrivent pas project."
 }

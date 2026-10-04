@@ -4,8 +4,8 @@ Only aggregates leave this module: counts, percentages, dates and source metadat
 pair rows. The output is validated against contracts.AGGREGATES_SCHEMA (closed objects), so a unit-level field
 cannot be written.
 
-The headline, the candidate model range and the province split come from `_headline`, which waits on F-08's
-champion pipeline (TODO(F-08)). Until then those fields are null and the export carries no headline.
+The headline, companions, 2026 model range and province split come from `_headline`, which calls the champion
+pipeline (`champion_forecast`, the same path as `estimate_2026()`), so the export and the notebook agree.
 """
 
 from __future__ import annotations
@@ -21,11 +21,13 @@ from jsonschema import Draft202012Validator, FormatChecker
 
 from leaselens.config import cutoff_for, external_cutoff_for
 from leaselens.contracts import AGGREGATES_SCHEMA, AGGREGATES_SCHEMA_VERSION, CanonicalTables
-from leaselens.evaluate.backtest import backtest_both_rules
+from leaselens.evaluate.backtest import (RULE_JAN31, backtest_both_rules, champion_forecast, champion_pipeline,
+                                        headline_table)
 from leaselens.forecast.asof import snapshot_for_year
-from leaselens.forecast.baselines import frozen_weights, training_pairs
-from leaselens.forecast.combine import forecast_regulated
-from leaselens.forecast.scenarios import CENTRAL, scenario_table
+from leaselens.forecast.baselines import BASELINE_NAMES, frozen_weights, training_pairs
+from leaselens.forecast.combine import MODEL_NAME as ENGINE_MODEL_NAME
+from leaselens.forecast.combine import REGULATED_MODEL_NAME, forecast_regulated
+from leaselens.forecast.scenarios import CENTRAL, headline_by_province, scenario_table
 from leaselens.measure.pairs import build_pairs
 
 DEFINITION = (
@@ -57,24 +59,49 @@ def _clean(value: Any) -> Any:
     return value
 
 
-def _headline(tables: CanonicalTables, external: pd.DataFrame, cfg: dict) -> dict[str, Any]:
-    """Headline, companions, candidate model range and province split.
+MODEL_RANGE_NAMES = (BASELINE_NAMES["last_year"], BASELINE_NAMES["trailing_mean"], ENGINE_MODEL_NAME,
+                     REGULATED_MODEL_NAME)  # the candidates behind the 2026 model range (B0, B1, E1, E2)
 
-    TODO(F-08): call forecast.champion_forecast (the same pipeline estimate_2026() uses; do not copy it here) once
-    PR #32 is merged. Until then every value is null, so the export validates but carries no result.
+
+def _headline(tables: CanonicalTables, external: pd.DataFrame, cfg: dict,
+              table: pd.DataFrame | None = None) -> dict[str, Any]:
+    """Headline, companions, 2026 model range and province split, from the pre-declared champion.
+
+    Uses the same pipeline as estimate_2026(): champion_forecast with the Jan-31 information date. `table` may carry the
+    backtest_both_rules table already computed for the backtest rows, so the folds run once.
     """
+    target = cfg["forecast_years"]["target_year"]
+    table = backtest_both_rules(tables, external, cfg) if table is None else table
+    champion = champion_pipeline(tables, external, cfg, table=table)["champion"]
+    result = champion_forecast(tables, external, cfg, table=table)
+    province_of = tables.leases.drop_duplicates("prop_code").set_index("prop_code")["province"]
+    provinces = headline_by_province(result, province_of).set_index("province")
+    candidates = headline_table(tables, external, cfg, year=target)
+    candidates = candidates[(candidates["rule"] == RULE_JAN31) & candidates["model"].isin(MODEL_RANGE_NAMES)]
+    net_range = candidates["net_pct"].dropna()
+
+    def province(name: str) -> dict[str, Any]:
+        if name not in provinces.index:
+            return {"net_pct": None, "contract_pct": None}
+        row = provinces.loc[name]
+        return {"net_pct": _clean(row["net_pct"]), "contract_pct": _clean(row["contract_pct"])}
+
     return {
-        "headline": {"net_pct": None, "contract_pct": None, "information_rule": "jan31", "model": None,
-                     "model_range": {"low_net_pct": None, "high_net_pct": None},
-                     "provinces": {"QC": {"net_pct": None, "contract_pct": None},
-                                   "ON": {"net_pct": None, "contract_pct": None}}},
-        "companions": {"median_net_pct": None, "median_contract_pct": None},
+        "headline": {
+            "net_pct": _clean(result.headline_net_pct), "contract_pct": _clean(result.headline_contract_pct),
+            "information_rule": "jan31", "model": champion,
+            "model_range": {"low_net_pct": _clean(net_range.min()) if len(net_range) else None,
+                            "high_net_pct": _clean(net_range.max()) if len(net_range) else None},
+            "provinces": {"QC": province("QC"), "ON": province("ON")},
+        },
+        "companions": {"median_net_pct": _clean(result.median_net_pct),
+                       "median_contract_pct": _clean(result.median_contract_pct)},
     }
 
 
-def _backtest_rows(tables: CanonicalTables, external: pd.DataFrame, cfg: dict) -> list[dict[str, Any]]:
+def _backtest_rows(table: pd.DataFrame) -> list[dict[str, Any]]:
     """Every model x backtest year x information rule, from the same folds the champion is chosen on."""
-    table = backtest_both_rules(tables, external, cfg).rename(columns=BACKTEST_RENAMES)
+    table = table.rename(columns=BACKTEST_RENAMES)
     rows = []
     for record in table.sort_values(["information_rule", "model", "year"]).to_dict("records"):
         rows.append({field: _clean(record[field]) for field in BACKTEST_FIELDS})
@@ -107,7 +134,8 @@ def build_aggregates(tables: CanonicalTables, external: pd.DataFrame, cfg: dict)
     snapshot = snapshot_for_year(tables, external, target, cfg)
     pairs = build_pairs(tables.leases, cfg)
     weights = frozen_weights(training_pairs(snapshot, cfg), snapshot.cutoff, cfg)
-    head = _headline(tables, external, cfg)
+    backtest = backtest_both_rules(tables, external, cfg)  # folds run once: rows here, champion choice in _headline
+    head = _headline(tables, external, cfg, table=backtest)
     mode = cfg["data"]["mode"]
     return {
         "schema_version": AGGREGATES_SCHEMA_VERSION,
@@ -118,7 +146,7 @@ def build_aggregates(tables: CanonicalTables, external: pd.DataFrame, cfg: dict)
         "definition": DEFINITION,
         "headline": head["headline"],
         "companions": head["companions"],
-        "backtest": _backtest_rows(tables, external, cfg),
+        "backtest": _backtest_rows(backtest),
         "coverage": {
             "leases": int(len(tables.leases)),
             "units": int(tables.leases[cfg["pairs"]["unit_key"]].drop_duplicates().shape[0]),
