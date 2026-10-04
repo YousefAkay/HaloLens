@@ -81,17 +81,29 @@ display(chosen["ranking"].round(2).rename(columns={
     "model": "modèle", "mae_selection_pp": "EAM sélection pp", "n_selection_folds_run": "années de sélection calculées",
     "eligible": "admissible", "mae_holdout_pp": "EAM validation pp"}))
 
+# %% [markdown]
+# ### 9.1b Lecture du classement
+#
+# **Entrée :** le classement du modèle retenu (`chosen["ranking"]`) : erreur absolue moyenne sur les années de sélection et sur
+# l'année de validation de chaque modèle admissible. **Opération :** extraire les meilleurs modèles de la sélection (leur
+# nombre vient de `config/forecast.yaml`, clé `champion.top_n`), mesurer l'écart de leurs erreurs et repérer le modèle qui a
+# la meilleure erreur sur l'année de validation. Cette étape ne modifie aucune donnée : elle lit un tableau de résultats.
+# **Pourquoi :** un classement serré, obtenu sur très peu d'années, ne prouve pas qu'un modèle est meilleur ; le texte qui suit
+# le dit avec les chiffres calculés. **Vérification :** l'écart annoncé est recalculé à partir des erreurs affichées plus haut.
+
 # %%
 ranking = chosen["ranking"]
-top_three = ranking[ranking["eligible"]].head(3)
-spread_top_three = float(top_three["mae_selection_pp"].max() - top_three["mae_selection_pp"].min())
+eligible_ranking = ranking[ranking["eligible"]]
+top_n = min(cfg["champion"]["top_n"], len(eligible_ranking))
+top_models = eligible_ranking.head(top_n)
+spread_top_models = float(top_models["mae_selection_pp"].max() - top_models["mae_selection_pp"].min())
 best_holdout = ranking.loc[ranking["mae_holdout_pp"].idxmin()]
 selection_years = chosen["selection_years"]
 display(Markdown(
     f"**Lecture honnête du classement.** La règle de choix a été déclarée **avant** de voir les résultats. B3 et E2 ont été "
     f"ajoutés **après** le premier backtest réel (tâche F-05b), à cause de la structure réglementaire du TAL et de l'Ontario ; "
     f"ils sont soumis à la même règle et ne la modifient pas. Avec seulement **{len(selection_years)} années de sélection**, "
-    f"le classement des {len(top_three)} meilleurs modèles ({', '.join(top_three['model'])}) tient dans **{spread_top_three:.2f} point de "
+    f"le classement des {top_n} meilleurs modèles ({', '.join(top_models['model'])}) tient dans **{spread_top_models:.2f} point de "
     f"pourcentage** : il est statistiquement faible. **{best_holdout['model']}** a la meilleure erreur sur la validation "
     f"{chosen['holdout_year']} (**{best_holdout['mae_holdout_pp']:.2f} pp**), mais {chosen['holdout_year']} n'a pas servi à "
     f"choisir : le modèle retenu reste **{champion}**."))

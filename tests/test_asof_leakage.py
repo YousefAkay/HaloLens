@@ -130,6 +130,7 @@ def test_forecast_config_has_agreed_keys(cfg):
     assert (combine["turnover_history_weight"] + combine["turnover_signal_weight"]
             + combine["turnover_nowcast_weight"]) == pytest.approx(1.0)
     assert set(forecast_cfg["scenarios"]) >= {"met_guideline_applies", "include_post_cutoff_quebec_method"}
+    assert isinstance(forecast_cfg["champion"]["top_n"], int) and forecast_cfg["champion"]["top_n"] > 0
     assert forecast_cfg["leakage_test"]["future_row_count"] > 0
     assert forecast_cfg["leakage_test"]["future_rent_multiplier"] > 1
 
