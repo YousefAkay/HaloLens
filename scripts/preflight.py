@@ -179,7 +179,15 @@ def check_requirements() -> tuple[bool, str]:
     return True, "requirements installed; .last_install updated"
 
 
+def configure_console() -> None:
+    """Print UTF-8 with replacement, so the ⚠️ warning does not crash a Windows cp1252 console (REQUEST-MSR-02)."""
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
+
+
 def main() -> int:
+    configure_console()
     stops: list[str] = []
     passed: list[str] = []
     warnings: list[str] = []

@@ -6,6 +6,9 @@ Only the decision logic is tested here. The git, pip and data checks run for rea
 from __future__ import annotations
 
 import importlib.util
+import os
+import subprocess
+import sys
 
 from leaselens.config import repo_root
 
@@ -70,3 +73,19 @@ def test_modified_file_stops_even_on_a_branch():
 
 def test_untracked_file_counts_as_uncommitted():
     assert preflight.worktree_action("?? scratch.txt\n", "dev") == "dirty"
+
+
+def test_warning_prints_on_a_cp1252_console():
+    """REQUEST-MSR-02: with a cp1252 stdout, configure_console() lets the ⚠️ warning print instead of crashing."""
+    script = (
+        "import importlib.util\n"
+        f"spec = importlib.util.spec_from_file_location('preflight', {str(repo_root() / 'scripts' / 'preflight.py')!r})\n"
+        "module = importlib.util.module_from_spec(spec)\n"
+        "spec.loader.exec_module(module)\n"
+        "module.configure_console()\n"
+        "print(module.REQUIREMENTS_WARNING)\n"
+    )
+    env = {**os.environ, "PYTHONIOENCODING": "cp1252"}
+    result = subprocess.run([sys.executable, "-c", script], capture_output=True, env=env)
+    assert result.returncode == 0, result.stderr.decode("utf-8", "replace")
+    assert "REQUIREMENTS.TXT CHANGED" in result.stdout.decode("utf-8")
