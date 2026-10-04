@@ -63,7 +63,7 @@ def requirements_changed(stored_commit: str | None, changed_files: list[str]) ->
 
 
 def git(*args: str) -> tuple[int, str]:
-    result = subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True)
+    result = subprocess.run(["git", *args], cwd=ROOT, capture_output=True, encoding="utf-8", errors="replace")
     return result.returncode, result.stdout.strip()
 
 
@@ -152,7 +152,7 @@ def check_gh() -> str | None:
     """A warning message when gh is unavailable or not logged in; None when it is fine."""
     if shutil.which("gh") is None:
         return "gh CLI not found: PRs will be printed as links. Run gh auth login once it is installed."
-    result = subprocess.run(["gh", "auth", "status"], capture_output=True, text=True)
+    result = subprocess.run(["gh", "auth", "status"], capture_output=True, encoding="utf-8", errors="replace")
     if result.returncode != 0:
         return "gh is not logged in: run gh auth login (PRs will be printed as links until then)."
     return None
