@@ -22,6 +22,7 @@ from leaselens.incentives.engine import forecast_discount, net_log_growth
 from leaselens.market.asking import turnover_signal
 
 MODEL_NAME = "E1_engine_blend"
+MEDIAN_QUANTILE = 0.5  # share of the total weight at which the weighted median sits
 GROWTH = "loggrowth_contract"
 POOL_PROVINCE_KEYS = ["province", "is_renewal"]
 POOL_PORTFOLIO_KEYS = ["is_renewal"]
@@ -32,7 +33,7 @@ def weighted_median(values: pd.Series, weights: pd.Series) -> float:
     """Smallest value whose cumulative weight reaches half of the total weight."""
     order = np.argsort(values.to_numpy())
     cumulative = np.cumsum(weights.to_numpy()[order])
-    return float(values.to_numpy()[order][np.searchsorted(cumulative, cumulative[-1] / 2)])
+    return float(values.to_numpy()[order][np.searchsorted(cumulative, cumulative[-1] * MEDIAN_QUANTILE)])
 
 
 def _history(pairs: pd.DataFrame, weights: pd.DataFrame, bounds: dict, cutoff: pd.Timestamp, cfg: dict) -> pd.DataFrame:
