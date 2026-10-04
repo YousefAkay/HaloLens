@@ -42,7 +42,7 @@ def test_headline_comes_from_the_synthetic_json(app):
 
 
 def test_synthetic_banner_is_shown(app):
-    assert any("SYNTHETIC" in warning.value for warning in app.warning)
+    assert any("SYNTHÉTIQUE" in warning.value for warning in app.warning)
 
 
 def test_reads_only_the_synthetic_file():
