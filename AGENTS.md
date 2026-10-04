@@ -127,14 +127,14 @@ HALO/
 │  ├─ 05_concessions.py  08_forecast_method.py  09_backtest.py  10_forecast_2026.py  11b_scenarios.py  (FCT)
 │  ├─ 11a_uncertainty.py  12_references.py               (INT)
 ├─ scripts/
-│  ├─ build_notebook.py  make_synthetic.py  export_aggregates.py  board_status.py  smoke_real_data.py   (INT)
+│  ├─ build_notebook.py  make_synthetic.py  export_aggregates.py  board_status.py  smoke_real_data.py  preflight.py   (INT)
 │  └─ extract_sources.py                                  (MSR)
 ├─ app/  streamlit_app.py  narrative.py  number_guard.py  cache/      (INT)
 ├─ data/  private/ (gitignored)  synthetic/ (INT)  public/sources.csv + sources_draft.csv (MSR)
 ├─ outputs/  private/ (gitignored)  public/ (INT)
 ├─ models/  (gitignored; FCT writes, nobody commits)
 ├─ tests/
-│  ├─ conftest.py  test_contracts.py  test_io.py  test_privacy_guard.py  test_build_notebook.py  test_board_status.py  test_smoke_real_data.py  test_uncertainty.py  test_number_guard.py  (INT)
+│  ├─ conftest.py  test_contracts.py  test_io.py  test_privacy_guard.py  test_build_notebook.py  test_board_status.py  test_smoke_real_data.py  test_preflight.py  test_uncertainty.py  test_number_guard.py  (INT)
 │  ├─ test_pairs.py  test_composition.py  test_registry.py  test_asking.py  test_regulation.py           (MSR)
 │  └─ test_asof_leakage.py  test_baselines.py  test_incentives.py  test_linking.py  test_backtest.py  test_combine.py  (FCT)
 └─ docs/
@@ -155,7 +155,7 @@ Each `docs/*/XXX.md` file is owned by the track in its name.
 
 | Owner | Files |
 |---|---|
-| INT | `AGENTS.md`, `CLAUDE.md`, `TEAMMATE_KICKOFF.md`, `.githooks/*`, `.claude/*`, `docs/board/*` (task lists change only through INT), `scripts/board_status.py`, `scripts/smoke_real_data.py`, `README.md`, `requirements.txt`, `pyproject.toml`, `.gitignore`, `.gitattributes`, `.env.example`, `.pre-commit-config.yaml`, `project_analysis.ipynb`, `config/core.yaml`, `src/leaselens/__init__.py`, `contracts.py`, `config.py`, `io/*`, `evaluate/uncertainty.py`, `export/*`, sections `00`, `01`, `02`, `11a`, `12`, `scripts/build_notebook.py`, `scripts/make_synthetic.py`, `scripts/export_aggregates.py`, `app/*`, `data/synthetic/*`, `outputs/public/*`, tests listed as INT above, `docs/rubric_checklist.md`, `docs/*/INT.md`, every `__init__.py` |
+| INT | `AGENTS.md`, `CLAUDE.md`, `TEAMMATE_KICKOFF.md`, `.githooks/*`, `.claude/*`, `docs/board/*` (task lists change only through INT), `scripts/board_status.py`, `scripts/smoke_real_data.py`, `scripts/preflight.py`, `README.md`, `requirements.txt`, `pyproject.toml`, `.gitignore`, `.gitattributes`, `.env.example`, `.pre-commit-config.yaml`, `project_analysis.ipynb`, `config/core.yaml`, `src/leaselens/__init__.py`, `contracts.py`, `config.py`, `io/*`, `evaluate/uncertainty.py`, `export/*`, sections `00`, `01`, `02`, `11a`, `12`, `scripts/build_notebook.py`, `scripts/make_synthetic.py`, `scripts/export_aggregates.py`, `app/*`, `data/synthetic/*`, `outputs/public/*`, tests listed as INT above, `docs/rubric_checklist.md`, `docs/*/INT.md`, every `__init__.py` |
 | MSR | `config/measure.yaml`, `measure/*`, `market/*`, sections `03`, `04`, `06`, `07`, `scripts/extract_sources.py`, `data/public/*`, tests listed as MSR above, `docs/*/MSR.md` |
 | FCT | `config/forecast.yaml`, `incentives/*`, `forecast/*`, `evaluate/backtest.py`, `evaluate/metrics.py`, sections `05`, `08`, `09`, `10`, `11b`, `models/*` (local only), tests listed as FCT above, `docs/*/FCT.md` |
 
@@ -459,8 +459,22 @@ The repo is self-directing so nobody has to hand-write task prompts:
   `[<TRACK>][<ID>]` with the task's own track, or `/<prefix><ID>-` with the task's own prefix (the GitHub merge subject),
   or the row's Notes start with `done`. Commit bodies never count, and IDs match on word boundaries (`I-01` ≠ `I-01b`).
   **in review** = a remote branch `<prefix><ID>-…` exists; **todo** = neither. It prints the next workable task per track.
-- **`/next`** (`.claude/commands/next.md`): sync `dev` → run the status script → branch `<prefix><ID>-<name>` → build →
-  test → commit `[<TRACK>][<ID>] …` → push branch → open PR into `dev` → print Handback Report → stop.
+- **`/next`** (`.claude/commands/next.md`): preflight → sync `dev` → run the status script → branch `<prefix><ID>-<name>` →
+  build → test → commit `[<TRACK>][<ID>] …` → merge `origin/dev` into the branch → push branch → open PR into `dev` →
+  print Handback Report → stop.
+- **Preflight** (`scripts/preflight.py`, run with the project venv): `.track` is valid; the tree has no uncommitted changes
+  (otherwise it stops); a clean tree not on `dev` is switched to `dev` and `origin/dev` is pulled automatically; `data/private/` has the four sponsor CSVs and `manifest.json` and passes `load_raw(verify=True)`, otherwise
+  it stops with "Unzip project-participants.zip into data/private/"; `.env` exists only at the repo root and is gitignored;
+  `gh` is logged in (this one only warns). The script never prints `.env` contents or sponsor rows.
+- **Priority:** a workable board row whose Notes start with `priority` is picked before the other workable rows.
+  Board order breaks ties between priority rows.
+- **Requirements:** if `requirements.txt` changed since the commit recorded in `.last_install` (gitignored), or that file
+  is missing, preflight prints `**⚠️ REQUIREMENTS.TXT CHANGED — RUN pip install -r requirements.txt NOW**`, runs the install
+  itself, and records the current commit in `.last_install`.
+- **Append-only logs:** `docs/decisions/`, `docs/assumptions/` and `docs/references/` have `merge=union` in `.gitattributes`,
+  so a merge of `origin/dev` keeps both sides (dev's lines first, by convention).
+- **Test output:** `pyproject.toml` hides known numpy/pandas timedelta and statsmodels deprecations. The filters match
+  the module each warning is attributed to, so warnings from our own code still show.
 - **`/status`** shows all boards. **`/review-pr <n>`** (INT) pre-checks a PR before merging.
 - Because status lives in git, two open PRs from the same person never conflict on a board file.
 - Task ID in the branch name and the commit subject is mandatory; the status script depends on it.

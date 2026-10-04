@@ -1,2 +1,7 @@
 # Keep fixture bytes identical on every OS (their SHA-256 hashes are verified by the loader).
 data/synthetic/* -text
+
+# Append-only logs: a merge keeps both sides instead of raising a conflict (see /next step 8).
+docs/decisions/*.md merge=union
+docs/assumptions/*.md merge=union
+docs/references/*.md merge=union

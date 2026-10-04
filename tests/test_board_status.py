@@ -60,3 +60,35 @@ def test_short_id_does_not_match_suffixed_task():
 def test_subject_lines_takes_first_nonblank_line_of_each_commit():
     raw = f"\n[MSR][M-01] Pair tests\n\nbody line{RECORD}Merge pull request #5 from x/msr/M-01-pairs\n{RECORD}"
     assert subject_lines(raw) == ["[MSR][M-01] Pair tests", "Merge pull request #5 from x/msr/M-01-pairs"]
+
+
+next_task = board_status.next_task
+
+
+def _row(task_id: str, notes: str = "", workable: bool = True) -> dict:
+    return {"id": task_id, "notes": notes, "workable": workable, "status": "todo",
+            "continuous": False, "waiting_on": []}
+
+
+def test_priority_row_beats_board_order():
+    rows = [_row("I-05"), _row("I-06", notes="priority after M-04"), _row("I-07")]
+    assert next_task(rows)[0]["id"] == "I-06"
+
+
+def test_board_order_breaks_ties_between_priority_rows():
+    rows = [_row("I-05", notes="priority"), _row("I-06", notes="Priority: soon")]
+    assert next_task(rows)[0]["id"] == "I-05"
+
+
+def test_priority_row_that_is_not_workable_is_ignored():
+    rows = [_row("I-05"), _row("I-06", notes="priority", workable=False)]
+    assert next_task(rows)[0]["id"] == "I-05"
+
+
+def test_priority_must_start_the_notes():
+    rows = [_row("I-05", notes="after M-04, not priority"), _row("I-06")]
+    assert next_task(rows)[0]["id"] == "I-05"
+
+
+def test_nothing_workable_returns_none():
+    assert next_task([_row("I-05", workable=False)])[0] is None

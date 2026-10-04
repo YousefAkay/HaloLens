@@ -13,6 +13,7 @@
       "Bash(git commit:*)",
       "Bash(git branch:*)",
       "Bash(git rebase origin/dev:*)",
+      "Bash(git merge origin/dev:*)",
       "Bash(git push -u origin int/:*)",
       "Bash(git push -u origin msr/:*)",
       "Bash(git push -u origin fct/:*)",
@@ -31,7 +32,6 @@
       "Bash(git push -f:*)",
       "Bash(git commit --no-verify:*)",
       "Bash(git push --no-verify:*)",
-      "Bash(git merge:*)",
       "Bash(gh pr merge:*)",
       "Read(./.env)"
     ]
