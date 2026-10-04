@@ -30,6 +30,8 @@ from leaselens.config import external_cutoff_for
 from leaselens.contracts import COLOR_CONTRACT, COLOR_MARKET, COLOR_NET
 from leaselens.market.reconcile_market import provenance_table, reconcile, reconcile_summary
 from leaselens.market.registry import as_of, load_external, validate_external
+from leaselens.market.regulation import EXEMPTION_SCENARIO, applicability_matrix
+from leaselens.measure.labels import french_date, french_month, french_month_day
 from leaselens.measure.pairs import build_pairs
 
 ROLE_FR = {"compared": "comparée (7.3)", "context_only": "contexte régional seulement",
@@ -40,8 +42,9 @@ LEASE_TYPE_FR = {"all": "tous", "renewal": "renouvellement", "turnover": "reloca
 # ### 7.1 Chargement et validation du registre
 # Étape qui transforme les données : le registre est lu avec des dates typées et des valeurs numériques. Il remplace
 # la variable partagée `external` (jusqu'ici `None`), que les sections suivantes utilisent. Les données publiques ne
-# servent à prévoir l'année *y* que si elles sont publiées au plus tard le **31 janvier de *y*** (règle approuvée par le
-# mentor) ; ce filtre est appliqué par `as_of` lors de chaque prévision et de chaque backtest.
+# servent à prévoir l'année *y* que si elles sont publiées au plus tard à la date d'information de *y* (règle approuvée
+# par le mentor, dates affichées ci-dessous à partir de `config/core.yaml`) ; ce filtre est appliqué par `as_of` lors de
+# chaque prévision et de chaque backtest.
 
 # %%
 external = load_external(Path(cfg["_root"]) / cfg["data"]["public_dir"] / cfg["external"]["sources_file"])
@@ -49,10 +52,15 @@ problems = validate_external(external, cfg)
 target_year = cfg["forecast_years"]["target_year"]
 info_date = external_cutoff_for(target_year, cfg)
 usable = as_of(external, info_date)
+info_day = french_month_day(cfg["forecast_years"]["external_cutoff_month_day"])
+cutoff_day = french_month_day(cfg["forecast_years"]["cutoff_month_day"])
 display(Markdown(
+    f"**Date d'information :** une donnée publique sert à prévoir l'année *y* si elle est publiée au plus tard le "
+    f"**{info_day} de *y***. Les baux restent coupés au **{cutoff_day} précédent** ; la version stricte (publication "
+    f"au plus tard le {cutoff_day} précédent) est une sensibilité.\n\n"
     f"Registre : **{len(external)}** observations, **{external['series_id'].nunique()}** séries. "
     f"Validation : {'**aucun problème**' if not problems else '; '.join(problems)}. "
-    f"Observations publiées au plus tard le {info_date:%Y-%m-%d} (utilisables pour {target_year}) : "
+    f"Observations publiées au plus tard le {french_date(info_date)} (utilisables pour {target_year}) : "
     f"**{len(usable)}** ; publiées après : **{len(external) - len(usable)}** (exclues de la prévision)."))
 
 # %% [markdown]
@@ -76,14 +84,15 @@ display(provenance.assign(role=provenance["role"].map(ROLE_FR),
 # ### 7.3 Réconciliation : hausse interne à unité constante vs marché
 # Étape qui transforme les données : pour chaque année (début du bail le plus récent) et chaque province, on calcule la
 # moyenne simple de la hausse annualisée des paires admissibles. Elle est écrêtée aux seuils de winsorisation appris
-# sur les paires connues au 31 décembre précédent, comme en section 6. On la place ensuite à côté de la série publique
-# de la **même région**. L'écart est en points de pourcentage (interne − marché). Ce ne sont pas des mesures
+# sur les paires connues à la date de coupure de l'année, comme en section 6. On la place ensuite à côté de la série
+# publique de la **même région**. L'écart est en points de pourcentage (interne − marché). Ce ne sont pas des mesures
 # identiques :
-# - la SCHL suit un **échantillon fixe** d'immeubles locatifs de la RMR, mesuré en octobre (variation d'octobre à
-#   octobre) ; l'extrait suit des **baux consécutifs** d'un même logement, rattachés à l'année de début du bail ;
+# - la SCHL suit un **échantillon fixe** d'immeubles locatifs de la RMR, mesuré chaque année au mois de son enquête
+#   (variation d'une enquête à la suivante, mois affiché ci-dessous) ; l'extrait suit des **baux consécutifs** d'un
+#   même logement, rattachés à l'année de début du bail ;
 # - l'IPC loyer est une moyenne annuelle provinciale, tous types de logements locatifs confondus ;
-# - le marché mesure des loyers payés ou demandés, sans incitatifs : la comparaison principale est donc le loyer
-#   **contractuel** ; le loyer net des incitatifs est montré à côté.
+# - le marché mesure des loyers payés ou demandés, sans concessions : la comparaison principale est donc le **loyer
+#   contractuel** ; le loyer net de toutes les concessions est montré à côté.
 #
 # Cette comparaison est descriptive : elle ne sert pas à la prévision. Une année sans assez de paires (moins de
 # `renewals.min_pairs_per_cell`) n'affiche pas de hausse interne.
@@ -96,9 +105,15 @@ main_rows = comparison[comparison["lease_type"] == "all"].dropna(subset=["intern
 display(main_rows[["label", "province", "geography", "year", "n_pairs", "internal_contract_pct", "internal_net_pct",
                    "market_pct", "gap_contract_pp", "gap_net_pp", "release_date"]].rename(columns={
     "label": "série publique", "province": "province", "geography": "géographie", "year": "année",
-    "n_pairs": "paires", "internal_contract_pct": "interne contractuel (%)", "internal_net_pct": "interne net (%)",
-    "market_pct": "marché (%)", "gap_contract_pp": "écart contractuel (pts)", "gap_net_pp": "écart net (pts)",
+    "n_pairs": "paires", "internal_contract_pct": "interne, loyer contractuel (%)",
+    "internal_net_pct": "interne, loyer net (%)", "market_pct": "marché (%)",
+    "gap_contract_pp": "écart, loyer contractuel (pts)", "gap_net_pp": "écart, loyer net (pts)",
     "release_date": "publiée le"}).round(2))
+cmhc_series = {series_id for comparison_cfg in cfg["reconcile_market"]["comparisons"]
+               for series_id in comparison_cfg["series"].values() if series_id.startswith("cmhc")}
+survey_months = sorted({french_month(date) for date in
+                        external.loc[external["series_id"].isin(cmhc_series), "ref_period_start"]})
+display(Markdown(f"Mois de l'enquête SCHL dans le registre : **{', '.join(survey_months) or 'aucun'}**."))
 
 # %%
 labels = {comparison_cfg["name"]: comparison_cfg["label"] for comparison_cfg in cfg["reconcile_market"]["comparisons"]}
@@ -109,9 +124,9 @@ for axis, province in zip(axes[0], provinces):
     internal = comparison[(comparison["comparison"] == "cmhc_total") & (comparison["province"] == province)]
     internal = internal.dropna(subset=["internal_contract_pct"])
     axis.plot(internal["year"], internal["internal_contract_pct"], color=COLOR_CONTRACT, marker="o",
-              label="Extrait, contractuel")
+              label="Extrait, loyer contractuel")
     axis.plot(internal["year"], internal["internal_net_pct"], color=COLOR_NET, marker="o",
-              label="Extrait, net des incitatifs")
+              label="Extrait, loyer net de toutes les concessions")
     for name, style in market_styles.items():
         market = comparison[(comparison["comparison"] == name) & (comparison["province"] == province)]
         market = market.dropna(subset=["market_pct"])
@@ -129,43 +144,52 @@ fig.tight_layout()
 plt.show()
 
 # %% [markdown]
-# ### 7.4 Renouvellements et relocations vs la répartition de la SCHL (2 chambres)
-# La SCHL publie, pour les logements de 2 chambres, la hausse des logements **sans** changement de locataire et celle
-# des logements **avec** changement de locataire. Étape qui transforme les données : on garde les paires admissibles
-# de 2 chambres et on les sépare entre renouvellements et relocations. Les cellules ont la même règle de taille
-# minimale.
+# ### 7.4 Renouvellements et relocations vs la répartition de la SCHL
+# La SCHL publie, pour une seule taille de logement (nombre de chambres affiché ci-dessous), la hausse des logements
+# **sans** changement de locataire et celle des logements **avec** changement de locataire. Étape qui transforme les
+# données : on garde les paires admissibles de cette taille et on les sépare entre renouvellements et relocations.
+# Les cellules ont la même règle de taille minimale.
 
 # %%
+split_beds = ", ".join(sorted({str(comparison_cfg["beds"]) for comparison_cfg in cfg["reconcile_market"]["comparisons"]
+                                if comparison_cfg["lease_type"] != "all" and comparison_cfg["beds"] is not None}))
+display(Markdown(f"Nombre de chambres comparé (`reconcile_market.comparisons`) : **{split_beds}**."))
 split_rows = comparison[comparison["lease_type"] != "all"].dropna(subset=["internal_contract_pct", "market_pct"])
 display(split_rows.assign(lease_type=split_rows["lease_type"].map(LEASE_TYPE_FR))[
     ["province", "lease_type", "year", "n_pairs", "internal_contract_pct", "internal_net_pct", "market_pct",
      "gap_contract_pp", "release_date"]].rename(columns={
-        "province": "province", "lease_type": "type de bail", "year": "année", "n_pairs": "paires (2 ch.)",
-        "internal_contract_pct": "interne contractuel (%)", "internal_net_pct": "interne net (%)",
-        "market_pct": "SCHL (%)", "gap_contract_pp": "écart contractuel (pts)", "release_date": "publiée le"}).round(2))
+        "province": "province", "lease_type": "type de bail", "year": "année", "n_pairs": f"paires ({split_beds} ch.)",
+        "internal_contract_pct": "interne, loyer contractuel (%)", "internal_net_pct": "interne, loyer net (%)",
+        "market_pct": "SCHL (%)", "gap_contract_pp": "écart, loyer contractuel (pts)", "release_date": "publiée le"}).round(2))
 
 # %% [markdown]
 # ### 7.5 Lecture
 
 # %%
+met_buildings = [entry["building"] for entry in cfg["regulation"]["buildings"]
+                 if entry.get("scenario") == EXEMPTION_SCENARIO]
+matrix = applicability_matrix(cfg, tables.leases)
+met_years = matrix.loc[matrix["building"].isin(met_buildings), "first_lease_year"].dropna()
+met_first_year = f"{int(met_years.min())}" if len(met_years) else "non observé"
 lines = []
 for row in summary.itertuples():
     direction = "plus vite" if row.mean_gap_contract_pp > 0 else "moins vite"
     lines.append(f"- **{row.province}, {row.label}** ({row.geography}, {row.n_years} année(s) comparables) : "
                  f"l'extrait progresse en moyenne **{abs(row.mean_gap_contract_pp):.1f} points {direction}** que le "
-                 f"marché en contractuel (écart absolu moyen {row.mean_abs_gap_contract_pp:.1f} points ; "
-                 f"{row.mean_gap_net_pp:+.1f} points en net des incitatifs).")
+                 f"marché en loyer contractuel (écart absolu moyen {row.mean_abs_gap_contract_pp:.1f} points ; "
+                 f"{row.mean_gap_net_pp:+.1f} points en loyer net de toutes les concessions).")
 turnover = summary[summary["comparison"] == "cmhc_2br_turnover"]
 if not turnover.empty and (turnover["mean_gap_contract_pp"] < 0).all():
     lines.append("- Les relocations de l'extrait progressent nettement moins que les logements « avec changement de "
                  "locataire » de la SCHL. Explication plausible : chez la SCHL, un changement de locataire rattrape "
                  "souvent plusieurs années de hausses encadrées pendant un long bail. Dans l'extrait, les paires "
-                 f"admissibles relient des baux consécutifs séparés de moins de {cfg['pairs']['max_gap_years']} ans, donc le "
-                 "rattrapage est faible.")
+                 f"admissibles relient des baux consécutifs séparés de moins de {cfg['pairs']['max_gap_years']} ans, "
+                 "donc le rattrapage est faible.")
 few_years = summary["n_years"] < len(cfg["forecast_years"]["backtest_years"])
 if few_years.any():
     lines.append(f"- {int(few_years.sum())} comparaison(s) ont moins d'années communes que les années de backtest "
-                 "(the Ontario new-build loue depuis 2023) : ce sont des indications, pas des estimations précises.")
+                 f"(premier bail de the Ontario new-build dans l'extrait : {met_first_year}) : ce sont des indications, pas des "
+                 "estimations précises.")
 display(Markdown("\n".join(lines) if lines else "Pas assez d'années communes pour une lecture."))
 display(Markdown(
     "Le taux d'inoccupation de la SCHL figure dans le registre comme **contexte du marché régional** seulement. Ce "
