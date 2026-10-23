@@ -8,8 +8,8 @@
 # ## 11b. Scénarios de l'année cible
 #
 # **Objectif :** montrer comment la hausse nette de l'année cible varie quand on déplace, un à la fois puis ensemble, des leviers
-# incertains : l'intensité des concessions, la part des renouvellements et l'application de la ligne directrice ontarienne à
-# the Ontario new-build.
+# incertains : l'intensité des concessions, la part des renouvellements et l'application de la ligne directrice ontarienne au
+# projet ontarien neuf.
 #
 # **Entrée :** `tables`, `external`, `cfg`. **Opération :** le moteur réglementé E2 (renouvellements québécois ancrés sur le TAL)
 # est recalculé pour l'année cible ; chaque levier est appliqué aux prévisions par segment, puis les segments sont agrégés avec les
@@ -43,10 +43,10 @@ levers = cfg["scenarios"]
 # ### 11b.1 Les leviers
 #
 # - **Intensité des concessions** : on déplace de ± `incentive_intensity_shift_pp` point la part de rabais prévue de chaque
-#   segment ; l'ordre de grandeur vient de l'évolution récente de la part de rabais moyenne (chiffrée ci-dessous).
+#   segment ; la taille du levier est une valeur ronde illustrative, à calibrer sur votre propre historique (l'évolution récente de la part de rabais moyenne est chiffrée ci-dessous).
 # - **Part des renouvellements** : on déplace de ± `renewal_share_shift_pp` point la part des renouvellements dans les poids
-#   fixes ; l'ordre de grandeur vient des variations annuelles observées (chiffrées ci-dessous).
-# - **the Ontario new-build** : au scénario central, l'exemption des premières occupations résidentielles postérieures à la date prévue par
+#   fixes ; la taille du levier est une valeur ronde illustrative, à calibrer sur votre propre historique (les variations annuelles observées sont chiffrées ci-dessous).
+# - **Projet ontarien neuf** : au scénario central, l'exemption des premières occupations résidentielles postérieures à la date prévue par
 #   la loi est jugée plausible ; au scénario alternatif, la ligne directrice ontarienne s'applique. Ce n'est pas une
 #   détermination juridique (date et première année de bail affichées ci-dessous).
 
@@ -92,11 +92,11 @@ e2_result = forecast_regulated(snapshot_2026, cfg)
 scenarios = scenario_table(e2_result, cfg)
 labels = {"central": "central", "incentives_deeper": "concessions plus profondes",
           "incentives_shallower": "concessions plus légères", "more_renewals": "plus de renouvellements",
-          "fewer_renewals": "moins de renouvellements", "met_guideline_applies": "ligne directrice à the Ontario new-build",
+          "fewer_renewals": "moins de renouvellements", "met_guideline_applies": "ligne directrice au projet ontarien neuf",
           "low": "bas (minimum)", "high": "haut (maximum)"}
 display(scenarios.assign(scenario=scenarios["scenario"].map(labels)).rename(columns={
     "scenario": "scénario", "incentive_shift_pp": "concessions (pp)", "renewal_share_shift_pp": "renouvellements (pp)",
-    "met_guideline_applies": "ligne directrice à the Ontario new-build", "headline_net_pct": "net %",
+    "met_guideline_applies": "ligne directrice au projet ontarien neuf", "headline_net_pct": "net %",
     "headline_contract_pct": "contractuel %", "delta_net_pp": "écart au central (pp)"}).round(2))
 by_name = scenarios.set_index("scenario")
 single_levers = ["incentives_deeper", "incentives_shallower", "more_renewals", "fewer_renewals", "met_guideline_applies"]
@@ -106,7 +106,7 @@ display(Markdown(
     f"Scénario central E2 : **{by_name.loc['central', 'headline_net_pct']:.2f} %** net "
     f"({by_name.loc['central', 'headline_contract_pct']:.2f} % contractuel). Scénario bas : "
     f"**{by_name.loc['low', 'headline_net_pct']:.2f} %** ; scénario haut : **{by_name.loc['high', 'headline_net_pct']:.2f} %**. "
-    f"Si la ligne directrice ontarienne s'applique à the Ontario new-build : **{by_name.loc['met_guideline_applies', 'delta_net_pp']:+.2f} pp** "
+    f"Si la ligne directrice ontarienne s'applique au projet ontarien neuf : **{by_name.loc['met_guideline_applies', 'delta_net_pp']:+.2f} pp** "
     f"sur la hausse nette. Le levier qui déplace le plus la hausse nette est « {labels[strongest]} » "
     f"(**{by_name.loc[strongest, 'delta_net_pp']:+.2f} pp**) ; les concessions plus profondes ou plus légères donnent "
     f"**{by_name.loc['incentives_deeper', 'delta_net_pp']:+.2f} pp** et **{by_name.loc['incentives_shallower', 'delta_net_pp']:+.2f} pp**."))
@@ -151,7 +151,7 @@ plt.show()
 # `config/forecast.yaml` (`sensitivity`, `scenarios`) et de `config/measure.yaml`. **Opération :** on relance le modèle retenu
 # en changeant **une seule** hypothèse à la fois : règle d'information des données publiques, bornes de l'écart entre baux
 # (y compris les baux courts), seuils de winsorisation, fenêtre des poids ; on relance E2 pour les leviers
-# réglementaires (the Ontario new-build, concessions, part des renouvellements) et on compare les modèles entre eux. Rien n'est combiné.
+# réglementaires (projet ontarien neuf, concessions, part des renouvellements) et on compare les modèles entre eux. Rien n'est combiné.
 # **Pourquoi :** montrer quelles hypothèses déplacent vraiment la hausse et lesquelles n'ont aucun effet. **Vérification :** chaque
 # écart est la hausse de la variante moins celle du même modèle dans le cas de base ; une variante impossible reste visible avec sa
 # raison. Ce sont des **sensibilités**, pas des intervalles de prédiction : les effets ne s'additionnent pas.
@@ -170,7 +170,7 @@ sensitivities = sensitivity_table(tables, external, cfg, champion=champion)
 assumption_fr = {
     "information_rule": "Règle d'information (données publiques)", "gap_bounds": "Bornes de l'écart entre baux",
     "winsorization": "Winsorisation", "weight_window": "Fenêtre des poids",
-    "met_applicability": "Ligne directrice à the Ontario new-build", "incentive_intensity": "Intensité des concessions",
+    "met_applicability": "Ligne directrice au projet ontarien neuf", "incentive_intensity": "Intensité des concessions",
     "renewal_mix": "Part des renouvellements", "model_choice": "Choix du modèle"}
 
 

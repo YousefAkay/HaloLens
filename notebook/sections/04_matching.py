@@ -8,12 +8,12 @@
 # ## 4. Appariement à unité constante
 #
 # **Entrée :** `raw["leases"]` (fichier source, pour la démonstration de clé) et `tables.leases`.
-# **Opération :** apparier chaque bail au bail précédent de la même unité, sur la clé `sPropCode + sUnitCode`
-# (jamais `sSite + sUnitCode`), recoupée avec `hUnit` ; calculer la croissance annualisée en log ; écarter les
+# **Opération :** apparier chaque bail au bail précédent de la même unité, sur la clé « code de propriété + code d'unité »
+# (jamais « nom du site + code d'unité »), recoupée avec l'identifiant source de l'unité ; calculer la croissance annualisée en log ; écarter les
 # paires hors bornes en conservant un motif d'exclusion pour chacune.
 # **Pourquoi :** comparer une unité à elle-même neutralise la taille, l'étage, l'immeuble et l'orientation.
 # **Vérification :** décomptes par motif d'exclusion, couverture par année et sensibilité aux bornes d'écart.
-# Aucun code d'unité ni `hUnit` n'est affiché.
+# Aucun code d'unité ni identifiant d'unité n'est affiché.
 
 # %%
 import matplotlib.pyplot as plt
@@ -24,15 +24,15 @@ from leaselens.contracts import COLOR_CONTRACT, COLOR_NAIVE
 from leaselens.measure.pairs import build_pairs, exclusion_summary, gap_sensitivity, key_comparison
 
 # %% [markdown]
-# ### 4.1 Pourquoi jamais `sSite + sUnitCode`
+# ### 4.1 Pourquoi jamais « nom du site + code d'unité »
 # Un même site regroupe plusieurs codes de propriété dont les numéros d'unité se recoupent. Avec la clé
-# `sSite + sUnitCode`, des appartements différents partagent une clé et seraient « appariés » entre eux.
-# Le tableau compte, pour chaque clé, les clés qui mélangent plusieurs unités (`hUnit`) et les paires
-# consécutives qui compareraient deux appartements différents. C'est le seul endroit où `sSite` est lu.
+# « nom du site + code d'unité », des appartements différents partagent une clé et seraient « appariés » entre eux.
+# Le tableau compte, pour chaque clé, les clés qui mélangent plusieurs unités (identifiant source) et les paires
+# consécutives qui compareraient deux appartements différents. C'est le seul endroit où le nom du site est lu.
 
 # %%
 keys = key_comparison(raw["leases"]).rename(columns={
-    "key": "clé", "n_keys": "clés distinctes", "n_units": "unités (hUnit)",
+    "key": "clé", "n_keys": "clés distinctes", "n_units": "unités (identifiant source)",
     "n_keys_with_several_units": "clés à plusieurs unités", "n_leases_in_mixed_keys": "baux dans ces clés",
     "n_cross_unit_pairs": "paires entre deux unités différentes"})
 display(keys)
@@ -41,7 +41,7 @@ display(keys)
 # ### 4.2 Construction des paires et audit des exclusions
 # Étape qui transforme les données : baux triés par début de bail dans chaque unité, puis paire (bail précédent,
 # bail courant). Règles d'admissibilité (`config/measure.yaml`) : écart entre débuts de bail strictement compris
-# entre les bornes configurées, deux loyers positifs, même `hUnit` des deux côtés. Une paire appartient à l'année
+# entre les bornes configurées, deux loyers positifs, même identifiant d'unité des deux côtés. Une paire appartient à l'année
 # du début de son bail le plus récent. Chaque paire rejetée garde son motif ; une paire peut en cumuler plusieurs.
 
 # %%

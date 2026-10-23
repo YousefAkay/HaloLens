@@ -1,12 +1,10 @@
-# Halo Lens — the portfolio 2026 rent forecast
+# Halo Lens — Rent-growth forecast
 
 Halo Lens (code package: `leaselens`).
 
-**project ·  2026 · Défi « Clés en main »**
+> **FR —** Halo Lens estime la hausse de loyer 2026 d'un portefeuille résidentiel (immeubles au Québec et en Ontario) à partir de l'historique des baux et de données publiques. Nous définissons précisément la hausse mesurée, comparons chaque unité à elle-même, traitons explicitement les concessions, séparons renouvellements et relocations selon les règles de chaque province, et validons la méthode par backtest sur 2023, 2024 et 2025.
 
-> **FR —** Halo Lens estime la hausse de loyer 2026 de the portfolio (six immeubles au Québec et en Ontario) à partir de l'historique des baux et de données publiques. Nous définissons précisément la hausse mesurée, comparons chaque unité à elle-même, traitons explicitement les concessions, séparons renouvellements et relocations selon les règles de chaque province, et validons la méthode par backtest sur 2023, 2024 et 2025.
-
-> **EN —** Halo Lens estimates the portfolio's 2026 rent increase from lease history and public market data. We define exactly what "rent increase" means, compare each unit with itself, handle incentives explicitly, separate renewals from turnovers under each province's rules, and validate the method by backtesting 2023, 2024 and 2025.
+> **EN —** Halo Lens estimates a residential portfolio's 2026 rent increase from lease history and public market data. We define exactly what "rent increase" means, compare each unit with itself, handle incentives explicitly, separate renewals from turnovers under each province's rules, and validate the method by backtesting 2023, 2024 and 2025.
 
 ---
 

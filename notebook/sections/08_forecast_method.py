@@ -73,7 +73,7 @@ display(pd.DataFrame({
 # | **B2** ancrage marché | dernière croissance de l'IPC loyer + écart historique interne − marché | oui (IPC) |
 # | **B3** ancrage TAL | pourcentage du TAL + écart historique ; net = contractuel − écart contractuel→net de l'an dernier | oui (TAL) |
 # | **E1** moteur combiné | renouvellements : historique du segment + niveau du nowcast ; relocations : + signal des loyers affichés ; rabais prévus par segment | non |
-# | **E2** moteur réglementé | E1, mais les renouvellements québécois sont ancrés sur le TAL ; the Ontario new-build (Ontario) reste exempté au scénario central | oui (TAL, ligne directrice) |
+# | **E2** moteur réglementé | E1, mais les renouvellements québécois sont ancrés sur le TAL ; le projet ontarien neuf (Ontario) reste exempté au scénario central | oui (TAL, ligne directrice) |
 #
 # **Note de transparence.** B3 et E2 ont été ajoutés après le premier backtest réel, à cause de la structure
 # réglementaire TAL / Ontario ; B0, B1, B2 et E1 existaient avant. Cet ajout ne change pas la règle de choix, qui reste celle

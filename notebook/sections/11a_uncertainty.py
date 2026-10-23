@@ -20,7 +20,7 @@
 # nombre de tirages en échec est affiché.
 #
 # **Limite déclarée :** cet intervalle ne mesure que l'incertitude d'échantillonnage. Il ne couvre ni le choix du modèle ni les
-# hypothèses (bornes, winsorisation, règle d'information, concessions, régime de the Ontario new-build) : ces dimensions sont traitées par les
+# hypothèses (bornes, winsorisation, règle d'information, concessions, régime du projet ontarien neuf) : ces dimensions sont traitées par les
 # scénarios et les sensibilités de la section 11b. Les trois lectures se complètent ; aucune n'est un intervalle de prévision.
 
 # %%

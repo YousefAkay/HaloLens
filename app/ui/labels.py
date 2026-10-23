@@ -15,7 +15,7 @@ LANG_NAMES = {"en": "English", "fr": "Français"}
 LABELS: dict[str, dict[str, str]] = {
     "en": {
         # masthead and navigation
-        "app_title": "Halo Lens", "masthead_sub": "the portfolio · residential buildings, Québec & Ontario",
+        "app_title": "Halo Lens", "masthead_sub": "Residential portfolio · Québec & Ontario",
         "tab_answer": "01 · Answer", "tab_why": "02 · Why", "tab_validation": "03 · Validation",
         "tab_lab": "04 · Scenario Lab", "tab_buildings": "05 · Buildings", "tab_ask": "06 · Questions",
         "tab_sources": "07 · Sources", "badge_real": "Real data", "badge_demo": "Synthetic demo",
@@ -73,7 +73,7 @@ LABELS: dict[str, dict[str, str]] = {
         "val_col_pooled": "Pooled error (pp, descriptive only)", "val_col_folds": "Years computed",
         # 04 lab
         "lab_kicker": "04 · What if", "lab_headline": "Move a lever and watch the forecast move.",
-        "lab_incentive": "Incentives", "lab_renewal": "Renewal share", "lab_met": "the Ontario new-build", "lab_rule": "Public data cutoff",
+        "lab_incentive": "Incentives", "lab_renewal": "Renewal share", "lab_met": "Lakeview Residences", "lab_rule": "Public data cutoff",
         "opt_incentive_minus": "Shallower", "opt_incentive_zero": "Baseline", "opt_incentive_plus": "Deeper",
         "opt_renewal_minus": "Fewer", "opt_renewal_zero": "Baseline", "opt_renewal_plus": "More",
         "opt_met_exempt": "Exempt", "opt_met_guideline": "Guideline", "opt_rule_strict": "{day} strict",
@@ -85,7 +85,7 @@ LABELS: dict[str, dict[str, str]] = {
         "tornado_title": "What moves the forecast most",
         "tornado_caption": "Each bar changes one assumption alone; effects do not add up. Sensitivities, not prediction intervals.",
         "as_information_rule": "Information rule", "as_gap_bounds": "Pair gap bounds", "as_winsorization": "Winsorization",
-        "as_weight_window": "Weight window (years)", "as_met_applicability": "Ontario guideline for the Ontario new-build",
+        "as_weight_window": "Weight window (years)", "as_met_applicability": "Ontario guideline for Lakeview Residences",
         "as_incentive_intensity": "Incentive intensity", "as_renewal_mix": "Renewal share", "as_model_choice": "Model choice",
         "va_strict_dec31": "strict cutoff", "va_include_six_month_leases": "short leases included",
         "va_max_gap": "maximum gap", "va_quantiles": "quantiles", "va_years": "years", "va_met_guideline_applies": "guideline applies",
@@ -136,7 +136,7 @@ LABELS: dict[str, dict[str, str]] = {
         "bad_file": "Aggregates file not usable: {error}. Check outputs/public or outputs/private.",
     },
     "fr": {
-        "app_title": "Halo Lens", "masthead_sub": "the portfolio · immeubles résidentiels, Québec et Ontario",
+        "app_title": "Halo Lens", "masthead_sub": "Portefeuille résidentiel · Québec et Ontario",
         "tab_answer": "01 · Réponse", "tab_why": "02 · Pourquoi", "tab_validation": "03 · Validation",
         "tab_lab": "04 · Laboratoire de scénarios", "tab_buildings": "05 · Immeubles", "tab_ask": "06 · Questions",
         "tab_sources": "07 · Sources", "badge_real": "Données réelles", "badge_demo": "Démo synthétique",
@@ -191,7 +191,7 @@ LABELS: dict[str, dict[str, str]] = {
         "val_col_model": "Modèle", "val_col_selection": "Erreur de sélection (pp)", "val_col_holdout": "Erreur de validation (pp)",
         "val_col_pooled": "Erreur cumulée (pp, descriptif seulement)", "val_col_folds": "Années calculées",
         "lab_kicker": "04 · Et si", "lab_headline": "Déplacez un levier et regardez la prévision bouger.",
-        "lab_incentive": "Concessions", "lab_renewal": "Part des renouvellements", "lab_met": "the Ontario new-build",
+        "lab_incentive": "Concessions", "lab_renewal": "Part des renouvellements", "lab_met": "Lakeview Residences",
         "lab_rule": "Coupure des données publiques",
         "opt_incentive_minus": "Plus légères", "opt_incentive_zero": "Base", "opt_incentive_plus": "Plus profondes",
         "opt_renewal_minus": "Moins", "opt_renewal_zero": "Base", "opt_renewal_plus": "Plus",
@@ -206,7 +206,7 @@ LABELS: dict[str, dict[str, str]] = {
                             "intervalles de prédiction."),
         "as_information_rule": "Règle d'information", "as_gap_bounds": "Bornes de l'écart entre baux",
         "as_winsorization": "Winsorisation", "as_weight_window": "Fenêtre des poids (années)",
-        "as_met_applicability": "Ligne directrice ontarienne à the Ontario new-build", "as_incentive_intensity": "Intensité des concessions",
+        "as_met_applicability": "Ligne directrice ontarienne à Lakeview Residences", "as_incentive_intensity": "Intensité des concessions",
         "as_renewal_mix": "Part des renouvellements", "as_model_choice": "Choix du modèle",
         "va_strict_dec31": "coupure stricte", "va_include_six_month_leases": "baux courts inclus",
         "va_max_gap": "écart maximal", "va_quantiles": "quantiles", "va_years": "années", "va_met_guideline_applies": "ligne directrice applicable",

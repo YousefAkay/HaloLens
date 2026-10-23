@@ -25,7 +25,7 @@ COLOR_MARKET = "#009E73"    # green
 
 PROVINCE_CODES = {"Quebec": "QC", "Ontario": "ON"}
 
-# Source tables in the sponsor package (file name → logical name)
+# Source tables in the data package (file name → logical name)
 SOURCE_FILES = {
     "listings": "listings.csv",
     "leases": "lease_history.csv",
@@ -90,7 +90,7 @@ EXTERNAL_COLUMNS = [
 # ---------------------------------------------------------------------------
 @dataclass
 class CanonicalTables:
-    """The four sponsor tables after renaming and typing (io.dictionary.canonicalize)."""
+    """The four source tables after renaming and typing (io.dictionary.canonicalize)."""
 
     leases: pd.DataFrame
     concessions: pd.DataFrame

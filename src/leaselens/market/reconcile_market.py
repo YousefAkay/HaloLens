@@ -6,7 +6,7 @@ Each comparison in `measure.yaml` (`reconcile_market.comparisons`) puts one inte
 pairs (all leases, renewals or turnovers; optionally one bedroom count) next to one public series per province:
 Québec leases vs the Montréal CMA (or Québec rent CPI), Ontario leases vs the Ottawa CMA (or Ontario rent CPI).
 A province is never compared with the other province's market. This is descriptive history: it never feeds the
-forecast. CMHC vacancy is listed as regional context only and is never a project occupancy figure.
+forecast. CMHC vacancy is listed as regional context only and is never an occupancy figure of the analysed portfolio.
 """
 
 from __future__ import annotations
@@ -131,7 +131,7 @@ def provenance_table(external: pd.DataFrame, cfg: dict) -> pd.DataFrame:
     """One row per public series: publisher, geography, coverage, last release date, provenance and its role here.
 
     `role` is "compared" (used in a `reconcile_market` comparison), "context_only" (metrics in
-    `reconcile_market.context_only_metrics`, e.g. CMHC vacancy: regional context, never a project figure) or
+    `reconcile_market.context_only_metrics`, e.g. CMHC vacancy: regional context, never an occupancy figure of the analysed portfolio) or
     "reference" (any other series, e.g. regulatory percentages used in section 06 or monthly CPI levels).
     `verified` is True when every row of the series has `verified_by`. `url` is the URL of the latest release.
     """

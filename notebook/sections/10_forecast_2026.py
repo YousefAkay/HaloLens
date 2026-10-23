@@ -97,7 +97,7 @@ display(Markdown(
 # ### 10.3 Québec et Ontario
 #
 # **Opération :** même agrégation à poids fixes, restreinte aux segments de chaque province. Le Québec et
-# l'Ontario (the Ontario new-build) relèvent de régimes de loyers différents (TAL et loi ontarienne) ; aucun plafond d'une province n'est
+# l'Ontario (projet ontarien neuf) relèvent de régimes de loyers différents (TAL et loi ontarienne) ; aucun plafond d'une province n'est
 # appliqué à l'autre.
 
 # %%
@@ -168,5 +168,5 @@ display(Markdown(
     f"et n'est pas directement comparable aux années précédentes. Un modèle fondé sur l'an dernier peut donc {overshoot} la croissance contractuelle "
     f"{target_year} : {champion} donne **{final.headline_contract_pct:.1f} %** de croissance contractuelle, alors que le "
     f"modèle réglementé E2 donne **{e2['net_pct']:.1f} %** net et **{e2['contract_pct']:.1f} %** contractuel. "
-    f"Au scénario central, the Ontario new-build est considéré exempté de la ligne directrice ontarienne (hypothèse, pas une "
+    f"Au scénario central, le projet ontarien neuf est considéré exempté de la ligne directrice ontarienne (hypothèse, pas une "
     f"détermination juridique)."))

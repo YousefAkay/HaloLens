@@ -18,14 +18,14 @@
 # d'être ignoré. Aucune donnée du CRM n'est lue ici.
 #
 # ### 12.1 Notebook de départ et documents du défi
-# - **Notebook de départ du commanditaire** (`template.ipynb`, project,  2026). Nous en avons repris : les
+# - **Notebook de départ du commanditaire** fourni avec le défi. Nous en avons repris : les
 #   conventions de lecture des colonnes (champs `h` = identifiants, champs `s` = valeurs, codes de frais des
 #   concessions), les cellules de chargement des quatre fichiers CSV, les pistes de méthode (comparer une unité à
 #   elle-même, loyer contractuel vs loyer net, renouvellements vs relocations, bornes d'écart entre deux baux proposées au départ) et
 #   les signatures `estimate_2026(leases, asking, external=None)` et `backtest(leases, target_year)`. Le code d'analyse
 #   lui-même a été réécrit dans le paquet `leaselens`.
-# - **Documents du défi** : l'énoncé et les instructions de project pour la the portfolio (`instructions.pdf`), la
-#   présentation du défi (`presentation-project.pdf`) et les quatre extraits CSV fournis par le commanditaire, utilisés sans modification (empreintes SHA-256 vérifiées au
+# - **Documents du défi** : l'énoncé et les instructions du défi, la
+#   présentation du défi et les quatre extraits CSV fournis par le commanditaire, utilisés sans modification (empreintes SHA-256 vérifiées au
 #   chargement, section 2). Ces fichiers ne sont pas publiés.
 #
 # ### 12.2 Outils d'IA
@@ -60,7 +60,7 @@ approval_label = french_date(references_cfg["sponsor_approval_date"])
 display(Markdown(
     "**Aucune donnée du CRM n'a été envoyée à une API.** L'API Claude n'a reçu que des pages publiques (extraction "
     "et veille des sources) et des résultats agrégés (copilote et questions-réponses du tableau de bord) : aucune ligne de bail, aucun code de logement, "
-    "aucune valeur `hUnit`. Les sessions Claude Code ont travaillé sur les fichiers réels dans le dépôt local, avec "
+    "aucun identifiant d'unité. Les sessions Claude Code ont travaillé sur les fichiers réels dans le dépôt local, avec "
     f"l'approbation du commanditaire et du mentor ({approval_label}), en n'affichant que des comptes et des agrégats. "
     "Les fichiers du CRM restent dans `data/private/` (exclu de Git) et ne font partie d'aucun livrable."))
 

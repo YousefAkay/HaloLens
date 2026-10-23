@@ -305,7 +305,7 @@ def test_forecast_runs_on_the_synthetic_fixtures_at_every_backtest_fold(raw, cfg
 
 
 # ---------------------------------------------------------------------------
-# E2_regulated: Québec renewals anchored on the TAL percentage; Ontario (the Ontario new-build) exempt unless the guideline applies
+# E2_regulated: Québec renewals anchored on the TAL percentage; Ontario (new-build property) exempt unless the guideline applies
 # ---------------------------------------------------------------------------
 from tests.test_baselines import GUIDELINE_PCT, TAL_PCT, regulated_rows   # noqa: E402
 
