@@ -48,6 +48,10 @@ def new_app(monkeypatch, client=None, lang="en") -> AppTest:
     return at
 
 
+def ui_notice_text(at: AppTest) -> str:
+    return " ".join(element.value for element in at.markdown if "ll-notice" in element.value)
+
+
 def text_of(at: AppTest) -> str:
     """All visible text of the page: markdown (tags removed, entities decoded), captions, warnings, errors."""
     parts = [element.value for element in list(at.markdown) + list(at.caption) + list(at.warning) + list(at.error)
@@ -361,7 +365,14 @@ def test_the_headline_number_comes_from_the_json(monkeypatch):
 
 def test_the_synthetic_notice_is_shown_as_one_line(monkeypatch):
     at = new_app(monkeypatch).run()
-    assert sum("ll-notice" in element.value and "SYNTHÉTIQUE" in element.value for element in at.markdown) == 1
+    assert sum("ll-notice" in element.value and "SYNTHETIC EXAMPLE" in element.value for element in at.markdown) == 1
+    assert not any("ll-notice" in element.value and "SYNTHÉTIQUE" in element.value for element in at.markdown)
+
+
+def test_the_synthetic_notice_follows_the_interface_language(monkeypatch):
+    at = new_app(monkeypatch, lang="fr").run()
+    assert sum("ll-notice" in element.value and "EXEMPLE SYNTHÉTIQUE" in element.value for element in at.markdown) == 1
+    assert "SYNTHETIC EXAMPLE" not in ui_notice_text(at)
 
 
 def test_data_mode_is_a_sidebar_radio_and_real_without_a_file_shows_the_error(monkeypatch, tmp_path):

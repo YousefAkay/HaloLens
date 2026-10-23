@@ -101,9 +101,15 @@ def masthead_title(real: bool, lang: str) -> str:
             f'<p class="ll-sub">{esc(t("masthead_sub", lang))}</p>')
 
 
-def notice(doc: dict[str, Any]) -> str:
-    """The synthetic-data line (the document's own note); empty for real data."""
-    return f'<div class="ll-notice">{esc(doc["note"])}</div>' if doc["mode"] == "synthetic" else ""
+def notice(doc: dict[str, Any], lang: str = DEFAULT_LANG) -> str:
+    """The synthetic-data line in the UI language (the document's own note is only a fallback); empty for real data."""
+    if doc["mode"] != "synthetic":
+        return ""
+    try:
+        text = t("demo_banner", lang)
+    except KeyError:
+        text = doc["note"]
+    return f'<div class="ll-notice">{esc(text)}</div>'
 
 
 def section_header(anchor: str, kicker: str, headline: str, ai: bool = False) -> str:

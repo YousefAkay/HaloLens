@@ -415,7 +415,7 @@ def main() -> None:
     if doc["mode"] != MODE_OF[mode]:
         st.error(t("mode_mismatch", lang, found=doc["mode"], expected=MODE_OF[mode]))
         st.stop()
-    _html(ui.notice(doc))
+    _html(ui.notice(doc, lang))
     labels = [t(f"tab_{key}", lang) for key in TAB_KEYS]
     requested = st.query_params.get(VIEW_PARAMETER)
     default = labels[TAB_KEYS.index(requested)] if requested in TAB_KEYS else None

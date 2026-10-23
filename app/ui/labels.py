@@ -19,6 +19,7 @@ LABELS: dict[str, dict[str, str]] = {
         "tab_answer": "01 · Answer", "tab_why": "02 · Why", "tab_validation": "03 · Validation",
         "tab_lab": "04 · Scenario Lab", "tab_buildings": "05 · Buildings", "tab_ask": "06 · Questions",
         "tab_sources": "07 · Sources", "badge_real": "Real data", "badge_demo": "Synthetic demo",
+        "demo_banner": "SYNTHETIC EXAMPLE computed on the fictional data of the repository: the mode, counts and figures do not describe a real portfolio.",
         "data_label": "Data", "mode_demo": "Demo", "mode_real": "Real",
         "side_how_title": "How to read this",
         "side_how_body": ("Every figure comes from a precomputed aggregates file: this app never touches the lease data. "
@@ -137,6 +138,7 @@ LABELS: dict[str, dict[str, str]] = {
         "tab_answer": "01 · Réponse", "tab_why": "02 · Pourquoi", "tab_validation": "03 · Validation",
         "tab_lab": "04 · Laboratoire de scénarios", "tab_buildings": "05 · Immeubles", "tab_ask": "06 · Questions",
         "tab_sources": "07 · Sources", "badge_real": "Données réelles", "badge_demo": "Démo synthétique",
+        "demo_banner": "EXEMPLE SYNTHÉTIQUE calculé sur les données fictives du dépôt : le mode, les comptes et les chiffres ne décrivent pas un portefeuille réel.",
         "data_label": "Données", "mode_demo": "Démo", "mode_real": "Réel",
         "side_how_title": "Comment lire",
         "side_how_body": ("Chaque chiffre vient d'un fichier d'agrégats précalculé : l'application ne touche jamais aux baux. "
