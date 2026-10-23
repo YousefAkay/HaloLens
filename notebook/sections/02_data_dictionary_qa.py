@@ -24,8 +24,8 @@ display(mapping)
 
 # %% [markdown]
 # ### 2.2 Contrôles structurels
-# Points clés attendus : la clé `sSite + sUnitCode` provoque des collisions (elle n'est jamais utilisée),
-# `hUnit` ↔ `sPropCode + sUnitCode` est biunivoque, les codes d'unité commençant par zéro sont conservés,
+# Points clés attendus : la clé « nom du site + code d'unité » provoque des collisions (elle n'est jamais utilisée),
+# l'identifiant source de l'unité ↔ « code de propriété + code d'unité » est biunivoque, les codes d'unité commençant par zéro sont conservés,
 # et les dates de fin contractuelles après 2025 sont légitimes (baux signés).
 
 # %%

@@ -3,9 +3,9 @@
 Owner: MSR. Implements `applicability_matrix` (AGENTS.md Section 7.3), plus `reference_lines`, `exemption_evidence` and
 `renewals_vs_reference` for notebook section 06.
 
-Five buildings are under Québec's TAL, the Ontario new-build under Ontario's Residential Tenancies Act. A province's rule is only
+Québec buildings are under the TAL, Ontario buildings under Ontario's Residential Tenancies Act. A province's rule is only
 ever compared with that province's leases. The matrix is a reading of public rules used to design scenarios
-(newer Québec buildings: possible lease clause F; the Ontario new-build: possible post-November-15-2018 exemption). It is never a
+(newer Québec buildings: possible lease clause F; Ontario new-build: possible post-November-15-2018 exemption). It is never a
 legal determination. Reference percentages come from `data/public/sources.csv` with their release dates.
 """
 

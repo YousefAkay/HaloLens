@@ -5,7 +5,7 @@ Owner: FCT. Implements `scenario_table` (AGENTS.md Section 7.3) and `building_be
 Scenarios are computed from the segment table of an E2_regulated forecast, so they are exact re-aggregations of the same
 segment forecasts, not new models. Levers (forecast.yaml `scenarios`): incentive intensity (shift of every segment's
 forecast discount share d1), renewal mix (shift of the renewal share of the frozen weights), and Met applicability
-(Ontario guideline applies to the Ontario new-build renewals instead of the exempt central case). Scenario ranges are scenarios, not
+(Ontario guideline applies to the Ontario new-build property's renewals instead of the exempt central case). Scenario ranges are scenarios, not
 prediction intervals (AGENTS.md 9.4).
 """
 

@@ -5,16 +5,16 @@
 # ---
 
 # %% [markdown]
-# # Halo Lens — Hausse de loyer 2026, the portfolio
+# # Halo Lens — Hausse de loyer 2026
 #
-# Ce notebook est dérivé du notebook de départ fourni par project (`template.ipynb`).
+# Ce notebook est dérivé du notebook de départ fourni avec le défi.
 
 # %% [markdown]
-# **Abstract (English).** Halo Lens estimates the rent increase of the portfolio for the target year, for residential
+# **Abstract (English).** Halo Lens estimates the rent increase of a residential portfolio for the target year, for residential
 # buildings in Québec and Ontario, from lease history up to the data cutoff and from public market data. The increase is
 # defined as same-unit growth in rent net of all incentives, at fixed composition, and the method is backtested on the three
 # previous years. Every number in this notebook is computed by code from the data and the configuration. The notebook text
-# is in French, and the sponsor's starter notebook is credited in section 12.
+# is in French, and the starter notebook is credited in section 12.
 
 # %% [markdown]
 # ### Configuration commune
@@ -30,10 +30,10 @@ import warnings
 from pathlib import Path
 
 # ---- Données / Data ----------------------------------------------------------------------------------------------
-# Mettez ici le dossier qui contient les 4 fichiers CSV de project et manifest.json.
-# Put here the folder that holds the 4 project CSV files and manifest.json. None = data/private
+# Mettez ici le dossier qui contient les 4 fichiers CSV sources et manifest.json.
+# Put here the folder that holds the 4 source CSV files and manifest.json. None = data/private
 # (or the environment variable LEASELENS_DATA_DIR, if set).
-DATA_DIR = None  # mettez le chemin de vos fichiers CSV project ici / put your project CSV folder path here
+DATA_DIR = None  # mettez le chemin de vos fichiers CSV sources ici / put your source CSV folder path here
 
 
 def _stop(message_fr: str, message_en: str) -> None:
@@ -260,7 +260,7 @@ display(Markdown(
     f"**Québec :** {pct(provinces['QC']['net_pct'])} net ({pct(provinces['QC']['contract_pct'])} contractuel), sous "
     f"les règles du TAL. **Ontario :** {pct(provinces['ON']['net_pct'])} net ({pct(provinces['ON']['contract_pct'])} "
     f"contractuel), sous les règles ontariennes. Aucune règle n'est appliquée à l'autre province.\n\n"
-    f"**the Ontario new-build (Ontario) :** scénario central : {regulation['central']} Scénario alternatif : "
+    f"**Projet ontarien neuf (Ontario) :** scénario central : {regulation['central']} Scénario alternatif : "
     f"{regulation['alternative']} Ce ne sont pas des déterminations juridiques.\n\n"
     f"**Limites :** cet extrait ne permet de mesurer ni l'occupation, ni la vacance, ni l'absorption, ni le rent roll "
     f"total. Les poids décrivent les transitions de baux observées, pas l'occupation du portefeuille. Le loyer net est "

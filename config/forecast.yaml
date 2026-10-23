@@ -68,7 +68,7 @@ leakage_test:
 
 scenarios:
   # Low / central / high levers. Sizes come from the real history (counts and means only), justified in docs/assumptions/FCT.md.
-  incentive_intensity_shift_pp: 2.0       # +/- shift of every segment's forecast discount share d1; the mean discount share rose 2.1 and 3.4 pp in the last two years
-  renewal_share_shift_pp: 5.0             # +/- shift of the renewal share of the frozen weights; the yearly swing averaged 3 pp and peaked near 7 pp
-  met_guideline_applies: [false, true]    # central: post-2018 exemption plausible; alternative: Ontario guideline applies to the Ontario new-build renewals
+  incentive_intensity_shift_pp: 2.0       # +/- shift of every segment's forecast discount share d1; a round illustrative stress size, to be calibrated to your own history
+  renewal_share_shift_pp: 5.0             # +/- shift of the renewal share of the frozen weights; a round illustrative stress size, to be calibrated to your own history
+  met_guideline_applies: [false, true]    # central: post-2018 exemption plausible; alternative: Ontario guideline applies to the Ontario new-build property's renewals
   include_post_cutoff_quebec_method: false  # unused: the Jan 19 2026 TAL percentage is inside the Jan-31 window, so the new method is already the base case

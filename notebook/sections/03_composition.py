@@ -41,7 +41,7 @@ display((mix_renewal * 100).round(1).rename_axis(columns="part des baux (%)"))
 
 # %% [markdown]
 # ### 3.2 Construction des paires et pont naïf → unité constante → net
-# Étape qui transforme les données : les baux consécutifs d'une même unité (`sPropCode + sUnitCode`) sont
+# Étape qui transforme les données : les baux consécutifs d'une même unité (« code de propriété + code d'unité ») sont
 # appariés (détails et audit en section 4). Pour chaque année *y*, la hausse à unité constante utilise les poids de
 # segment (`code de propriété × chambres × renouvellement`) gelés à la date de coupure de *y* (fin de l'année
 # précédente, `forecast_years.cutoff_month_day`) et des seuils de winsorisation appris sur les paires connues à cette

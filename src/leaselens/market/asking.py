@@ -10,7 +10,7 @@ signed rents, so a spread log(signed / asking), learned on turnover leases signe
 
 `gap_years` runs from the prior lease start to the asking month, i.e. the same annualization as PAIRS. The signal is
 contractual (asking rents are offers before incentives); FCT's incentive engine converts it to net.
-Units are matched on the safe key `pairs.unit_key` (prop_code + unit_code), never on sSite.
+Units are matched on the safe key `pairs.unit_key` (prop_code + unit_code), never on the site name.
 Every input comes from a Snapshot, so nothing posted, signed or started after the cutoff can enter.
 """
 

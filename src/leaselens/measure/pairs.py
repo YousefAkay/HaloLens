@@ -2,8 +2,8 @@
 
 Owner: MSR. Implements `build_pairs` (AGENTS.md Section 7.3) and a gap-bound sensitivity helper.
 
-Units are matched on `cfg["pairs"]["unit_key"]` (prop_code + unit_code, the sponsor's safe key) and
-cross-checked against `unit_id` (hUnit). `sSite` is never used as a key; `key_comparison` reads it only to
+Units are matched on `cfg["pairs"]["unit_key"]` (prop_code + unit_code, the safe key) and
+cross-checked against `unit_id` (the source unit id). The site name is never used as a key; `key_comparison` reads it only to
 demonstrate the collision of the unsafe key. Every consecutive pair is returned,
 eligible or not; an excluded pair always carries a non-empty `exclusion_reason`.
 """
@@ -24,7 +24,7 @@ REASON_GAP_TOO_LONG = "gap_too_long"
 REASON_UNIT_ID_MISMATCH = "unit_id_mismatch"
 REASON_SEPARATOR = ";"
 
-# Source columns used only by the key comparison demo (canonical tables have no sSite)
+# Source columns used only by the key comparison demo (canonical tables have no site name)
 SOURCE_UNIT_ID = "hUnit"
 SOURCE_LEASE_START = "sLeaseFrom"
 
@@ -142,16 +142,16 @@ def gap_sensitivity(pairs: pd.DataFrame, cfg: dict) -> pd.DataFrame:
 
 
 def key_comparison(raw_leases: pd.DataFrame) -> pd.DataFrame:
-    """Safe (sPropCode + sUnitCode) vs unsafe (sSite + sUnitCode) matching key on the SOURCE lease table. Counts only.
+    """Safe (property code + unit code) vs unsafe (site name + unit code) matching key on the SOURCE lease table. Counts only.
 
-    This is the only place `sSite` is read, to demonstrate the collision the sponsor warns about. For each key:
-    n_keys (distinct key values), n_units (distinct hUnit), n_keys_with_several_units, n_leases_in_mixed_keys and
-    n_cross_unit_pairs (consecutive leases by start date under that key that belong to two different hUnit, i.e.
+    This is the only place the site name is read, to demonstrate the key collision. For each key:
+    n_keys (distinct key values), n_units (distinct source unit ids), n_keys_with_several_units, n_leases_in_mixed_keys and
+    n_cross_unit_pairs (consecutive leases by start date under that key that belong to two different source unit ids, i.e.
     pairs that would compare two different apartments).
     """
     lease_start = pd.to_datetime(raw_leases[SOURCE_LEASE_START])
     rows = []
-    for name, key in (("safe: sPropCode + sUnitCode", SAFE_UNIT_KEY), ("unsafe: sSite + sUnitCode", UNSAFE_UNIT_KEY)):
+    for name, key in (("safe: property code + unit code", SAFE_UNIT_KEY), ("unsafe: site name + unit code", UNSAFE_UNIT_KEY)):
         frame = raw_leases[key + [SOURCE_UNIT_ID]].assign(_start=lease_start)
         units_per_key = frame.groupby(key)[SOURCE_UNIT_ID].transform("nunique")
         ordered = frame.sort_values(key + ["_start"], kind="mergesort")

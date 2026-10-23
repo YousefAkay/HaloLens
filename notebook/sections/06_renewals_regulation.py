@@ -14,7 +14,7 @@
 # de celle des **relocations** (nouveau locataire) ; comparer les renouvellements à la référence réglementaire de
 # **leur propre province** ; présenter la matrice d'applicabilité des règles par immeuble.
 # **Pourquoi :** les deux cas obéissent à des règles différentes. Les immeubles du Québec relèvent du Tribunal
-# administratif du logement (TAL), the Ontario new-build de la loi ontarienne ; la règle d'une province n'est jamais appliquée à
+# administratif du logement (TAL), le projet ontarien neuf de la loi ontarienne ; la règle d'une province n'est jamais appliquée à
 # l'autre.
 # **Vérification :** les comptes de paires s'additionnent au total des paires admissibles ; seuls des agrégats sont
 # affichés ; une cellule trop petite montre son compte sans hausse.
@@ -173,11 +173,11 @@ display(matrix.assign(lease_type=matrix["lease_type"].map(LEASE_TYPE_FR))[
         "first_lease_year": "premier bail (extrait)", "latest_phase_first_lease_year": "phase la plus récente"}))
 
 # %% [markdown]
-# ### 6.4 the Ontario new-build : pourquoi le scénario central retient l'exemption
-# Le scénario central suppose que les renouvellements de the Ontario new-build ne sont pas plafonnés par la ligne directrice. Les
-# preuves ci-dessous viennent de sources indépendantes : la loi, un fait public sur l'immeuble (presse spécialisée) et
+# ### 6.4 Le projet ontarien neuf : pourquoi le scénario central retient l'exemption
+# Le scénario central suppose que les renouvellements du projet ontarien neuf ne sont pas plafonnés par la ligne directrice. Les
+# preuves ci-dessous viennent de sources indépendantes : la loi, un fait public sur l'immeuble (exemple illustratif) et
 # ce que montrent les baux de l'extrait (agrégats seulement). Étape qui transforme les données : pour chaque
-# renouvellement admissible de the Ontario new-build, la hausse du loyer contractuel non annualisée (loyer / loyer précédent − 1) est
+# renouvellement admissible du projet ontarien neuf, la hausse du loyer contractuel non annualisée (loyer / loyer précédent − 1) est
 # comparée à la ligne directrice de son année ; un renouvellement est « au-dessus » s'il la dépasse de plus de
 # `regulation.exemption_evidence.above_reference_tolerance_pp` point (arrondi au cent).
 
@@ -186,6 +186,7 @@ evidence_settings = cfg["regulation"]["exemption_evidence"]
 evidence_years = list(cfg["forecast_years"]["backtest_years"])
 met_entries = [entry for entry in cfg["regulation"]["buildings"] if entry.get("scenario") == EXEMPTION_SCENARIO]
 met_buildings = [entry["building"] for entry in met_entries]
+met_name = ", ".join(met_buildings) or "le projet ontarien neuf"
 met_evidence = exemption_evidence(pairs, references, cfg, evidence_years)
 met_first_year = matrix.loc[matrix["building"].isin(met_buildings), "first_lease_year"].dropna()
 display(met_evidence.rename(columns={
@@ -197,7 +198,7 @@ share_text = ", ".join(
     else f"{int(row.year)} : aucun renouvellement admissible" for row in met_evidence.itertuples())
 first_text = f"{int(met_first_year.min())}" if len(met_first_year) else "non observée (données synthétiques)"
 occupancy_fact = (
-    f"the Ontario new-build ({evidence_settings['building_address']}), projet locatif de {evidence_settings['building_units']} "
+    f"{met_name} ({evidence_settings['building_address']}), projet locatif de {evidence_settings['building_units']} "
     f"logements, a commencé à être occupée en {french_month_year(evidence_settings['occupancy_start_month'])} "
     f"({evidence_settings['occupancy_source_label']}, {french_date(evidence_settings['occupancy_source_date'])}), "
     f"soit après le {exemption_cutoff}.")
@@ -205,20 +206,20 @@ display(Markdown(
     f"1. **Loi** — {evidence_settings['law_citation']}, résumée par le gouvernement de l'Ontario "
     f"([ontario.ca]({evidence_settings['law_url']})) : les nouveaux immeubles occupés pour la première fois à des fins "
     f"résidentielles après le {exemption_cutoff} sont exemptés du contrôle des loyers.\n"
-    f"2. **Fait public** — {occupancy_fact} ([source]({evidence_settings['occupancy_url']})) "
-    f"Aucune source officielle datée (Ville d'Ottawa, propriétaire) n'a été trouvée.\n"
-    f"3. **Extrait interne** — premier bail de the Ontario new-build dans l'extrait : **{first_text}**.\n"
+    f"2. **Fait public (exemple illustratif à remplacer par vos propres sources)** — {occupancy_fact} ([source]({evidence_settings['occupancy_url']})) "
+    f"Les valeurs de ce bloc viennent de `regulation.exemption_evidence` dans la configuration.\n"
+    f"3. **Extrait interne** — premier bail du projet ontarien neuf dans l'extrait : **{first_text}**.\n"
     f"4. **Comportement observé** — renouvellements au-dessus de la ligne directrice, par année : {share_text}.\n\n"
     f"**Conclusion :** scénario central = **exemption** (la ligne directrice ne plafonne pas les renouvellements de "
-    f"the Ontario new-build) ; scénario alternatif = **la ligne directrice s'applique**. Ce choix repose sur des preuves publiques "
+    f"ce projet) ; scénario alternatif = **la ligne directrice s'applique**. Ce choix repose sur des preuves publiques "
     f"et internes concordantes ; ce n'est pas une détermination juridique."))
 
 # %% [markdown]
-# #### Effet du scénario the Ontario new-build sur la prévision
+# #### Effet du scénario du projet ontarien neuf sur la prévision
 # Étape qui transforme les données : on prend la prévision réglementée (modèle E2, section 8) pour l'année visée (`forecast_regulated`,
 # baux coupés à la date de coupure, données publiques à la date d'information) et son tableau de scénarios
 # (`scenario_table`, section 11b). On lit l'écart entre le scénario central (exemption) et le scénario où la ligne
-# directrice s'applique aux renouvellements de the Ontario new-build. Les poids décrivent le mix des transitions de baux observées,
+# directrice s'applique aux renouvellements du projet ontarien neuf. Les poids décrivent le mix des transitions de baux observées,
 # pas l'occupation du portefeuille.
 
 # %%
@@ -234,11 +235,11 @@ if MET_SCENARIO_ROW in met_scenarios.index and pd.notna(met_scenarios.loc[MET_SC
     alternative_pct = met_scenarios.loc[MET_SCENARIO_ROW, "headline_net_pct"]
     delta_pp = met_scenarios.loc[MET_SCENARIO_ROW, "delta_net_pp"]
     display(Markdown(
-        f"Appliquer la ligne directrice aux renouvellements de the Ontario new-build change la hausse {target_year} (loyer net de "
+        f"Appliquer la ligne directrice aux renouvellements du projet ontarien neuf change la hausse {target_year} (loyer net de "
         f"toutes les concessions) de **{delta_pp:+.2f} point** ({central_pct:.2f} % → {alternative_pct:.2f} %), car "
         f"ces renouvellements ne pèsent que **{met_renewal_weight:.1%}** des poids fixes."))
 else:
-    display(Markdown("Le scénario « ligne directrice appliquée à the Ontario new-build » ne peut pas être calculé avec ces données."))
+    display(Markdown("Le scénario « ligne directrice appliquée au projet ontarien neuf » ne peut pas être calculé avec ces données."))
 
 # %% [markdown]
 # ### 6.5 Lecture

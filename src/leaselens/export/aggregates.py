@@ -38,9 +38,9 @@ DEFINITION = (
     "roulement du portefeuille. Les compagnons (loyer contractuel, médianes) sont toujours présentés à côté."
 )
 NOTE_REAL = ("Agrégats seulement : pourcentages, comptes et dates. Ne pas publier avant l'approbation du "
-             "commanditaire pour ce qui peut sortir de la machine.")
+             "propriétaire des données pour ce qui peut sortir de la machine.")
 NOTE_SYNTHETIC = ("EXEMPLE SYNTHÉTIQUE calculé sur les données fictives du dépôt : la mode, les comptes et les "
-                  "chiffres ne décrivent pas project.")
+                  "chiffres ne décrivent pas un portefeuille réel.")
 RULE_ORDER = ("jan31", "dec31_strict")
 BACKTEST_RENAMES = {"rule": "information_rule"}
 BACKTEST_FIELDS = ["year", "model", "information_rule", "forecast_net_pct", "actual_net_pct", "error_pp_net",

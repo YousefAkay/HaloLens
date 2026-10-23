@@ -15,12 +15,12 @@
 # section 4.
 # **Opération :** charger et valider le registre, présenter la provenance de chaque série, puis comparer la hausse à
 # unité constante de l'extrait aux tendances du marché **de sa propre région** : immeubles du Québec avec la RMR de
-# Montréal et l'IPC loyer du Québec, the Ontario new-build avec la RMR d'Ottawa et l'IPC loyer de l'Ontario.
+# Montréal et l'IPC loyer du Québec, le projet ontarien neuf avec la RMR d'Ottawa et l'IPC loyer de l'Ontario.
 # **Pourquoi :** situer la hausse interne par rapport au marché et vérifier qu'aucune donnée publique n'est utilisée
 # avant sa date de publication.
 # **Vérification :** le registre passe toutes les règles de validation, chaque série a une date de publication, une URL
 # et un vérificateur. Seuls des agrégats sont affichés. Le taux d'inoccupation de la SCHL n'est qu'un **contexte
-# régional** : cet extrait ne permet pas de mesurer l'occupation ou l'inoccupation de project.
+# régional** : cet extrait ne permet pas de mesurer l'occupation ou l'inoccupation du portefeuille.
 
 # %%
 from pathlib import Path
@@ -190,12 +190,12 @@ if not turnover.empty and (turnover["mean_gap_contract_pp"] < 0).all():
 few_years = market_summary["n_years"] < len(cfg["forecast_years"]["backtest_years"])
 if few_years.any():
     lines.append(f"- {int(few_years.sum())} comparaison(s) ont moins d'années communes que les années de backtest "
-                 f"(premier bail de the Ontario new-build dans l'extrait : {met_first_year}) : ce sont des indications, pas des "
+                 f"(premier bail du projet ontarien neuf dans l'extrait : {met_first_year}) : ce sont des indications, pas des "
                  "estimations précises.")
 display(Markdown("\n".join(lines) if lines else "Pas assez d'années communes pour une lecture."))
 display(Markdown(
     "Le taux d'inoccupation de la SCHL figure dans le registre comme **contexte du marché régional** seulement. Ce "
-    "n'est jamais un taux d'occupation ou d'inoccupation de project, que cet extrait ne permet pas de mesurer."))
+    "n'est jamais un taux d'occupation ou d'inoccupation du portefeuille, que cet extrait ne permet pas de mesurer."))
 
 # %% [markdown]
 # ### 7.6 Veille des sources publiques (IA)

@@ -50,7 +50,7 @@ crm_cutoff_label = french_date(cutoff)
 
 display(Markdown(f"""
 **Population :** paires éligibles.
-- Même unité, identifiée par la clé `{' + '.join(cfg['pairs']['unit_key'])}` (jamais `sSite + sUnitCode`), avec contrôle croisé par `{cfg['pairs']['cross_check_key']}`.
+- Même unité, identifiée par la clé `{' + '.join(cfg['pairs']['unit_key'])}` (jamais « nom du site + code d'unité »), avec contrôle croisé par `{cfg['pairs']['cross_check_key']}`.
 - Baux consécutifs par date de début ; écart entre **{cfg['pairs']['min_gap_years']}** et **{cfg['pairs']['max_gap_years']}** ans ; loyers positifs. Chaque exclusion garde son motif.
 - Une paire appartient à l'année de la date de début du bail le plus récent.
 

@@ -48,7 +48,7 @@ from leaselens.market.registry import DATE_COLUMNS, OBSERVATION_KEY, load_extern
 STATCAN_WDS_URL = "https://www150.statcan.gc.ca/t1/wds/rest/"
 STATCAN_TABLE_URL = "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid={pid}01"
 STATCAN_PUBLISHER = "Statistics Canada"
-USER_AGENT = "LeaseLens-research/1.0 (project  2026; public data extraction)"
+USER_AGENT = "LeaseLens-research/1.0 (public data extraction)"
 SKIPPED_HTML_TAGS = {"script", "style", "noscript", "svg"}
 PERIOD_KEY = ["series_id", "geography", "metric", "ref_period_start", "ref_period_end"]  # one observed period
 

@@ -2,15 +2,15 @@
 
 data:
   mode: real                      # default for the notebook (the jury has the CRM files); "synthetic" (committed fixtures) via the build flag or LEASELENS_DATA_MODE
-  private_dir: data/private       # sponsor ZIP contents; gitignored
+  private_dir: data/private       # private source files; gitignored
   synthetic_dir: data/synthetic   # invented fixtures produced by scripts/make_synthetic.py
   public_dir: data/public         # public-source extracts
   manifest_file: manifest.json    # SHA-256 hashes checked before every run
-  data_end_date: "2025-12-31"     # last date covered by the sponsor extract (signing/start histories)
+  data_end_date: "2025-12-31"     # last date covered by the source extract (signing/start histories)
 
 outputs:
   private_dir: outputs/private    # anything derived from CRM; gitignored
-  public_dir: outputs/public      # synthetic or sponsor-approved aggregates only
+  public_dir: outputs/public      # synthetic or approved aggregates only
   aggregates_file: aggregates.json
   aggregates_synthetic_file: aggregates_synthetic.json  # invented demo file the app reads until the real export (I-09) exists
 

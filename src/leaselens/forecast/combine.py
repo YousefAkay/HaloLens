@@ -120,7 +120,7 @@ def _engine(snapshot: Snapshot, cfg: dict, regulated: bool, model_name: str,
     """Shared pipeline of E1 (`regulated=False`) and E2 (`regulated=True`); see `forecast` and `forecast_regulated`.
 
     With `regulated=True`, Québec renewal segments are anchored on the TAL percentage of the target year plus a gap learned
-    on training years; Ontario renewals (the Ontario new-build) keep the E1 blend (central scenario: exempt) unless
+    on training years; Ontario renewals (the Ontario new-build property) keep the E1 blend (central scenario: exempt) unless
     `met_guideline_applies`, which anchors them on the Ontario guideline plus its own training gap. Turnovers and the
     incentive engine are identical in both models. `segments` gains `province`, `n_pairs_window`, `g_source` and
     `g_contract_met_alt` (contract growth if the Ontario guideline applied; NaN when it cannot be computed).
