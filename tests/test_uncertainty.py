@@ -154,6 +154,7 @@ def test_interval_on_no_successful_draw_is_nan(cfg):
     assert summary["n_ok"] == 0 and np.isnan(summary["net_pct"]["lower"])
 
 
+@pytest.mark.slow
 def test_default_champion_is_the_pre_declared_choice_and_the_config_is_untouched(tables, cfg):
     before = copy.deepcopy(cfg)
     result = unit_bootstrap(tables, empty_external(), cfg, 3)

@@ -137,6 +137,7 @@ def test_run_backtest_uses_the_same_forecast_as_the_engine_pipeline(raw, cfg):
     assert fold.target_year == 2025 and fold.coverage["n_pairs_actual"] > 0
 
 
+@pytest.mark.slow
 def test_all_models_table_adds_the_engine_to_the_baselines(raw, cfg):
     from halolens.io import canonicalize
     table = backtest_all_models(canonicalize(raw), empty_external(), cfg)
@@ -147,6 +148,7 @@ def test_all_models_table_adds_the_engine_to_the_baselines(raw, cfg):
     assert regulated["forecast_net_pct"].isna().all() and regulated["note"].str.contains("rate").all()
 
 
+@pytest.mark.slow
 def test_model_summary_separates_selection_years_from_the_holdout(raw, cfg):
     from halolens.io import canonicalize
     table = backtest_all_models(canonicalize(raw), empty_external(), cfg)
@@ -275,6 +277,7 @@ def test_unsupported_selection_metric_raises(cfg):
         select_champion(error_table([("X", 2023, 1.0, "jan31")]), other)
 
 
+@pytest.mark.slow
 def test_champion_selection_runs_on_the_full_synthetic_table(raw, cfg):
     from halolens.io import canonicalize
     table = backtest_both_rules(canonicalize(raw), empty_external(), cfg)
@@ -303,6 +306,7 @@ def test_tables_from_leases_leaves_concessions_and_listings_empty(raw, cfg):
     assert rebuilt.leases is source.leases and rebuilt.asking is source.asking
 
 
+@pytest.mark.slow
 def test_champion_pipeline_applies_the_pre_declared_rule(raw, cfg):
     from halolens.evaluate.backtest import champion_pipeline
     from halolens.io import canonicalize
@@ -313,6 +317,7 @@ def test_champion_pipeline_applies_the_pre_declared_rule(raw, cfg):
     assert pipeline["selection_years"] == [2023, 2024] and pipeline["holdout_year"] == 2025
 
 
+@pytest.mark.slow
 def test_champion_pipeline_reuses_a_precomputed_table(raw, cfg):
     from halolens.evaluate.backtest import champion_pipeline
     from halolens.io import canonicalize
@@ -322,6 +327,7 @@ def test_champion_pipeline_reuses_a_precomputed_table(raw, cfg):
         synthetic, empty_external(), cfg)["champion"]
 
 
+@pytest.mark.slow
 def test_champion_forecast_is_the_champions_own_forecast_for_the_target_year(raw, cfg):
     from halolens.evaluate.backtest import champion_forecast, champion_pipeline
     from halolens.forecast.asof import snapshot_for_year
@@ -334,6 +340,7 @@ def test_champion_forecast_is_the_champions_own_forecast_for_the_target_year(raw
     assert result.headline_net_pct == direct.headline_net_pct
 
 
+@pytest.mark.slow
 def test_champion_backtest_uses_the_same_champion_and_reports_the_sensitivity(raw, cfg):
     from halolens.evaluate.backtest import champion_backtest, champion_pipeline
     from halolens.io import canonicalize
@@ -345,6 +352,7 @@ def test_champion_backtest_uses_the_same_champion_and_reports_the_sensitivity(ra
     assert "sensitivity_strict_dec31" in fold.coverage and fold.target_year == 2025
 
 
+@pytest.mark.slow
 def test_estimate_and_backtest_wrappers_share_one_champion(raw, cfg):
     """The 2026 headline and the backtest folds must come from the same model."""
     from halolens.evaluate.backtest import champion_backtest, champion_forecast, tables_from_leases
@@ -356,6 +364,7 @@ def test_estimate_and_backtest_wrappers_share_one_champion(raw, cfg):
     assert {fold.forecast.model_name for fold in folds} == {estimate.model_name}
 
 
+@pytest.mark.slow
 def test_headline_table_lists_every_model_under_both_rules(raw, cfg):
     from halolens.evaluate.backtest import headline_table
     from halolens.io import canonicalize
@@ -368,6 +377,7 @@ def test_headline_table_lists_every_model_under_both_rules(raw, cfg):
     assert missing["net_pct"].isna().all() and missing["note"].ne("").all()   # no public data passed in
 
 
+@pytest.mark.slow
 def test_headline_table_matches_the_champion_forecast_for_the_champion(raw, cfg):
     from halolens.evaluate.backtest import champion_forecast, headline_table
     from halolens.io import canonicalize

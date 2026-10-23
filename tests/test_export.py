@@ -40,6 +40,7 @@ def _identifiers(tables) -> set[str]:
     return values
 
 
+@pytest.mark.slow
 def test_document_validates_against_the_schema(document):
     assert list(Draft202012Validator(AGGREGATES_SCHEMA, format_checker=FormatChecker()).iter_errors(document)) == []
 
@@ -127,6 +128,7 @@ def test_export_refuses_a_unit_level_field_and_writes_nothing(document, tmp_path
     assert not path.exists()
 
 
+@pytest.mark.slow
 def test_headline_equals_estimate_2026(document, tables, external, cfg):
     """Headline net and contract equal estimate_2026() (notebook section 10: champion_forecast on the same tables)."""
     estimate = champion_forecast(tables_from_leases(tables.leases, tables.asking), external, cfg)
@@ -134,12 +136,14 @@ def test_headline_equals_estimate_2026(document, tables, external, cfg):
     assert document["headline"]["contract_pct"] == pytest.approx(estimate.headline_contract_pct)
 
 
+@pytest.mark.slow
 def test_headline_model_is_the_declared_champion(document, tables, external, cfg):
     """The headline model is the champion selected by the rule declared before results (no holdout use)."""
     champion = champion_pipeline(tables, external, cfg)["champion"]
     assert document["headline"]["model"] == champion
 
 
+@pytest.mark.slow
 def test_model_range_covers_the_candidate_models(document, tables, external, cfg):
     """The 2026 model range is the min and max over B0, B1, E1 and E2 under the January-31 rule."""
     candidates = headline_table(tables, external, cfg, year=cfg["forecast_years"]["target_year"])

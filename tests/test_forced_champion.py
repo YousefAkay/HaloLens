@@ -21,6 +21,8 @@ from halolens.market.registry import load_external
 
 MODELS = sorted(all_models())
 
+pytestmark = pytest.mark.slow
+
 
 @pytest.fixture(scope="module")
 def external():

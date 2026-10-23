@@ -648,6 +648,7 @@ def test_model_choice_rows_compare_each_model_with_the_champion(cfg):
     assert "B0_last_year" not in table.index                              # the champion is not compared with itself
 
 
+@pytest.mark.slow
 def test_a_champion_that_is_e2_adds_no_duplicate_information_rule_row(cfg):
     table = run_sensitivity(cfg, champion="E2_regulated")
     assert (table[table["assumption"] == "information_rule"]["model"] == "E2_regulated").all()
@@ -662,6 +663,7 @@ def test_variants_that_cannot_run_keep_their_row_with_the_reason(cfg):
     assert table["abs_delta_pp"].isna().iloc[-len(e2_rows):].all()
 
 
+@pytest.mark.slow
 def test_sensitivity_table_runs_on_the_synthetic_fixtures_with_the_champion_pipeline(raw, cfg):
     from halolens.forecast.scenarios import sensitivity_table
     from halolens.io import canonicalize
@@ -712,6 +714,7 @@ def test_the_fallback_row_counts_the_segments_of_the_model(cfg):
 
 
 @pytest.mark.parametrize("champion", ["B1_trailing_mean", "B3_tal_anchor"])
+@pytest.mark.slow
 def test_the_export_survives_a_champion_without_segment_forecasts(champion, tables, cfg, monkeypatch):
     """If the champion ever changes to a portfolio-only model, the aggregates still build, validate and say 'no split'."""
     from jsonschema import Draft202012Validator, FormatChecker
