@@ -1,8 +1,7 @@
 """The Markdown of the reader-facing sections names no task, rule document or track. Owner: INT (I-16).
 
 Sections 00, 01, 02, 11a and 12 are the ones a reader meets first. Their Markdown must not carry task IDs (I-13, M-03),
-references to AGENTS.md sections, or a track tag such as (INT). Section 12 may use a track tag in its per-track
-reference headings, because it presents each track's reference file under its own heading.
+references to AGENTS.md sections, or a track tag such as (INT).
 """
 
 from __future__ import annotations
@@ -39,8 +38,6 @@ def test_markdown_does_not_cite_agents_sections(name):
 @pytest.mark.parametrize("name", SECTIONS)
 def test_markdown_has_no_standalone_track_tag(name):
     lines = _markdown_lines(name)
-    if name == "12_references":
-        lines = [line for line in lines if not line.lstrip().startswith("#")]  # per-track reference headings stay
     assert [line for line in lines if TRACK_TAG.search(line)] == []
 
 

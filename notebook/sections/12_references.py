@@ -7,78 +7,55 @@
 # %% [markdown]
 # ## 12. Références
 #
-# **Entrée :** les fichiers de références de chaque volet (`docs/references/INT.md`, `MSR.md`, `FCT.md`), tenus à jour
-# par leur propriétaire, et la configuration `references` de `config/measure.yaml`.
-# **Opération :** cette section se compile elle-même : au moment de la construction du notebook, elle lit les trois
-# fichiers et les affiche tels quels, un sous-titre par volet. Seules les parties fixes ci-dessous (notebook de départ,
-# documents du défi, outils d'IA, confidentialité) sont écrites ici.
+# **Entrée :** le fichier `docs/references.md` et la configuration `references` de `config/measure.yaml`.
+# **Opération :** cette section se compile elle-même : au moment de la construction du notebook, elle lit le fichier
+# et l'affiche tel quel. Seules les parties fixes ci-dessous (outils d'IA, confidentialité) sont écrites ici.
 # **Pourquoi :** chaque source publique, article ou outil cité n'est écrit qu'à un seul endroit ; un ajout dans le
-# fichier d'un volet apparaît ici à la construction suivante, sans modifier cette section.
-# **Vérification :** les trois fichiers sont lus et affichés ; un fichier absent ou sans entrée est signalé au lieu
-# d'être ignoré. Aucune donnée du CRM n'est lue ici.
+# fichier apparaît ici à la construction suivante, sans modifier cette section.
+# **Vérification :** le fichier est lu et affiché ; un fichier absent est signalé au lieu d'être ignoré. Aucune donnée
+# de baux n'est lue ici.
 #
-# ### 12.1 Notebook de départ et documents du défi
-# - **Notebook de départ du commanditaire** fourni avec le défi. Nous en avons repris : les
-#   conventions de lecture des colonnes (champs `h` = identifiants, champs `s` = valeurs, codes de frais des
-#   concessions), les cellules de chargement des quatre fichiers CSV, les pistes de méthode (comparer une unité à
-#   elle-même, loyer contractuel vs loyer net, renouvellements vs relocations, bornes d'écart entre deux baux proposées au départ) et
-#   les signatures `estimate_2026(leases, asking, external=None)` et `backtest(leases, target_year)`. Le code d'analyse
-#   lui-même a été réécrit dans le paquet `leaselens`.
-# - **Documents du défi** : l'énoncé et les instructions du défi, la
-#   présentation du défi et les quatre extraits CSV fournis par le commanditaire, utilisés sans modification (empreintes SHA-256 vérifiées au
-#   chargement, section 2). Ces fichiers ne sont pas publiés.
-#
-# ### 12.2 Outils d'IA
-# - **Claude (clavardage, projet HALO)** : planification des tâches, rédaction des instructions de travail et revue des
-#   rapports de fin de tâche.
-# - **Claude Code** : implémentation du code, des tests et des sections du notebook dans le dépôt local ; revues
-#   automatiques avant fusion (`/review-pr`) ; chaque changement a été relu par un humain avant fusion.
-# - **API Claude** : (1) extraction de valeurs à partir de **pages publiques** (TAL, gouvernement de l'Ontario, SCHL),
-#   chaque valeur étant ensuite contrôlée contre sa page officielle par Claude, puis vérifiée par un humain sur un échantillon nommé (`docs/assumptions/MSR.md`) avant d'entrer dans
-#   `data/public/sources.csv` ; (2) veille des sources (`scripts/extract_sources.py --watch`, pages publiques
-#   seulement) : les nouvelles valeurs détectées attendent une vérification humaine et n'entrent jamais seules dans la
-#   prévision (section 7.6) ; (3) copilote de scénarios et questions-réponses du tableau de bord, à partir des
-#   **résultats agrégés** seulement et contrôlés par un garde-fou qui rejette tout nombre absent de ces résultats.
-#
-# Les modèles exacts et les détails d'usage par volet figurent dans les fichiers de références ci-dessous.
+# ### 12.1 Outils d'IA
+# - **Claude (clavardage)** : planification des tâches et revue des résultats.
+# - **Claude Code** : implémentation du code, des tests et des sections du notebook ; chaque changement a été relu par
+#   un humain avant fusion.
+# - **API Claude** : (1) extraction de valeurs à partir de **pages publiques**, chaque valeur étant ensuite contrôlée
+#   contre sa page officielle par Claude, puis un humain a vérifié un échantillon nommé (toutes les valeurs n'ont pas
+#   été vérifiées à la main) avant leur entrée dans `data/public/sources.csv` ; (2) veille des sources
+#   (`scripts/extract_sources.py --watch`, pages publiques seulement) : les nouvelles valeurs détectées attendent une
+#   vérification humaine et n'entrent jamais seules dans la prévision ; (3) copilote de scénarios et
+#   questions-réponses du tableau de bord, à partir des **résultats agrégés** seulement et contrôlés par un garde-fou
+#   qui rejette tout nombre absent de ces résultats.
+
+# %% [markdown]
+# ### 12.2 Confidentialité des données
 
 # %%
 from pathlib import Path
 
 from IPython.display import Markdown, display
 
-from leaselens.measure.labels import french_date, track_references_markdown
+from leaselens.measure.labels import track_references_markdown
 
 references_cfg = cfg["references"]
-FIRST_TRACK_SUBSECTION = 4  # 12.1 to 12.3 are the fixed parts above
-approval_label = french_date(references_cfg["sponsor_approval_date"])
-
-# %% [markdown]
-# ### 12.3 Confidentialité des données du CRM
-
-# %%
 display(Markdown(
-    "**Aucune donnée du CRM n'a été envoyée à une API.** L'API Claude n'a reçu que des pages publiques (extraction "
-    "et veille des sources) et des résultats agrégés (copilote et questions-réponses du tableau de bord) : aucune ligne de bail, aucun code de logement, "
-    "aucun identifiant d'unité. Les sessions Claude Code ont travaillé sur les fichiers réels dans le dépôt local, avec "
-    f"l'approbation du commanditaire et du mentor ({approval_label}), en n'affichant que des comptes et des agrégats. "
-    "Les fichiers du CRM restent dans `data/private/` (exclu de Git) et ne font partie d'aucun livrable."))
+    "**Aucune ligne de bail n'a été envoyée à une API.** L'API Claude n'a reçu que des pages publiques (extraction "
+    "et veille des sources) et des résultats agrégés (copilote et questions-réponses du tableau de bord) : aucune ligne "
+    "de bail, aucun code de logement, aucun identifiant d'unité. Les données privées restent dans `data/private/` "
+    "(exclu de Git) et ne font partie d'aucun livrable."))
 
 # %% [markdown]
-# ### Sources, articles et outils par volet
-# Étape qui lit des fichiers (sans transformer de données) : chaque fichier `docs/references/<VOLET>.md` est lu et
-# affiché dans l'ordre fixé par la configuration. Son titre et la consigne d'édition en tête de fichier sont retirés,
-# ses intertitres sont décalés sous le sous-titre du volet ; le texte des entrées est affiché tel qu'écrit par le volet
-# (souvent en anglais, avec les URL et les dates de publication d'origine).
+# ### 12.3 Sources, articles et outils
+# Étape qui lit un fichier (sans transformer de données) : `docs/references.md` est lu et affiché. Son titre est
+# retiré et ses intertitres sont décalés sous ce sous-titre ; le texte des entrées est affiché tel qu'écrit (en
+# anglais, avec les URL d'origine).
 
 # %%
-references_dir = Path(cfg["_root"]) / references_cfg["dir"]
-for number, (track, title) in enumerate(references_cfg["tracks"].items(), start=FIRST_TRACK_SUBSECTION):
-    path = references_dir / f"{track}.md"
-    if not path.exists():
-        body = f"_Fichier `{path.name}` introuvable : aucune référence affichée pour ce volet._"
-    else:
-        body = track_references_markdown(path.read_text(encoding="utf-8"), references_cfg["boilerplate"],
-                                         references_cfg["heading_shift"])
-        body = body or "_Aucune entrée pour l'instant._"
-    display(Markdown(f"### 12.{number} {title} ({track})\n\n{body}"))
+references_path = Path(cfg["_root"]) / references_cfg["file"]
+if not references_path.exists():
+    body = f"_Fichier `{references_path.name}` introuvable : aucune référence affichée._"
+else:
+    body = track_references_markdown(references_path.read_text(encoding="utf-8"), references_cfg["boilerplate"],
+                                     references_cfg["heading_shift"])
+    body = body or "_Aucune entrée pour l'instant._"
+display(Markdown(body))

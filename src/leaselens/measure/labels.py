@@ -1,7 +1,7 @@
 """French date labels and Markdown helpers for the notebook (MSR sections 03, 04, 06, 07, 12).
 
-Owner: MSR. Dates shown in the notebook text are generated from config or data with these helpers, never typed by hand.
-Section 12 renders each track's references file with `track_references_markdown`, so no reference text is copied
+Dates shown in the notebook text are generated from config or data with these helpers, never typed by hand.
+Section 12 renders the references file with `track_references_markdown`, so no reference text is copied
 into the notebook.
 """
 
@@ -48,12 +48,12 @@ HEADING_PATTERN = re.compile(r"^(#+)(\s.*)$")
 
 
 def track_references_markdown(text: str, boilerplate: str, heading_shift: int) -> str:
-    """Body of one track's references file, ready to sit under a notebook subsection.
+    """Body of the references file, ready to sit under a notebook subsection.
 
-    Input: the raw Markdown of `docs/references/<TRACK>.md`, the editing instruction to hide (`boilerplate`) and the
-    number of levels to push headings down. Output: the same entries with the file's leading title (`# References
-    <TRACK>`) and the boilerplate sentence removed, every heading moved `heading_shift` levels down (capped at 6, code
-    fences left alone), and outer blank lines trimmed. An empty string means the file has no entries yet.
+    Input: the raw Markdown of `docs/references.md`, the editing instruction to hide (`boilerplate`) and the
+    number of levels to push headings down. Output: the same entries with the file's leading title (`# References`) and the boilerplate
+    sentence removed, every heading moved `heading_shift` levels down (capped at 6, code fences left alone), and outer
+    blank lines trimmed. An empty string means the file has no entries yet.
     """
     lines = text.splitlines()
     first = next((i for i, line in enumerate(lines) if line.strip()), None)

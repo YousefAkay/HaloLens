@@ -198,12 +198,7 @@ asking:
   aggregate: median               # "median" or "mean" of per-unit log growth; median resists odd one-off listings
 
 references:
-  # Section 12 compiles itself from each track's own references file at build time (no text copied into the notebook).
-  dir: docs/references            # one append-only Markdown file per track, owned by that track
-  tracks:                         # rendered in this order, one subsection each, with its French title
-    INT: Intégration et produit
-    MSR: Mesure et marché
-    FCT: Incitatifs et prévision
-  boilerplate: "Append one bullet per entry, newest last."  # editing instruction at the top of each file; not shown in the notebook
-  heading_shift: 2                # a file's "## Heading" becomes "#### Heading" under the "### 12.x" track subsection
-  sponsor_approval_date: "2026-10-03"  # date the data owner approved local processing of the private source files (AGENTS.md §3)
+  # Section 12 compiles itself from docs/references.md at build time (no text copied into the notebook).
+  file: docs/references.md        # the single Markdown references file rendered in section 12
+  boilerplate: ""                 # editing instruction at the top of the file to hide in the notebook (none)
+  heading_shift: 2                # a file's "## Heading" becomes "#### Heading" under the "### 12.x" subsection

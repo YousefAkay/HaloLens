@@ -33,7 +33,7 @@ from leaselens.measure.pairs import build_pairs
 
 DEFINITION = (
     "Croissance à composition fixe et à unité constante du loyer net de toutes concessions, pour l'année cible "
-    "(AGENTS.md §9.1). Chaque paire compare un bail à son bail précédent dans la même unité ; les poids de segment "
+    "(voir docs/methodology.md). Chaque paire compare un bail à son bail précédent dans la même unité ; les poids de segment "
     "sont figés à la date de coupure et décrivent les transitions de baux observées, pas l'occupation ni le taux de "
     "roulement du portefeuille. Les compagnons (loyer contractuel, médianes) sont toujours présentés à côté."
 )

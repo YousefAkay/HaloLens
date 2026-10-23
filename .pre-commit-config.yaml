@@ -1,6 +1,6 @@
-# Install once (installs both the commit and the push hooks):
+# Install once (installs the commit hook):
 #   pre-commit install
-default_install_hook_types: [pre-commit, pre-push]
+default_install_hook_types: [pre-commit]
 default_stages: [pre-commit]   # every hook runs at commit time unless it says otherwise
 
 repos:
@@ -37,10 +37,3 @@ repos:
         language: fail
         entry: "Files under data/private, outputs/private or models must never be committed."
         files: '^(data/private|outputs/private|models)/'
-      - id: block-protected-push
-        name: Block direct pushes to main and dev
-        language: python
-        entry: python .githooks/guard_push.py
-        pass_filenames: false
-        always_run: true
-        stages: [pre-push]
