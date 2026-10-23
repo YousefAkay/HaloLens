@@ -1,0 +1,40 @@
+# Example denylist for scripts/leak_scan.py. All terms below are FAKE placeholders.
+# Copy to outputs/private/leak_denylist.yaml (gitignored) and put the real terms there. Never commit the real file.
+
+# Paths skipped entirely in the tree scan (files about to be deleted or rewritten).
+excluded_paths:
+  - "docs/**"
+  - "scripts/some_obsolete_script.py"
+
+# Built-in checks; all are on by default. allowed_paths / allowed_emails tolerate known-good hits.
+special_checks:
+  any_email:
+    enabled: true
+    allowed_paths: []
+    allowed_emails: []          # exact addresses tolerated everywhere, e.g. a project no-reply address
+  coauthored_trailer:
+    enabled: true
+  claude_author:
+    enabled: true
+  generated_with:
+    enabled: true
+
+rules:
+  # literal: case-insensitive substring match
+  - name: fake_client_names
+    type: literal
+    patterns: ["Acme Holdings", "Project Falcon"]
+    allowed_paths: []
+
+  # literal terms tolerated only in the listed paths (glob; * crosses /)
+  - name: fake_schema_names
+    type: literal
+    patterns: ["fakeColumnA", "fakeColumnB"]
+    allowed_paths: ["src/leaselens/io/*", "tests/*"]
+
+  # regex: case-sensitive unless ignore_case is true
+  - name: fake_extract_counts
+    type: regex
+    ignore_case: false
+    patterns: ['(?<!\w)9[ ,.]?999(?!\w)']
+    allowed_paths: []
