@@ -1,6 +1,4 @@
-"""Streamlit app: seven tabs and a sidebar over the aggregates JSON (I-11a shell, I-12 AI layer, I-11b, I-11c redesign).
-
-Owner: INT; the I-11b polish and the I-11c newsprint redesign were delegated to FCT (docs/decisions/FCT.md).
+"""Streamlit app: seven tabs and a sidebar over the aggregates JSON.
 
 Run locally:  streamlit run app/streamlit_app.py
 Demo mode (default) reads outputs/public/aggregates_synthetic.json. Real mode reads outputs/private/aggregates.json,

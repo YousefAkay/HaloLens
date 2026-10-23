@@ -7,24 +7,24 @@
     "external_cutoff": "2026-01-31",
     "external_strict_cutoff": "2025-12-31"
   },
-  "definition": "Croissance à composition fixe et à unité constante du loyer net de toutes concessions, pour l'année cible (AGENTS.md §9.1). Chaque paire compare un bail à son bail précédent dans la même unité ; les poids de segment sont figés à la date de coupure et décrivent les transitions de baux observées, pas l'occupation ni le taux de roulement du portefeuille. Les compagnons (loyer contractuel, médianes) sont toujours présentés à côté.",
+  "definition": "Croissance à composition fixe et à unité constante du loyer net de toutes concessions, pour l'année cible (voir docs/methodology.md). Chaque paire compare un bail à son bail précédent dans la même unité ; les poids de segment sont figés à la date de coupure et décrivent les transitions de baux observées, pas l'occupation ni le taux de roulement du portefeuille. Les compagnons (loyer contractuel, médianes) sont toujours présentés à côté.",
   "headline": {
     "net_pct": 4.856032690252625,
     "contract_pct": 5.663026413306089,
     "information_rule": "jan31",
     "model": "B0_last_year",
     "model_range": {
-      "low_net_pct": 2.2158230584957437,
+      "low_net_pct": 2.215823058495744,
       "high_net_pct": 4.856032690252625
     },
     "provinces": {
       "QC": {
         "net_pct": 5.1912646879820254,
-        "contract_pct": 5.7303588763835895
+        "contract_pct": 5.730358876383589
       },
       "ON": {
         "net_pct": 3.547786564155169,
-        "contract_pct": 5.398601158936119
+        "contract_pct": 5.398601158936118
       }
     }
   },
@@ -48,9 +48,9 @@
       "year": 2024,
       "model": "B0_last_year",
       "information_rule": "dec31_strict",
-      "forecast_net_pct": 0.5913804109862352,
+      "forecast_net_pct": 0.5913804109862353,
       "actual_net_pct": -0.1864369213467116,
-      "error_pp_net": 0.7778173323329468,
+      "error_pp_net": 0.7778173323329469,
       "forecast_contract_pct": 2.073527986251033,
       "actual_contract_pct": 2.2102786948883226,
       "error_pp_contract": -0.13675070863728944
@@ -59,20 +59,20 @@
       "year": 2025,
       "model": "B0_last_year",
       "information_rule": "dec31_strict",
-      "forecast_net_pct": 0.4334083513353467,
+      "forecast_net_pct": 0.43340835133534683,
       "actual_net_pct": 4.355205668138593,
       "error_pp_net": -3.9217973168032465,
-      "forecast_contract_pct": 2.3310513320435993,
-      "actual_contract_pct": 5.322238152131733,
-      "error_pp_contract": -2.9911868200881333
+      "forecast_contract_pct": 2.3310513320435997,
+      "actual_contract_pct": 5.322238152131732,
+      "error_pp_contract": -2.991186820088132
     },
     {
       "year": 2023,
       "model": "B1_trailing_mean",
       "information_rule": "dec31_strict",
-      "forecast_net_pct": 3.39559264059522,
+      "forecast_net_pct": 3.3955926405952193,
       "actual_net_pct": 0.5191364034384834,
-      "error_pp_net": 2.8764562371567366,
+      "error_pp_net": 2.8764562371567357,
       "forecast_contract_pct": 3.2655677278659505,
       "actual_contract_pct": 2.034132904319653,
       "error_pp_contract": 1.2314348235462975
@@ -96,16 +96,16 @@
       "actual_net_pct": 4.355205668138593,
       "error_pp_net": -2.568687579330755,
       "forecast_contract_pct": 2.731329780685869,
-      "actual_contract_pct": 5.322238152131733,
-      "error_pp_contract": -2.5909083714458636
+      "actual_contract_pct": 5.322238152131732,
+      "error_pp_contract": -2.5909083714458627
     },
     {
       "year": 2023,
       "model": "B2_market_anchor",
       "information_rule": "dec31_strict",
-      "forecast_net_pct": 3.6381422138163937,
+      "forecast_net_pct": 3.638142213816393,
       "actual_net_pct": 0.5191364034384834,
-      "error_pp_net": 3.11900581037791,
+      "error_pp_net": 3.1190058103779092,
       "forecast_contract_pct": 3.6977974955574395,
       "actual_contract_pct": 2.034132904319653,
       "error_pp_contract": 1.6636645912377865
@@ -129,8 +129,8 @@
       "actual_net_pct": 4.355205668138593,
       "error_pp_net": -0.8520278999736526,
       "forecast_contract_pct": 3.96999992524809,
-      "actual_contract_pct": 5.322238152131733,
-      "error_pp_contract": -1.3522382268836424
+      "actual_contract_pct": 5.322238152131732,
+      "error_pp_contract": -1.3522382268836415
     },
     {
       "year": 2023,
@@ -162,16 +162,16 @@
       "actual_net_pct": 4.355205668138593,
       "error_pp_net": -2.0739323884790384,
       "forecast_contract_pct": 4.213830816869412,
-      "actual_contract_pct": 5.322238152131733,
-      "error_pp_contract": -1.1084073352623207
+      "actual_contract_pct": 5.322238152131732,
+      "error_pp_contract": -1.1084073352623198
     },
     {
       "year": 2023,
       "model": "E1_engine_blend",
       "information_rule": "dec31_strict",
-      "forecast_net_pct": 2.9229958344730096,
+      "forecast_net_pct": 2.9229958344729585,
       "actual_net_pct": 0.5191364034384834,
-      "error_pp_net": 2.403859431034526,
+      "error_pp_net": 2.403859431034475,
       "forecast_contract_pct": 3.338762538892618,
       "actual_contract_pct": 2.034132904319653,
       "error_pp_contract": 1.304629634572965
@@ -180,56 +180,56 @@
       "year": 2024,
       "model": "E1_engine_blend",
       "information_rule": "dec31_strict",
-      "forecast_net_pct": 2.3387696721721736,
+      "forecast_net_pct": 2.338769672205003,
       "actual_net_pct": -0.1864369213467116,
-      "error_pp_net": 2.525206593518885,
-      "forecast_contract_pct": 2.465452390647628,
+      "error_pp_net": 2.5252065935517143,
+      "forecast_contract_pct": 2.4654523906807433,
       "actual_contract_pct": 2.2102786948883226,
-      "error_pp_contract": 0.2551736957593054
+      "error_pp_contract": 0.25517369579242066
     },
     {
       "year": 2025,
       "model": "E1_engine_blend",
       "information_rule": "dec31_strict",
-      "forecast_net_pct": 0.29725502945048604,
+      "forecast_net_pct": 0.29725502945094684,
       "actual_net_pct": 4.355205668138593,
-      "error_pp_net": -4.057950638688107,
-      "forecast_contract_pct": 2.5743928166155845,
-      "actual_contract_pct": 5.322238152131733,
-      "error_pp_contract": -2.747845335516148
+      "error_pp_net": -4.057950638687647,
+      "forecast_contract_pct": 2.574392816616055,
+      "actual_contract_pct": 5.322238152131732,
+      "error_pp_contract": -2.747845335515677
     },
     {
       "year": 2023,
       "model": "E2_regulated",
       "information_rule": "dec31_strict",
-      "forecast_net_pct": 3.0589758811991614,
+      "forecast_net_pct": 3.0589758811991117,
       "actual_net_pct": 0.5191364034384834,
-      "error_pp_net": 2.539839477760678,
-      "forecast_contract_pct": 3.4752918892552978,
+      "error_pp_net": 2.539839477760628,
+      "forecast_contract_pct": 3.475291889255298,
       "actual_contract_pct": 2.034132904319653,
-      "error_pp_contract": 1.4411589849356448
+      "error_pp_contract": 1.4411589849356452
     },
     {
       "year": 2024,
       "model": "E2_regulated",
       "information_rule": "dec31_strict",
-      "forecast_net_pct": 3.449619077014564,
+      "forecast_net_pct": 3.4496190770216555,
       "actual_net_pct": -0.1864369213467116,
-      "error_pp_net": 3.6360559983612752,
-      "forecast_contract_pct": 3.5776768894341124,
+      "error_pp_net": 3.636055998368367,
+      "forecast_contract_pct": 3.5776768894414603,
       "actual_contract_pct": 2.2102786948883226,
-      "error_pp_contract": 1.3673981945457898
+      "error_pp_contract": 1.3673981945531377
     },
     {
       "year": 2025,
       "model": "E2_regulated",
       "information_rule": "dec31_strict",
-      "forecast_net_pct": 1.256103649806994,
+      "forecast_net_pct": 1.2561036498071354,
       "actual_net_pct": 4.355205668138593,
-      "error_pp_net": -3.099102018331599,
-      "forecast_contract_pct": 3.5550110300177225,
-      "actual_contract_pct": 5.322238152131733,
-      "error_pp_contract": -1.7672271221140101
+      "error_pp_net": -3.0991020183314575,
+      "forecast_contract_pct": 3.555011030017867,
+      "actual_contract_pct": 5.322238152131732,
+      "error_pp_contract": -1.767227122113865
     },
     {
       "year": 2023,
@@ -246,9 +246,9 @@
       "year": 2024,
       "model": "B0_last_year",
       "information_rule": "jan31",
-      "forecast_net_pct": 0.5913804109862352,
+      "forecast_net_pct": 0.5913804109862353,
       "actual_net_pct": -0.1864369213467116,
-      "error_pp_net": 0.7778173323329468,
+      "error_pp_net": 0.7778173323329469,
       "forecast_contract_pct": 2.073527986251033,
       "actual_contract_pct": 2.2102786948883226,
       "error_pp_contract": -0.13675070863728944
@@ -257,20 +257,20 @@
       "year": 2025,
       "model": "B0_last_year",
       "information_rule": "jan31",
-      "forecast_net_pct": 0.4334083513353467,
+      "forecast_net_pct": 0.43340835133534683,
       "actual_net_pct": 4.355205668138593,
       "error_pp_net": -3.9217973168032465,
-      "forecast_contract_pct": 2.3310513320435993,
-      "actual_contract_pct": 5.322238152131733,
-      "error_pp_contract": -2.9911868200881333
+      "forecast_contract_pct": 2.3310513320435997,
+      "actual_contract_pct": 5.322238152131732,
+      "error_pp_contract": -2.991186820088132
     },
     {
       "year": 2023,
       "model": "B1_trailing_mean",
       "information_rule": "jan31",
-      "forecast_net_pct": 3.39559264059522,
+      "forecast_net_pct": 3.3955926405952193,
       "actual_net_pct": 0.5191364034384834,
-      "error_pp_net": 2.8764562371567366,
+      "error_pp_net": 2.8764562371567357,
       "forecast_contract_pct": 3.2655677278659505,
       "actual_contract_pct": 2.034132904319653,
       "error_pp_contract": 1.2314348235462975
@@ -294,8 +294,8 @@
       "actual_net_pct": 4.355205668138593,
       "error_pp_net": -2.568687579330755,
       "forecast_contract_pct": 2.731329780685869,
-      "actual_contract_pct": 5.322238152131733,
-      "error_pp_contract": -2.5909083714458636
+      "actual_contract_pct": 5.322238152131732,
+      "error_pp_contract": -2.5909083714458627
     },
     {
       "year": 2023,
@@ -315,9 +315,9 @@
       "forecast_net_pct": 4.5928485053471055,
       "actual_net_pct": -0.1864369213467116,
       "error_pp_net": 4.779285426693817,
-      "forecast_contract_pct": 5.067511402623721,
+      "forecast_contract_pct": 5.06751140262372,
       "actual_contract_pct": 2.2102786948883226,
-      "error_pp_contract": 2.857232707735398
+      "error_pp_contract": 2.857232707735397
     },
     {
       "year": 2025,
@@ -326,20 +326,20 @@
       "forecast_net_pct": 4.224813881881994,
       "actual_net_pct": 4.355205668138593,
       "error_pp_net": -0.13039178625659886,
-      "forecast_contract_pct": 5.192258535539342,
-      "actual_contract_pct": 5.322238152131733,
-      "error_pp_contract": -0.129979616592391
+      "forecast_contract_pct": 5.19225853553934,
+      "actual_contract_pct": 5.322238152131732,
+      "error_pp_contract": -0.12997961659239188
     },
     {
       "year": 2023,
       "model": "B3_tal_anchor",
       "information_rule": "jan31",
-      "forecast_net_pct": 5.014407606991985,
+      "forecast_net_pct": 5.014407606991986,
       "actual_net_pct": 0.5191364034384834,
-      "error_pp_net": 4.495271203553502,
-      "forecast_contract_pct": 4.498388144306729,
+      "error_pp_net": 4.495271203553503,
+      "forecast_contract_pct": 4.4983881443067295,
       "actual_contract_pct": 2.034132904319653,
-      "error_pp_contract": 2.4642552399870756
+      "error_pp_contract": 2.4642552399870765
     },
     {
       "year": 2024,
@@ -348,9 +348,9 @@
       "forecast_net_pct": 4.318147258298767,
       "actual_net_pct": -0.1864369213467116,
       "error_pp_net": 4.504584179645478,
-      "forecast_contract_pct": 5.855206282474532,
+      "forecast_contract_pct": 5.855206282474533,
       "actual_contract_pct": 2.2102786948883226,
-      "error_pp_contract": 3.644927587586209
+      "error_pp_contract": 3.64492758758621
     },
     {
       "year": 2025,
@@ -360,16 +360,16 @@
       "actual_net_pct": 4.355205668138593,
       "error_pp_net": -0.20533220356218074,
       "forecast_contract_pct": 6.117737341408373,
-      "actual_contract_pct": 5.322238152131733,
-      "error_pp_contract": 0.7954991892766401
+      "actual_contract_pct": 5.322238152131732,
+      "error_pp_contract": 0.795499189276641
     },
     {
       "year": 2023,
       "model": "E1_engine_blend",
       "information_rule": "jan31",
-      "forecast_net_pct": 2.9229958344730096,
+      "forecast_net_pct": 2.9229958344729585,
       "actual_net_pct": 0.5191364034384834,
-      "error_pp_net": 2.403859431034526,
+      "error_pp_net": 2.403859431034475,
       "forecast_contract_pct": 3.338762538892618,
       "actual_contract_pct": 2.034132904319653,
       "error_pp_contract": 1.304629634572965
@@ -378,56 +378,56 @@
       "year": 2024,
       "model": "E1_engine_blend",
       "information_rule": "jan31",
-      "forecast_net_pct": 2.3387696721721736,
+      "forecast_net_pct": 2.338769672205003,
       "actual_net_pct": -0.1864369213467116,
-      "error_pp_net": 2.525206593518885,
-      "forecast_contract_pct": 2.465452390647628,
+      "error_pp_net": 2.5252065935517143,
+      "forecast_contract_pct": 2.4654523906807433,
       "actual_contract_pct": 2.2102786948883226,
-      "error_pp_contract": 0.2551736957593054
+      "error_pp_contract": 0.25517369579242066
     },
     {
       "year": 2025,
       "model": "E1_engine_blend",
       "information_rule": "jan31",
-      "forecast_net_pct": 0.29725502945048604,
+      "forecast_net_pct": 0.29725502945094684,
       "actual_net_pct": 4.355205668138593,
-      "error_pp_net": -4.057950638688107,
-      "forecast_contract_pct": 2.5743928166155845,
-      "actual_contract_pct": 5.322238152131733,
-      "error_pp_contract": -2.747845335516148
+      "error_pp_net": -4.057950638687647,
+      "forecast_contract_pct": 2.574392816616055,
+      "actual_contract_pct": 5.322238152131732,
+      "error_pp_contract": -2.747845335515677
     },
     {
       "year": 2023,
       "model": "E2_regulated",
       "information_rule": "jan31",
-      "forecast_net_pct": 3.8087675841790167,
+      "forecast_net_pct": 3.808767584178966,
       "actual_net_pct": 0.5191364034384834,
-      "error_pp_net": 3.289631180740533,
-      "forecast_contract_pct": 4.228112443298239,
+      "error_pp_net": 3.2896311807404826,
+      "forecast_contract_pct": 4.228112443298238,
       "actual_contract_pct": 2.034132904319653,
-      "error_pp_contract": 2.1939795389785863
+      "error_pp_contract": 2.1939795389785854
     },
     {
       "year": 2024,
       "model": "E2_regulated",
       "information_rule": "jan31",
-      "forecast_net_pct": 4.616991635374567,
+      "forecast_net_pct": 4.616991635381739,
       "actual_net_pct": -0.1864369213467116,
-      "error_pp_net": 4.803428556721278,
-      "forecast_contract_pct": 4.746494510399817,
+      "error_pp_net": 4.80342855672845,
+      "forecast_contract_pct": 4.746494510407248,
       "actual_contract_pct": 2.2102786948883226,
-      "error_pp_contract": 2.536215815511494
+      "error_pp_contract": 2.5362158155189256
     },
     {
       "year": 2025,
       "model": "E2_regulated",
       "information_rule": "jan31",
-      "forecast_net_pct": 2.3973101340554646,
+      "forecast_net_pct": 2.397310134055608,
       "actual_net_pct": 4.355205668138593,
-      "error_pp_net": -1.9578955340831286,
-      "forecast_contract_pct": 4.722127340088216,
-      "actual_contract_pct": 5.322238152131733,
-      "error_pp_contract": -0.6001108120435168
+      "error_pp_net": -1.9578955340829851,
+      "forecast_contract_pct": 4.722127340088362,
+      "actual_contract_pct": 5.322238152131732,
+      "error_pp_contract": -0.6001108120433694
     }
   ],
   "coverage": {
@@ -441,9 +441,9 @@
     "external_rows": 274
   },
   "scenarios": {
-    "low_net_pct": 1.046505150968635,
-    "central_net_pct": 3.535312230641093,
-    "high_net_pct": 5.71229313038693
+    "low_net_pct": 1.0465054008577872,
+    "central_net_pct": 3.535312762390413,
+    "high_net_pct": 5.712293636112449
   },
   "sources": [
     {
@@ -559,8 +559,8 @@
       "incentive_shift": "minus",
       "renewal_shift": "minus",
       "met_regime": "exempt",
-      "headline_net_pct": 5.706345921098523,
-      "headline_contract_pct": 3.789617653158986
+      "headline_net_pct": 5.70634650120062,
+      "headline_contract_pct": 3.7896182227423374
     },
     {
       "model": "E2_regulated",
@@ -568,8 +568,8 @@
       "incentive_shift": "minus",
       "renewal_shift": "minus",
       "met_regime": "guideline",
-      "headline_net_pct": 5.412655504316889,
-      "headline_contract_pct": 3.501252599949075
+      "headline_net_pct": 5.41265587146202,
+      "headline_contract_pct": 3.5012529604369194
     },
     {
       "model": "E2_regulated",
@@ -577,8 +577,8 @@
       "incentive_shift": "minus",
       "renewal_shift": "zero",
       "met_regime": "exempt",
-      "headline_net_pct": 5.709319483918956,
-      "headline_contract_pct": 3.6290987444519827
+      "headline_net_pct": 5.70932002683381,
+      "headline_contract_pct": 3.629099276682984
     },
     {
       "model": "E2_regulated",
@@ -586,8 +586,8 @@
       "incentive_shift": "minus",
       "renewal_shift": "zero",
       "met_regime": "guideline",
-      "headline_net_pct": 5.393238990735553,
-      "headline_contract_pct": 3.31923830074455
+      "headline_net_pct": 5.393239304593643,
+      "headline_contract_pct": 3.319238608426324
     },
     {
       "model": "E2_regulated",
@@ -595,8 +595,8 @@
       "incentive_shift": "minus",
       "renewal_shift": "plus",
       "met_regime": "exempt",
-      "headline_net_pct": 5.71229313038693,
-      "headline_contract_pct": 3.468828091019786
+      "headline_net_pct": 5.712293636112449,
+      "headline_contract_pct": 3.4688285860126107
     },
     {
       "model": "E2_regulated",
@@ -604,8 +604,8 @@
       "incentive_shift": "minus",
       "renewal_shift": "plus",
       "met_regime": "guideline",
-      "headline_net_pct": 5.373826053584374,
-      "headline_contract_pct": 3.1375440866045303
+      "headline_net_pct": 5.373826314175039,
+      "headline_contract_pct": 3.1375443416648454
     },
     {
       "model": "E2_regulated",
@@ -613,8 +613,8 @@
       "incentive_shift": "zero",
       "renewal_shift": "minus",
       "met_regime": "exempt",
-      "headline_net_pct": 3.5289324939650166,
-      "headline_contract_pct": 3.789617653158986
+      "headline_net_pct": 3.5289330621177637,
+      "headline_contract_pct": 3.7896182227423374
     },
     {
       "model": "E2_regulated",
@@ -622,8 +622,8 @@
       "incentive_shift": "zero",
       "renewal_shift": "minus",
       "met_regime": "guideline",
-      "headline_net_pct": 3.2412917183033016,
-      "headline_contract_pct": 3.501252599949075
+      "headline_net_pct": 3.2412920778857215,
+      "headline_contract_pct": 3.5012529604369194
     },
     {
       "model": "E2_regulated",
@@ -631,8 +631,8 @@
       "incentive_shift": "zero",
       "renewal_shift": "zero",
       "met_regime": "exempt",
-      "headline_net_pct": 3.535312230641093,
-      "headline_contract_pct": 3.6290987444519827
+      "headline_net_pct": 3.535312762390413,
+      "headline_contract_pct": 3.629099276682984
     },
     {
       "model": "E2_regulated",
@@ -640,8 +640,8 @@
       "incentive_shift": "zero",
       "renewal_shift": "zero",
       "met_regime": "guideline",
-      "headline_net_pct": 3.2257322171519602,
-      "headline_contract_pct": 3.31923830074455
+      "headline_net_pct": 3.2257325245552764,
+      "headline_contract_pct": 3.319238608426324
     },
     {
       "model": "E2_regulated",
@@ -649,8 +649,8 @@
       "incentive_shift": "zero",
       "renewal_shift": "plus",
       "met_regime": "exempt",
-      "headline_net_pct": 3.5416923604540336,
-      "headline_contract_pct": 3.468828091019786
+      "headline_net_pct": 3.5416928557954397,
+      "headline_contract_pct": 3.4688285860126107
     },
     {
       "model": "E2_regulated",
@@ -658,8 +658,8 @@
       "incentive_shift": "zero",
       "renewal_shift": "plus",
       "met_regime": "guideline",
-      "headline_net_pct": 3.210175060973952,
-      "headline_contract_pct": 3.1375440866045303
+      "headline_net_pct": 3.210175316213885,
+      "headline_contract_pct": 3.1375443416648454
     },
     {
       "model": "E2_regulated",
@@ -667,8 +667,8 @@
       "incentive_shift": "plus",
       "renewal_shift": "minus",
       "met_regime": "exempt",
-      "headline_net_pct": 1.351498970597907,
-      "headline_contract_pct": 3.789617653158986
+      "headline_net_pct": 1.3514995268011938,
+      "headline_contract_pct": 3.7896182227423374
     },
     {
       "model": "E2_regulated",
@@ -676,8 +676,8 @@
       "incentive_shift": "plus",
       "renewal_shift": "minus",
       "met_regime": "guideline",
-      "headline_net_pct": 1.069907891890709,
-      "headline_contract_pct": 3.501252599949075
+      "headline_net_pct": 1.0699082439103451,
+      "headline_contract_pct": 3.5012529604369194
     },
     {
       "model": "E2_regulated",
@@ -685,8 +685,8 @@
       "incentive_shift": "plus",
       "renewal_shift": "zero",
       "met_regime": "exempt",
-      "headline_net_pct": 1.361285319002621,
-      "headline_contract_pct": 3.6290987444519827
+      "headline_net_pct": 1.3612858395863083,
+      "headline_contract_pct": 3.629099276682984
     },
     {
       "model": "E2_regulated",
@@ -694,8 +694,8 @@
       "incentive_shift": "plus",
       "renewal_shift": "zero",
       "met_regime": "guideline",
-      "headline_net_pct": 1.0582058439880477,
-      "headline_contract_pct": 3.31923830074455
+      "headline_net_pct": 1.058206144936531,
+      "headline_contract_pct": 3.319238608426324
     },
     {
       "model": "E2_regulated",
@@ -703,8 +703,8 @@
       "incentive_shift": "plus",
       "renewal_shift": "plus",
       "met_regime": "exempt",
-      "headline_net_pct": 1.371072612362428,
-      "headline_contract_pct": 3.468828091019786
+      "headline_net_pct": 1.3710730973196317,
+      "headline_contract_pct": 3.4688285860126107
     },
     {
       "model": "E2_regulated",
@@ -712,8 +712,8 @@
       "incentive_shift": "plus",
       "renewal_shift": "plus",
       "met_regime": "guideline",
-      "headline_net_pct": 1.046505150968635,
-      "headline_contract_pct": 3.1375440866045303
+      "headline_net_pct": 1.0465054008577872,
+      "headline_contract_pct": 3.1375443416648454
     },
     {
       "model": "B0_last_year",
@@ -730,8 +730,8 @@
       "incentive_shift": "minus",
       "renewal_shift": "minus",
       "met_regime": "exempt",
-      "headline_net_pct": 7.235557286746958,
-      "headline_contract_pct": 5.291100478702736
+      "headline_net_pct": 7.23555787524116,
+      "headline_contract_pct": 5.291101056526022
     },
     {
       "model": "E2_regulated",
@@ -739,8 +739,8 @@
       "incentive_shift": "minus",
       "renewal_shift": "minus",
       "met_regime": "guideline",
-      "headline_net_pct": 6.937618168343759,
-      "headline_contract_pct": 4.998563763772974
+      "headline_net_pct": 6.9376185408002335,
+      "headline_contract_pct": 4.998564129475853
     },
     {
       "model": "E2_regulated",
@@ -748,8 +748,8 @@
       "incentive_shift": "minus",
       "renewal_shift": "zero",
       "met_regime": "exempt",
-      "headline_net_pct": 7.356192639087071,
-      "headline_contract_pct": 5.243563596271088
+      "headline_net_pct": 7.356193190460138,
+      "headline_contract_pct": 5.243564136793854
     },
     {
       "model": "E2_regulated",
@@ -757,8 +757,8 @@
       "incentive_shift": "minus",
       "renewal_shift": "zero",
       "met_regime": "guideline",
-      "headline_net_pct": 7.035187845173729,
-      "headline_contract_pct": 4.928875755612454
+      "headline_net_pct": 7.035188163921497,
+      "headline_contract_pct": 4.928876068087682
     },
     {
       "model": "E2_regulated",
@@ -766,8 +766,8 @@
       "incentive_shift": "minus",
       "renewal_shift": "plus",
       "met_regime": "exempt",
-      "headline_net_pct": 7.476963700967958,
-      "headline_contract_pct": 5.196048175816577
+      "headline_net_pct": 7.476964215135625,
+      "headline_contract_pct": 5.196048679072388
     },
     {
       "model": "E2_regulated",
@@ -775,8 +775,8 @@
       "incentive_shift": "minus",
       "renewal_shift": "plus",
       "met_regime": "guideline",
-      "headline_net_pct": 7.132846544388894,
-      "headline_contract_pct": 4.859233999689174
+      "headline_net_pct": 7.132846809329639,
+      "headline_contract_pct": 4.859234259007248
     },
     {
       "model": "E2_regulated",
@@ -784,8 +784,8 @@
       "incentive_shift": "zero",
       "renewal_shift": "minus",
       "met_regime": "exempt",
-      "headline_net_pct": 5.026644091728434,
-      "headline_contract_pct": 5.291100478702736
+      "headline_net_pct": 5.026644668100419,
+      "headline_contract_pct": 5.291101056526022
     },
     {
       "model": "E2_regulated",
@@ -793,8 +793,8 @@
       "incentive_shift": "zero",
       "renewal_shift": "minus",
       "met_regime": "guideline",
-      "headline_net_pct": 4.734842132180049,
-      "headline_contract_pct": 4.998563763772974
+      "headline_net_pct": 4.734842496964401,
+      "headline_contract_pct": 4.998564129475853
     },
     {
       "model": "E2_regulated",
@@ -802,8 +802,8 @@
       "incentive_shift": "zero",
       "renewal_shift": "zero",
       "met_regime": "exempt",
-      "headline_net_pct": 5.148315957815123,
-      "headline_contract_pct": 5.243563596271088
+      "headline_net_pct": 5.148316497848706,
+      "headline_contract_pct": 5.243564136793854
     },
     {
       "model": "E2_regulated",
@@ -811,8 +811,8 @@
       "incentive_shift": "zero",
       "renewal_shift": "zero",
       "met_regime": "guideline",
-      "headline_net_pct": 4.833912916270556,
-      "headline_contract_pct": 4.928875755612454
+      "headline_net_pct": 4.833913228462988,
+      "headline_contract_pct": 4.928876068087682
     },
     {
       "model": "E2_regulated",
@@ -820,8 +820,8 @@
       "incentive_shift": "zero",
       "renewal_shift": "plus",
       "met_regime": "exempt",
-      "headline_net_pct": 5.270128779019679,
-      "headline_contract_pct": 5.196048175816577
+      "headline_net_pct": 5.270129282629891,
+      "headline_contract_pct": 5.196048679072388
     },
     {
       "model": "E2_regulated",
@@ -829,8 +829,8 @@
       "incentive_shift": "zero",
       "renewal_shift": "plus",
       "met_regime": "guideline",
-      "headline_net_pct": 4.933077413399253,
-      "headline_contract_pct": 4.859233999689174
+      "headline_net_pct": 4.933077672899942,
+      "headline_contract_pct": 4.859234259007248
     },
     {
       "model": "E2_regulated",
@@ -838,8 +838,8 @@
       "incentive_shift": "plus",
       "renewal_shift": "minus",
       "met_regime": "exempt",
-      "headline_net_pct": 2.817710509752143,
-      "headline_contract_pct": 5.291100478702736
+      "headline_net_pct": 2.8177110740018003,
+      "headline_contract_pct": 5.291101056526022
     },
     {
       "model": "E2_regulated",
@@ -847,8 +847,8 @@
       "incentive_shift": "plus",
       "renewal_shift": "minus",
       "met_regime": "guideline",
-      "headline_net_pct": 2.532045765700902,
-      "headline_contract_pct": 4.998563763772974
+      "headline_net_pct": 2.5320461228130644,
+      "headline_contract_pct": 4.998564129475853
     },
     {
       "model": "E2_regulated",
@@ -856,8 +856,8 @@
       "incentive_shift": "plus",
       "renewal_shift": "zero",
       "met_regime": "exempt",
-      "headline_net_pct": 2.940419311919824,
-      "headline_contract_pct": 5.243563596271088
+      "headline_net_pct": 2.940419840613821,
+      "headline_contract_pct": 5.243564136793854
     },
     {
       "model": "E2_regulated",
@@ -865,8 +865,8 @@
       "incentive_shift": "plus",
       "renewal_shift": "zero",
       "met_regime": "guideline",
-      "headline_net_pct": 2.6326180824400742,
-      "headline_contract_pct": 4.928875755612454
+      "headline_net_pct": 2.6326183880771135,
+      "headline_contract_pct": 4.928876068087682
     },
     {
       "model": "E2_regulated",
@@ -874,8 +874,8 @@
       "incentive_shift": "plus",
       "renewal_shift": "plus",
       "met_regime": "exempt",
-      "headline_net_pct": 3.0632745621075474,
-      "headline_contract_pct": 5.196048175816577
+      "headline_net_pct": 3.0632750551602124,
+      "headline_contract_pct": 5.196048679072388
     },
     {
       "model": "E2_regulated",
@@ -883,8 +883,8 @@
       "incentive_shift": "plus",
       "renewal_shift": "plus",
       "met_regime": "guideline",
-      "headline_net_pct": 2.7332890492239117,
-      "headline_contract_pct": 4.859233999689174
+      "headline_net_pct": 2.733289303284499,
+      "headline_contract_pct": 4.859234259007248
     }
   ],
   "building_beds": [
@@ -892,64 +892,64 @@
       "building": "Cedar Park",
       "beds": 1,
       "n_pairs": 7,
-      "net_pct_raw": 3.323411322982197,
-      "net_pct_shrunk": 3.1972246541094167,
-      "contract_pct_raw": 3.3112540256231386,
-      "contract_pct_shrunk": 3.2159394888107227
+      "net_pct_raw": 3.323411621120678,
+      "net_pct_shrunk": 3.197224924312085,
+      "contract_pct_raw": 3.311254323726539,
+      "contract_pct_shrunk": 3.215939759062393
     },
     {
       "building": "Cedar Park",
       "beds": 2,
       "n_pairs": 9,
-      "net_pct_raw": 3.0208221787676472,
-      "net_pct_shrunk": 3.1120271584761796,
-      "contract_pct_raw": 3.0826468529191535,
-      "contract_pct_shrunk": 3.1515698146019893
+      "net_pct_raw": 3.020822409974041,
+      "net_pct_shrunk": 3.112027409836494,
+      "contract_pct_raw": 3.0826470842642983,
+      "contract_pct_shrunk": 3.1515700660586976
     },
     {
       "building": "Lakeview Residences",
       "beds": 1,
       "n_pairs": 6,
-      "net_pct_raw": 5.059961132536726,
-      "net_pct_shrunk": 5.059961132536727,
-      "contract_pct_raw": 4.954685001147316,
-      "contract_pct_shrunk": 4.954685001147316
+      "net_pct_raw": 5.059962665124734,
+      "net_pct_shrunk": 5.059962665124734,
+      "contract_pct_raw": 4.954686532199581,
+      "contract_pct_shrunk": 4.954686532199581
     },
     {
       "building": "Lakeview Residences",
       "beds": 2,
       "n_pairs": 7,
-      "net_pct_raw": 5.067575056857408,
-      "net_pct_shrunk": 5.0619350599337025,
-      "contract_pct_raw": 5.0816628747044446,
-      "contract_pct_shrunk": 4.9875904498220756
+      "net_pct_raw": 5.067576522185099,
+      "net_pct_shrunk": 5.061936575084785,
+      "contract_pct_raw": 5.081664340228611,
+      "contract_pct_shrunk": 4.987591963900999
     },
     {
       "building": "North Court",
       "beds": 1,
       "n_pairs": 12,
-      "net_pct_raw": 3.250616676061003,
-      "net_pct_shrunk": 3.2367756749212515,
-      "contract_pct_raw": 3.4830420518720784,
-      "contract_pct_shrunk": 3.515751443458204
+      "net_pct_raw": 3.2506170236441734,
+      "net_pct_shrunk": 3.236776031901757,
+      "contract_pct_raw": 3.4830424002376876,
+      "contract_pct_shrunk": 3.5157518014033737
     },
     {
       "building": "North Court",
       "beds": 2,
       "n_pairs": 8,
-      "net_pct_raw": 3.378040986463618,
-      "net_pct_shrunk": 3.2711838758074174,
-      "contract_pct_raw": 3.182600180149452,
-      "contract_pct_shrunk": 3.4344643256639587
+      "net_pct_raw": 3.378041247472717,
+      "net_pct_shrunk": 3.2711842094241694,
+      "contract_pct_raw": 3.182600440665103,
+      "contract_pct_shrunk": 3.4344646598081874
     },
     {
       "building": "North Court",
       "beds": 1,
       "n_pairs": 21,
-      "net_pct_raw": 3.0514229502046857,
-      "net_pct_shrunk": 3.0945662304927306,
-      "contract_pct_raw": 3.3253684193434303,
-      "contract_pct_shrunk": 3.2617216759522214
+      "net_pct_raw": 3.051423247558347,
+      "net_pct_shrunk": 3.09456650983197,
+      "contract_pct_raw": 3.325368717487557,
+      "contract_pct_shrunk": 3.261721955744375
     }
   ],
   "sensitivity": [
@@ -958,9 +958,9 @@
       "variant": "B1_trailing_mean",
       "setting": "B1_trailing_mean",
       "model": "B1_trailing_mean",
-      "headline_net_pct": 2.2158230584957437,
+      "headline_net_pct": 2.215823058495744,
       "base_net_pct": 4.856032690252625,
-      "delta_pp": -2.640209631756881,
+      "delta_pp": -2.6402096317568806,
       "note": ""
     },
     {
@@ -968,9 +968,9 @@
       "variant": "incentives_deeper",
       "setting": "2.0",
       "model": "E2_regulated",
-      "headline_net_pct": 1.361285319002621,
-      "base_net_pct": 3.535312230641093,
-      "delta_pp": -2.174026911638472,
+      "headline_net_pct": 1.3612858395863083,
+      "base_net_pct": 3.535312762390413,
+      "delta_pp": -2.1740269228041047,
       "note": ""
     },
     {
@@ -978,9 +978,9 @@
       "variant": "incentives_shallower",
       "setting": "-2.0",
       "model": "E2_regulated",
-      "headline_net_pct": 5.709319483918956,
-      "base_net_pct": 3.535312230641093,
-      "delta_pp": 2.174007253277863,
+      "headline_net_pct": 5.70932002683381,
+      "base_net_pct": 3.535312762390413,
+      "delta_pp": 2.174007264443397,
       "note": ""
     },
     {
@@ -988,9 +988,9 @@
       "variant": "strict_dec31",
       "setting": "dec31_strict",
       "model": "E2_regulated",
-      "headline_net_pct": 5.148315957815123,
-      "base_net_pct": 3.535312230641093,
-      "delta_pp": 1.6130037271740303,
+      "headline_net_pct": 5.148316497848706,
+      "base_net_pct": 3.535312762390413,
+      "delta_pp": 1.613003735458293,
       "note": ""
     },
     {
@@ -998,9 +998,9 @@
       "variant": "E2_regulated",
       "setting": "E2_regulated",
       "model": "E2_regulated",
-      "headline_net_pct": 3.535312230641093,
+      "headline_net_pct": 3.535312762390413,
       "base_net_pct": 4.856032690252625,
-      "delta_pp": -1.3207204596115316,
+      "delta_pp": -1.320719927862212,
       "note": ""
     },
     {
@@ -1008,9 +1008,9 @@
       "variant": "met_guideline_applies",
       "setting": "guideline_applies",
       "model": "E2_regulated",
-      "headline_net_pct": 3.2257322171519602,
-      "base_net_pct": 3.535312230641093,
-      "delta_pp": -0.3095800134891329,
+      "headline_net_pct": 3.2257325245552764,
+      "base_net_pct": 3.535312762390413,
+      "delta_pp": -0.30958023783513644,
       "note": ""
     },
     {
@@ -1018,9 +1018,9 @@
       "variant": "years",
       "setting": "4",
       "model": "B0_last_year",
-      "headline_net_pct": 4.613966045638166,
+      "headline_net_pct": 4.613966045638167,
       "base_net_pct": 4.856032690252625,
-      "delta_pp": -0.24206664461445904,
+      "delta_pp": -0.24206664461445815,
       "note": ""
     },
     {
@@ -1038,9 +1038,9 @@
       "variant": "E1_engine_blend",
       "setting": "E1_engine_blend",
       "model": "E1_engine_blend",
-      "headline_net_pct": 4.736501825038716,
+      "headline_net_pct": 4.7365033800301255,
       "base_net_pct": 4.856032690252625,
-      "delta_pp": -0.11953086521390865,
+      "delta_pp": -0.11952931022249924,
       "note": ""
     },
     {
@@ -1048,9 +1048,9 @@
       "variant": "include_six_month_leases",
       "setting": "0.45",
       "model": "B0_last_year",
-      "headline_net_pct": 4.790771213156256,
+      "headline_net_pct": 4.7907712131562565,
       "base_net_pct": 4.856032690252625,
-      "delta_pp": -0.06526147709636909,
+      "delta_pp": -0.0652614770963682,
       "note": ""
     },
     {
@@ -1058,9 +1058,9 @@
       "variant": "years",
       "setting": "2",
       "model": "B0_last_year",
-      "headline_net_pct": 4.826050914856386,
+      "headline_net_pct": 4.826050914856385,
       "base_net_pct": 4.856032690252625,
-      "delta_pp": -0.02998177539623903,
+      "delta_pp": -0.029981775396239918,
       "note": ""
     },
     {
@@ -1068,9 +1068,9 @@
       "variant": "more_renewals",
       "setting": "5.0",
       "model": "E2_regulated",
-      "headline_net_pct": 3.5416923604540336,
-      "base_net_pct": 3.535312230641093,
-      "delta_pp": 0.006380129812940449,
+      "headline_net_pct": 3.5416928557954397,
+      "base_net_pct": 3.535312762390413,
+      "delta_pp": 0.0063800934050268765,
       "note": ""
     },
     {
@@ -1078,9 +1078,9 @@
       "variant": "fewer_renewals",
       "setting": "-5.0",
       "model": "E2_regulated",
-      "headline_net_pct": 3.5289324939650166,
-      "base_net_pct": 3.535312230641093,
-      "delta_pp": -0.006379736676076497,
+      "headline_net_pct": 3.5289330621177637,
+      "base_net_pct": 3.535312762390413,
+      "delta_pp": -0.006379700272649114,
       "note": ""
     },
     {

@@ -59,8 +59,7 @@ PRESET_QUESTIONS_EN = (  # same order as PRESET_QUESTIONS; a click still sends t
     "Why is the ranking of the models statistically weak?",
     "Which assumptions move the increase the most?",
 )
-DECISION_FILES = ("docs/decisions/INT.md", "docs/decisions/MSR.md", "docs/decisions/FCT.md",
-                  "docs/assumptions/INT.md", "docs/assumptions/MSR.md", "docs/assumptions/FCT.md")
+DECISION_FILES = ("docs/qa_knowledge.md",)
 SAFE_NOTE_LINE = re.compile(r"^\s*-\s")  # bullet lines only
 REAL_NUMBER = re.compile(r"\d+[.,]\d+|\d+\s?%|\d+\s?pp|−|-\d")  # decimals, percentages, pp: real-data numbers
 
