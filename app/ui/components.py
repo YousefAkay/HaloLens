@@ -137,6 +137,12 @@ def range_bar(low: float, high: float, band: tuple[float, float] | None = None, 
     return "".join(parts)
 
 
+def newbuild_name(doc: dict[str, Any], lang: str = DEFAULT_LANG) -> str:
+    """Label of the Ontario new-build lever: the display name in the aggregates (`newbuild_building`) or a generic label."""
+    name = doc.get("newbuild_building")
+    return str(name) if name else t("lab_newbuild", lang)
+
+
 def hero(doc: dict[str, Any], lang: str = DEFAULT_LANG) -> str:
     """Caption, the headline number, one sentence, the range bar and its legend (section 01)."""
     headline, companions = doc["headline"], doc["companions"]

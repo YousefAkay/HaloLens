@@ -256,7 +256,7 @@ def _lab(doc: dict[str, Any], lang: str) -> None:
                            lambda value: t(f"opt_incentive_{value}", lang), lang)
         renewal = _lever("lever_renewal", t("lab_renewal", lang), LEVER_CHOICES,
                          lambda value: t(f"opt_renewal_{value}", lang), lang)
-        newbuild = _lever("lever_newbuild", t("lab_newbuild", lang), NEWBUILD_CHOICES, lambda value: t(f"opt_newbuild_{value}", lang), lang)
+        newbuild = _lever("lever_newbuild", ui.newbuild_name(doc, lang), NEWBUILD_CHOICES, lambda value: t(f"opt_newbuild_{value}", lang), lang)
         rule = _lever("lever_rule", t("lab_rule", lang), list(narrative.INFORMATION_RULES),
                       lambda value: rule_labels.get(value, value), lang)
         st.button(t("lab_reset", lang), key="reset_lab", on_click=_reset_levers)

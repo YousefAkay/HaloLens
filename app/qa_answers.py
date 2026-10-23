@@ -497,8 +497,9 @@ def polish(answer: Answer, sheet: FactSheet, question: str, client: Any) -> Answ
 
 def answer_question(question: str, doc: dict[str, Any], client: Any | None = None, default_lang: str = "fr") -> Answer:
     """Route, compose and (with a client) polish. Always returns a complete answer; never raises for a bad question."""
-    route = qa_topics.route_with_client(question, client, narrative._call, default_lang) if client is not None \
-        else qa_topics.route(question, default_lang)
+    names = qa_topics.building_names(doc)
+    route = qa_topics.route_with_client(question, client, narrative._call, default_lang, names) if client is not None \
+        else qa_topics.route(question, default_lang, names)
     answer, sheet = compose(route.topic, doc, route.lang)
     if client is not None and route.topic in qa_topics.TOPICS:
         return polish(answer, sheet, question, client)

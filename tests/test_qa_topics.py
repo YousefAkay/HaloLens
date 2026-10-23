@@ -58,6 +58,21 @@ CASES = [
     ("Tell me a joke about cats", "out_of_scope", "en"),
     ("Qui a gagné la Coupe du monde ?", "out_of_scope", "fr"),
     ("Write me a poem about the sea", "out_of_scope", "en"),
+    # plain prepositions ("on", "in", "sur", "en") are not keywords; concessions on renewals are an incentives question
+    ("Tell me about the effect on rents", "out_of_scope", "en"),
+    ("Tell me a story on the sea in winter", "out_of_scope", "en"),
+    ("Qu'en est-il de la météo sur la côte en hiver ?", "out_of_scope", "fr"),
+    ("How do concessions affect the increase on renewals?", "incentives", "en"),
+    ("Do free months on renewals change the increase?", "incentives", "en"),
+    ("What discounts apply to turnovers in Ontario?", "incentives", "en"),
+    ("Les concessions sur les renouvellements changent-elles la hausse ?", "incentives", "fr"),
+    ("Quel est l'effet des rabais sur la hausse des renouvellements ?", "incentives", "fr"),
+    ("What is the increase in 2026 for units on the second floor?", "headline", "en"),
+    ("Quelle est la hausse sur les renouvellements ?", "headline", "fr"),
+    ("How many leases are in the data on renewals?", "data_quality", "en"),
+    ("Is the guideline on renewals binding?", "regulation", "en"),
+    ("What is the range on the forecast?", "uncertainty", "en"),
+    ("Peut-on se fier au modèle sur les années passées ?", "validation_backtest", "fr"),
 ]
 
 
@@ -132,3 +147,53 @@ def test_the_model_cannot_unlock_a_forbidden_subject_or_break_the_router():
 
 def test_the_tool_schema_is_an_enum_of_the_topics():
     assert set(qa_topics.ROUTER_TOOL["input_schema"]["properties"]["topic"]["enum"]) == set(qa_topics.ALL_TOPICS)
+
+
+def test_a_specific_keyword_beats_generic_renewal_words_on_a_tie(monkeypatch):
+    import re
+    # equal totals (2.0): the topic whose strongest pattern is larger leads, whatever the order of TOPICS
+    monkeypatch.setattr(qa_topics, "COMPILED", {
+        "regulation": ((re.compile("renewal"), 1.0), (re.compile("rule"), 1.0)),
+        "incentives": ((re.compile("concession"), 2.0),),
+    })
+    assert qa_topics.route("concession on renewal rule").topic == "incentives"
+    # the reverse weights give the reverse winner: the rule is about pattern strength, not about a topic name
+    monkeypatch.setattr(qa_topics, "COMPILED", {
+        "regulation": ((re.compile("renewal"), 2.0),),
+        "incentives": ((re.compile("concession"), 1.0), (re.compile("rule"), 1.0)),
+    })
+    assert qa_topics.route("concession on renewal rule").topic == "regulation"
+
+
+def _aggregates() -> dict:
+    import json
+    from pathlib import Path
+    return json.loads((Path(__file__).resolve().parents[1] / "outputs" / "public" / "aggregates_synthetic.json").read_text("utf-8"))
+
+
+def test_building_display_names_come_from_the_aggregates_at_runtime():
+    document = _aggregates()
+    names = qa_topics.building_names(document)
+    assert names and all(isinstance(name, str) for name in names)
+    for name in names:
+        question = f"What changed at {name} last year?"
+        assert qa_topics.route(question).topic != "buildings_segments" or name.lower() in {"building", "property"}
+        assert qa_topics.route(question, names=names).topic == "buildings_segments", question
+    assert qa_topics.building_names(None) == () and qa_topics.building_names({}) == ()
+
+
+def test_the_router_and_the_labels_name_no_fixture_building():
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[1]
+    names = {name.lower() for name in qa_topics.building_names(_aggregates())}
+    sources = [root / "app" / "qa_topics.py", root / "app" / "qa_answers.py", root / "app" / "ui" / "labels.py"]
+    for path in sources:
+        text = path.read_text("utf-8").lower()
+        assert not [name for name in names if name in text], path
+
+
+def test_answer_question_uses_the_building_names_of_the_aggregates():
+    from app import qa_answers
+    document = _aggregates()
+    name = qa_topics.building_names(document)[0]
+    assert qa_answers.answer_question(f"How is {name} doing?", document, default_lang="en").topic == "buildings_segments"

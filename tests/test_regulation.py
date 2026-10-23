@@ -192,10 +192,15 @@ def test_renewals_vs_reference_joins_same_province_only(no_clip_cfg):
     assert comparison.loc[0, "gap_pp"] == pytest.approx(expected_gap)
 
 
+def _config_building(province: str) -> str:
+    """Name of the first building of the given province in the configured (synthetic) portfolio."""
+    return next(item["building"] for item in load_config()["regulation"]["buildings"] if item["province"] == province)
+
+
 def newbuild_renewal(unit: str, year: int, increase_pct: float) -> dict:
     """One eligible renewal pair of the Ontario new-build property with the given 12-month contractual increase."""
     row = pair(unit, "ON", True, math.log1p(increase_pct / PERCENT), year)
-    return {**row, "building": "Lakeview Residences"}
+    return {**row, "building": _config_building("ON")}
 
 
 def test_exemption_evidence_counts_renewals_above_guideline(real_cfg):
@@ -203,7 +208,7 @@ def test_exemption_evidence_counts_renewals_above_guideline(real_cfg):
     years = [YEAR - 1, YEAR]
     rows = [newbuild_renewal("a", YEAR, guideline), newbuild_renewal("b", YEAR, guideline + 1.0),
             newbuild_renewal("c", YEAR, guideline + 3.0)]
-    rows.append({**pair("q", "QC", True, 0.2), "building": "North Court"})   # Québec renewal: never counted
+    rows.append({**pair("q", "QC", True, 0.2), "building": _config_building("QC")})   # Québec renewal: never counted
     references = pd.DataFrame({"year": years, "province": ["ON", "ON"], "reference_pct": [guideline, guideline]})
     evidence = exemption_evidence(pairs_frame(rows), references, real_cfg, years).set_index("year")
     assert list(evidence.reset_index().columns) == EVIDENCE_COLUMNS

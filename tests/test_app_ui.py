@@ -160,13 +160,13 @@ def test_duplicate_building_names_get_distinct_public_labels(lang):
     assert ui.building_cells(SYNTHETIC, lang)["label"].is_unique
     document = copy.deepcopy(SYNTHETIC)
     cell = {"net_pct_raw": 3.0, "net_pct_shrunk": 3.0, "contract_pct_raw": 3.0, "contract_pct_shrunk": 3.0}
-    document["building_beds"] = [{"building": "North Court", "beds": 1, "n_pairs": 12, **cell},
-                                 {"building": "North Court", "beds": 2, "n_pairs": 8, **cell},
-                                 {"building": "North Court", "beds": 1, "n_pairs": 21, **cell},
-                                 {"building": "Cedar Park", "beds": 1, "n_pairs": 7, **cell}]
+    document["building_beds"] = [{"building": "Building A", "beds": 1, "n_pairs": 12, **cell},
+                                 {"building": "Building A", "beds": 2, "n_pairs": 8, **cell},
+                                 {"building": "Building A", "beds": 1, "n_pairs": 21, **cell},
+                                 {"building": "Building B", "beds": 1, "n_pairs": 7, **cell}]
     cells = ui.building_cells(document, lang)
-    assert cells["label"].is_unique and sorted(cells[cells["building"] == "North Court"]["phase"]) == [1, 1, 2]
-    assert all("phase" not in label.lower() for label in cells[cells["building"] == "Cedar Park"]["label"])
+    assert cells["label"].is_unique and sorted(cells[cells["building"] == "Building A"]["phase"]) == [1, 1, 2]
+    assert all("phase" not in label.lower() for label in cells[cells["building"] == "Building B"]["label"])
     for forbidden in ("prop_code", "unit_id", "unit_code"):
         assert forbidden not in " ".join(cells["label"])
 
@@ -771,8 +771,8 @@ def cell(building, beds, pairs):
 
 
 # the same two property cells of one building (A has 1 and 2 bedrooms, B has 1 and 2), in the two ways an export may sort them
-CELL_FIRST = [cell("North Court", 1, 12), cell("North Court", 2, 8), cell("North Court", 1, 21), cell("North Court", 2, 9)]
-BEDS_FIRST = [cell("North Court", 1, 12), cell("North Court", 1, 21), cell("North Court", 2, 8), cell("North Court", 2, 9)]
+CELL_FIRST = [cell("Building A", 1, 12), cell("Building A", 2, 8), cell("Building A", 1, 21), cell("Building A", 2, 9)]
+BEDS_FIRST = [cell("Building A", 1, 12), cell("Building A", 1, 21), cell("Building A", 2, 8), cell("Building A", 2, 9)]
 
 
 @pytest.mark.parametrize("order", [CELL_FIRST, BEDS_FIRST], ids=["cell-first", "beds-first"])
@@ -803,7 +803,7 @@ def test_the_table_and_the_dots_show_the_same_cells_in_either_export_order(monke
 def test_a_building_with_an_extra_cell_never_gets_a_guessed_phase():
     """Cell B only has 3 bedrooms: that row is unique for its building and bedroom count, so it carries no phase word."""
     document = copy.deepcopy(SYNTHETIC)
-    document["building_beds"] = [cell("North Court", 1, 12), cell("North Court", 2, 8), cell("North Court", 3, 5)]
+    document["building_beds"] = [cell("Building A", 1, 12), cell("Building A", 2, 8), cell("Building A", 3, 5)]
     labels = list(ui.building_cells(document, "en")["label"])
     assert all("phase" not in label for label in labels) and len(set(labels)) == 3
 

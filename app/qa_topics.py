@@ -23,6 +23,7 @@ ALL_TOPICS = TOPICS + (FORBIDDEN, OUT_OF_SCOPE)
 
 FORBIDDEN_PATTERN = re.compile(r"occupan|occupation|inoccup|vacan|absorption|rent[ -]?roll|taux de vacance|"
                                r"loyers? total|total rent")
+NAME_WEIGHT = 3.0  # weight of a building display name listed in the aggregates
 UNSURE_BELOW = 2.0  # a best score under this value counts as "unsure" (the client may then choose the topic)
 
 # (pattern, weight) per topic; patterns run on accent-free lower-case text.
@@ -54,8 +55,9 @@ PATTERNS: dict[str, tuple[tuple[str, float], ...]] = {
     "regulation": (
         (r"\btal\b|tribunal|\bltb\b|landlord and tenant", 3.0),
         (r"regulat|reglement|regle\b|\brules?\b|loi\b|\blaw\b|legal|guideline|ligne directrice|plafon|\bcap\b|capped", 2.5),
-        (r"renouvel|renewal|\brenew", 2.0), (r"relocation|turnover|nouveau locataire|new tenant|roulement", 1.5),
-        (r"quebec|ontario|province|\bqc\b|\bon\b", 1.5), (r"\bipc\b|\bcpi\b|inflation", 1.5),
+        # renewal and turnover words are generic: they appear in questions on every topic, so they weigh little
+        (r"renouvel|renewal|\brenew", 1.0), (r"relocation|turnover|nouveau locataire|new tenant|roulement", 1.0),
+        (r"quebec|ontario|province|\bqc\b", 1.5), (r"\bipc\b|\bcpi\b|inflation", 1.5),
     ),
     "validation_backtest": (
         (r"backtest|retro-?test|back-test|historical test|test historique", 3.5),
@@ -65,6 +67,7 @@ PATTERNS: dict[str, tuple[tuple[str, float], ...]] = {
         (r"statistiquement|statistically|significant|faible|weak", 1.0),
     ),
     "incentives": (
+        # specific keywords: they decide the topic even when generic words (renewal, increase) also appear
         (r"incitatif|incentive|concession|rabais|discount|mois gratuit|free month|gratuit|promotion|cadeau", 3.0),
         (r"contractuel|contractual|asking|affiche|loyer net|net rent|net of", 1.5),
     ),
@@ -75,7 +78,7 @@ PATTERNS: dict[str, tuple[tuple[str, float], ...]] = {
         (r"pire|worst|best case|meilleur cas|low and high|bas et haut|bas ou haut", 1.5),
     ),
     "buildings_segments": (
-        (r"immeuble|building|propriete|property|\bsite\b|\btour\b|cedar|lakeview|north court", 3.0),
+        (r"immeuble|building|propriete|property|\bsite\b|\btour\b", 3.0),
         (r"segment|chambre|bedroom|studio|\bbeds?\b|\bbr\b|\bcac\b|\b1 ?br\b|\b2 ?br\b|par type|by type", 2.5),
         (r"quel(le)? .*(plus|moins) .*(hausse|augment)|which .*(highest|lowest|most|least)", 1.5),
         (r"unite par unite|unit by unit|par unite|per unit", 1.0),
@@ -140,33 +143,65 @@ def detect_language(question: str, default: str = "fr") -> str:
     return "en" if english > french else "fr"
 
 
-def scores(question: str) -> dict[str, float]:
-    """Keyword score of every answerable topic (each pattern counts once)."""
+def building_names(document: dict[str, Any] | None) -> tuple[str, ...]:
+    """Building or property display names listed in the aggregates (`building_beds`, `newbuild_building`); empty if none."""
+    if not document:
+        return ()
+    names = {str(row.get("building")) for row in document.get("building_beds") or [] if isinstance(row, dict) and row.get("building")}
+    if document.get("newbuild_building"):
+        names.add(str(document["newbuild_building"]))
+    return tuple(sorted(names))
+
+
+def _name_pattern(names: tuple[str, ...]) -> re.Pattern[str] | None:
+    """One pattern matching any of the given display names (accent-free, lower-case, whole words)."""
+    plain = sorted({normalize(name) for name in names if normalize(name)}, key=len, reverse=True)
+    return re.compile(r"\b(?:" + "|".join(re.escape(name) for name in plain) + r")\b") if plain else None
+
+
+def _matches(question: str, names: tuple[str, ...] = ()) -> dict[str, list[float]]:
+    """Weights of the patterns that match, per answerable topic; display names add a building pattern at run time."""
     text = normalize(question)
-    return {topic: sum(weight for pattern, weight in patterns if pattern.search(text))
-            for topic, patterns in COMPILED.items()}
+    found = {topic: [weight for pattern, weight in patterns if pattern.search(text)] for topic, patterns in COMPILED.items()}
+    name_pattern = _name_pattern(names)
+    if name_pattern is not None and name_pattern.search(text):
+        found.setdefault("buildings_segments", []).append(NAME_WEIGHT)
+    return found
 
 
-def route(question: str, default_lang: str = "fr") -> Route:
-    """Map a question to one topic. Forbidden subjects win; no keyword at all means out of scope."""
+def scores(question: str, names: tuple[str, ...] = ()) -> dict[str, float]:
+    """Keyword score of every answerable topic (each pattern counts once)."""
+    return {topic: sum(weights) for topic, weights in _matches(question, names).items()}
+
+
+def route(question: str, default_lang: str = "fr", names: tuple[str, ...] = ()) -> Route:
+    """Map a question to one topic. Forbidden subjects win; no keyword at all means out of scope.
+
+    Ties on the total score go to the topic with the strongest single pattern (a specific keyword beats generic words),
+    then to the order of `TOPICS`. `names` are building display names read from the aggregates.
+    """
     lang = detect_language(question, default_lang)
     text = normalize(question)
     if FORBIDDEN_PATTERN.search(text):
         return Route(FORBIDDEN, lang, 10.0, True)
-    topic_scores = scores(question)
+    matches = _matches(question, names)
+    topic_scores = {topic: sum(weights) for topic, weights in matches.items()}
     best = max(topic_scores.values())
     if best <= 0:
         return Route(OUT_OF_SCOPE, lang, 0.0, False)
-    leaders = [topic for topic in TOPICS if topic_scores[topic] == best]  # TOPICS order breaks ties
+    tied = [topic for topic in TOPICS if topic_scores.get(topic) == best]
+    strongest = max(max(matches[topic]) for topic in tied)
+    leaders = [topic for topic in tied if max(matches[topic]) == strongest]  # TOPICS order breaks the remaining ties
     runner_up = sorted(topic_scores.values(), reverse=True)[1]
     return Route(leaders[0], lang, best, best >= UNSURE_BELOW and best - runner_up >= 0.5)
 
 
-def route_with_client(question: str, client: Any | None, call: Any, default_lang: str = "fr") -> Route:
+def route_with_client(question: str, client: Any | None, call: Any, default_lang: str = "fr",
+                      names: tuple[str, ...] = ()) -> Route:
     """`route`, then the model's enum choice when the router is unsure. `call(client, system, content, **extra)` is the
     API wrapper of app/narrative.py. Any failure keeps the deterministic result; the model is never required.
     """
-    result = route(question, default_lang)
+    result = route(question, default_lang, names)
     if client is None or result.confident or result.topic == FORBIDDEN:
         return result
     try:
