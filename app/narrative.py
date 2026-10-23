@@ -130,6 +130,9 @@ def _call(client: Any, system: str, content: str, **extra: Any) -> Any:
 
 
 def _text(response: Any) -> str:
+    """The text of a response, or "" when the model stopped at the token limit (a truncated answer is a failed attempt)."""
+    if getattr(response, "stop_reason", None) == "max_tokens":
+        return ""
     return " ".join(block.text for block in response.content if getattr(block, "type", "") == "text").strip()
 
 
@@ -216,7 +219,7 @@ def scenario_copilot(question: str, aggregates: dict[str, Any], client: Any | No
     describe = json.dumps({"row": row, "baseline": base, "language": lang}, ensure_ascii=False)
     for _attempt in range(2):
         text = _text(_call(client, "Écris 2 à 4 phrases dans la langue demandée, en utilisant seulement les valeurs de ce "
-                                   "JSON. Ne calcule rien.", describe))
+                                   "JSON, arrondies à une décimale au plus. Ne calcule rien.", describe))
         if text and not ungrounded_numbers(text, aggregates):
             return {"status": "ai", "row": row, "text": text}
     return {"status": "fallback", "row": row, "text": fallback_scenario_text(row, base, lang)}
@@ -244,8 +247,9 @@ def ask_analysis(question: str, aggregates: dict[str, Any], docs: list[str], cli
         return {"status": "no_key", "text": cached}
     section_lines = "\n".join(f"§{number} {title}" for number, title in SECTION_MAP.items())
     system = (f"Réponds dans la langue de la question ({lang}). Utilise seulement le JSON fourni. Cite toujours au moins "
-              f"une section d'appui avec §NN parmi :\n{section_lines}\nN'écris que des nombres présents tels quels dans "
-              "le JSON, avec leurs décimales ; ne calcule ni différence ni moyenne ; si un nombre n'existe pas, décris-le "
+              f"une section d'appui avec §NN parmi :\n{section_lines}\nN'écris que des nombres présents dans "
+              "le JSON, arrondis à une décimale au plus (jamais plus de deux) ; ne calcule ni différence ni moyenne ; si un "
+              "nombre n'existe pas, décris-le "
               "sans chiffre. Si les données ne répondent pas, dis-le sans inventer.")
     content = json.dumps(privacy_payload(aggregates, question, docs), ensure_ascii=False)  # runtime privacy check
     for _attempt in range(2):

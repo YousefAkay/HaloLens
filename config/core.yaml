@@ -41,7 +41,8 @@ build:
 
 app:
   llm_model: claude-sonnet-5-5          # model id for the scenario copilot and the Q&A (Claude API, aggregates only)
-  llm_max_tokens: 800                   # upper bound for one answer
+  llm_max_tokens: 1500                  # upper bound for one answer; 800 cut answers short (a stop at this limit counts as a failed attempt)
+  max_written_decimals: 2               # the number guard rejects a written number with more decimals than this (no raw floats in answers)
   building_min_pairs: 5                 # building x beds cells with fewer eligible pairs are not exported or shown
 
 random_seed: 2026                 # every random operation uses this seed
