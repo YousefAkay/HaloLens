@@ -32,7 +32,7 @@ from pathlib import Path
 # ---- Données / Data ----------------------------------------------------------------------------------------------
 # Mettez ici le dossier qui contient les 4 fichiers CSV sources et manifest.json.
 # Put here the folder that holds the 4 source CSV files and manifest.json. None = data/private
-# (or the environment variable LEASELENS_DATA_DIR, if set).
+# (or the environment variable HALOLENS_DATA_DIR, if set).
 DATA_DIR = None  # mettez le chemin de vos fichiers CSV sources ici / put your source CSV folder path here
 
 
@@ -53,7 +53,7 @@ if ROOT is None:
     _stop("Ouvrez le notebook depuis le dossier du dépôt Halo Lens (celui qui contient config/core.yaml).",
           "Open the notebook from the Halo Lens repository folder (the one that contains config/core.yaml).")
 try:
-    import leaselens  # noqa: F401
+    import halolens  # noqa: F401
 except ImportError:
     sys.path.insert(0, str(ROOT / "src"))  # no install needed: use the copy of the code next to this notebook
 
@@ -73,22 +73,22 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from IPython.display import Markdown, display
 
-from leaselens.config import data_dir, load_config, source_files
-from leaselens.io import canonicalize, column_mapping, load_raw, run_qa
+from halolens.config import data_dir, load_config, source_files
+from halolens.io import canonicalize, column_mapping, load_raw, run_qa
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 pd.set_option("display.width", 160)
 
 cfg = load_config()
-FOLDER = Path(DATA_DIR or os.environ.get("LEASELENS_DATA_DIR") or data_dir(cfg))
+FOLDER = Path(DATA_DIR or os.environ.get("HALOLENS_DATA_DIR") or data_dir(cfg))
 SOURCE_FILE_NAMES = source_files(cfg)  # défauts de contracts.SOURCE_FILES, ou config/local.yaml (data.source_files)
 EXPECTED_FILES = [*SOURCE_FILE_NAMES.values(), "manifest.json"]
 missing_files = [name for name in EXPECTED_FILES if not (FOLDER / name).is_file()]
 if missing_files:
     _stop(f"Fichiers introuvables dans « {FOLDER} » : {', '.join(missing_files)}. Attendus : "
-          f"{', '.join(EXPECTED_FILES)}. Réglez DATA_DIR (en haut de cette cellule) ou la variable LEASELENS_DATA_DIR.",
+          f"{', '.join(EXPECTED_FILES)}. Réglez DATA_DIR (en haut de cette cellule) ou la variable HALOLENS_DATA_DIR.",
           f"Files not found in « {FOLDER} »: {', '.join(missing_files)}. Expected: {', '.join(EXPECTED_FILES)}. "
-          "Set DATA_DIR (top of this cell) or the LEASELENS_DATA_DIR variable.")
+          "Set DATA_DIR (top of this cell) or the HALOLENS_DATA_DIR variable.")
 try:
     raw = load_raw(FOLDER, source_files=SOURCE_FILE_NAMES)           # vérifie les empreintes SHA-256 du manifeste avant de lire
 except ValueError as error:
@@ -109,14 +109,14 @@ display(Markdown(f"Mode des données : **{cfg['data']['mode']}**"))
 # **Vérification :** la hausse 2026 affichée ici doit être égale à celle de la section 10 (estimate_2026).
 
 # %%
-from leaselens.config import repo_root
-from leaselens.evaluate.backtest import champion_pipeline, headline_table
-from leaselens.export.aggregates import MODEL_RANGE_NAMES, build_aggregates
-from leaselens.forecast.asof import snapshot_for_year
-from leaselens.forecast.baselines import rate_logs_by_year, to_pct
-from leaselens.forecast.combine import REGULATED_MODEL_NAME
-from leaselens.market.registry import load_external
-from leaselens.measure.labels import french_date
+from halolens.config import repo_root
+from halolens.evaluate.backtest import champion_pipeline, headline_table
+from halolens.export.aggregates import MODEL_RANGE_NAMES, build_aggregates
+from halolens.forecast.asof import snapshot_for_year
+from halolens.forecast.baselines import rate_logs_by_year, to_pct
+from halolens.forecast.combine import REGULATED_MODEL_NAME
+from halolens.market.registry import load_external
+from halolens.measure.labels import french_date
 
 PCT_DECIMALS = 2   # two decimals, the same display as section 10's estimate
 PP_DECIMALS = 2    # backtest errors and ranking gaps, in percentage points
@@ -167,10 +167,10 @@ display(Markdown(
 # hausse nette ; puis, à part, la vue réglementaire du modèle E2 : sa hausse nette et la plage bas–central–haut de ses
 # scénarios, qui sont des quantités de E2 et non du modèle retenu.
 # **Pourquoi :** une seule figure donne la réponse, son ajustement par les incitatifs et son incertitude.
-# **Vérification :** toutes les valeurs viennent de `results` et du calcul E2 ci-dessus ; les couleurs viennent de `leaselens.contracts`.
+# **Vérification :** toutes les valeurs viennent de `results` et du calcul E2 ci-dessus ; les couleurs viennent de `halolens.contracts`.
 
 # %%
-from leaselens.contracts import COLOR_CONTRACT, COLOR_MARKET, COLOR_NAIVE, COLOR_NET
+from halolens.contracts import COLOR_CONTRACT, COLOR_MARKET, COLOR_NAIVE, COLOR_NET
 
 BAR_WIDTH = 0.5
 E2_POSITION = 3  # le modèle E2 est tracé à part, après les trois barres du modèle retenu

@@ -23,7 +23,7 @@ import re
 from dataclasses import dataclass
 from typing import Any
 
-from leaselens.config import load_config
+from halolens.config import load_config
 
 # Optional minus (ASCII or U+2212); digits with optional space-grouped thousands (regular, no-break or narrow
 # no-break space); optional decimal part after a comma or a dot. The lookbehind rejects matches glued to a

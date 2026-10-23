@@ -10,9 +10,9 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from leaselens.contracts import LEASES_COLUMNS
-from leaselens.forecast.asof import make_snapshot
-from leaselens.incentives.engine import discount_share, forecast_discount, net_log_growth
+from halolens.contracts import LEASES_COLUMNS
+from halolens.forecast.asof import make_snapshot
+from halolens.incentives.engine import discount_share, forecast_discount, net_log_growth
 from tests.test_baselines import empty_external, tables_from
 
 CUTOFF = pd.Timestamp("2024-12-31")   # target year 2025
@@ -158,7 +158,7 @@ def test_no_discounts_gives_zero_shares(cfg):
 
 def test_engine_runs_on_the_synthetic_snapshot(raw, cfg):
     """Smoke test on the committed synthetic fixtures (aggregates only)."""
-    from leaselens.io import canonicalize
+    from halolens.io import canonicalize
     snapshot = make_snapshot(canonicalize(raw), empty_external(), pd.Timestamp("2024-12-31"))
     result = forecast_discount(snapshot, cfg)
     assert len(result) > 0

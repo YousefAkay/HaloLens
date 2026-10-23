@@ -9,9 +9,9 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from leaselens.contracts import CONCESSIONS_COLUMNS, LEASES_COLUMNS, LINKS_COLUMNS
-from leaselens.incentives.linking import link_concessions
-from leaselens.incentives.reconcile import (credit_totals, hypothesis_comparison, lease_term_months,
+from halolens.contracts import CONCESSIONS_COLUMNS, LEASES_COLUMNS, LINKS_COLUMNS
+from halolens.incentives.linking import link_concessions
+from halolens.incentives.reconcile import (credit_totals, hypothesis_comparison, lease_term_months,
                                             reconciliation_by_year, reconciliation_rate, reconstruct_net_rent)
 
 CONTRACT = 1200.0
@@ -70,7 +70,7 @@ def test_the_rejected_lump_times_months_hypothesis_is_only_available_on_request(
 
 def test_reconstruction_never_multiplies_a_lump_credit(raw):
     """Net rent rebuilt from the synthetic records equals the reported one with the lump counted once."""
-    from leaselens.io import canonicalize
+    from halolens.io import canonicalize
     tables = canonicalize(raw)
     cfg_links = link_concessions(tables.concessions, tables.leases, {"linking": {"recon_tolerance_dollars": 1.0,
                                                                                   "max_combinations": 4096}})

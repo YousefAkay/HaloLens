@@ -1,6 +1,6 @@
 # Halo Lens: rent-growth forecast
 
-Halo Lens (Python package `leaselens`) estimates a residential portfolio's next-year rent increase from lease history and
+Halo Lens (Python package `halolens`) estimates a residential portfolio's next-year rent increase from lease history and
 public market data. It defines exactly what "rent increase" means, compares each unit with itself, handles incentives
 explicitly, separates renewals from turnovers under each province's rules (Quebec and Ontario), and validates the method
 by backtesting past years.
@@ -52,7 +52,7 @@ pre-commit install               # optional, for contributors
 
 Put the four tables (`listings.csv`, `lease_history.csv`, `concessions.csv`, `asking_history.csv`, in the column format of
 `data/synthetic/`) and a `manifest.json` of their SHA-256 hashes in a folder of your choice. Point to it with `DATA_DIR` at
-the top of the notebook's first cell or with the environment variable `LEASELENS_DATA_DIR`; without a setting, the notebook
+the top of the notebook's first cell or with the environment variable `HALOLENS_DATA_DIR`; without a setting, the notebook
 reads `data/private/`. Files are verified against the manifest before they are read. Outputs computed from your data go to
 `outputs/private/` (gitignored).
 
@@ -71,7 +71,7 @@ To enable them, copy `.env.example` to `.env` and set `ANTHROPIC_API_KEY`. The n
 
 ```
 notebook/sections/   one jupytext file per notebook section (assembled by scripts/build_notebook.py)
-src/leaselens/       analysis library: io, measure, market, incentives, forecast, evaluate, export
+src/halolens/       analysis library: io, measure, market, incentives, forecast, evaluate, export
 config/              every threshold, date and weight (no magic numbers in code)
 scripts/             notebook build, source extraction, aggregate export, synthetic data, leak scan
 app/                 Streamlit dashboard

@@ -35,7 +35,7 @@ from pathlib import Path
 
 from IPython.display import Markdown, display
 
-from leaselens.measure.labels import track_references_markdown
+from halolens.measure.labels import track_references_markdown
 
 references_cfg = cfg["references"]
 display(Markdown(

@@ -4,10 +4,10 @@ import shutil
 
 import pytest
 
-from leaselens.config import data_dir
-from leaselens.contracts import SOURCE_FILES
-from leaselens.io import load_raw, run_qa
-from leaselens.io.load import verify_manifest
+from halolens.config import data_dir
+from halolens.contracts import SOURCE_FILES
+from halolens.io import load_raw, run_qa
+from halolens.io.load import verify_manifest
 
 
 def test_manifest_hashes_verified(cfg):
@@ -58,7 +58,7 @@ def test_local_yaml_overrides_source_file_names(tmp_path):
 
     import yaml
 
-    from leaselens.config import load_config, repo_root, source_files
+    from halolens.config import load_config, repo_root, source_files
 
     root = tmp_path / "repo"
     (root / "config").mkdir(parents=True)

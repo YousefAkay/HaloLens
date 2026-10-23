@@ -19,8 +19,8 @@
 # %%
 from IPython.display import Markdown, display
 
-from leaselens.config import cutoff_for, external_cutoff_for
-from leaselens.measure.labels import french_date, french_month_day
+from halolens.config import cutoff_for, external_cutoff_for
+from halolens.measure.labels import french_date, french_month_day
 
 target_year = cfg["forecast_years"]["target_year"]
 cutoff = cutoff_for(target_year, cfg).date().isoformat()

@@ -1,0 +1,64 @@
+"""Point-in-time snapshots: the single anti-leakage chokepoint.
+
+Owner: FCT. Implements `make_snapshot` (AGENTS.md Section 7.3). Every forecast and backtest reads its data
+through this function, so the time policy of Section 9.3 lives in one place.
+"""
+
+from __future__ import annotations
+
+import pandas as pd
+from halolens.config import cutoff_for, external_cutoff_for
+from halolens.contracts import CanonicalTables, Snapshot
+
+
+def make_snapshot(tables: CanonicalTables, external: pd.DataFrame, cutoff: pd.Timestamp,
+                  external_cutoff: pd.Timestamp | None = None) -> Snapshot:
+    """Filter every table to what was knowable at `cutoff` (AGENTS.md Section 9.3). Inputs are not modified.
+
+    - leases: BOTH `sign_date` and `lease_start` on or before the cutoff (a lease signed earlier that starts
+      later is not training data).
+    - concessions: `date_from` on or before the cutoff.
+    - asking: `month` on or before the month containing the cutoff.
+    - external: `release_date` on or before `external_cutoff` (same rule as `market.registry.as_of`; applied here
+      directly so the snapshot does not depend on MSR's loader). `external_cutoff` defaults to `cutoff`, so a call without
+      it behaves as before. The mentor-approved rule (REQUEST-INT-01) passes January 31 of the target year, see
+      `snapshot_for_year`. CRM tables are always cut at `cutoff`.
+    - units (listings): the table is a 2025 snapshot, so it is kept only when every row's `snapshot_month` is on
+      or before the cutoff's month; otherwise it is None (never used for historical folds).
+    The cutoff day itself is inclusive everywhere.
+    """
+    cutoff = pd.Timestamp(cutoff)
+    external_cutoff = pd.Timestamp(external_cutoff) if external_cutoff is not None else cutoff
+    cutoff_month = cutoff.to_period("M")
+
+    leases = tables.leases
+    known_leases = leases[(leases["sign_date"] <= cutoff) & (leases["lease_start"] <= cutoff)]
+    concessions = tables.concessions[tables.concessions["date_from"] <= cutoff]
+    asking = tables.asking[tables.asking["month"] <= cutoff_month]
+    released = external[external["release_date"] <= external_cutoff]
+
+    units = tables.units
+    units_knowable = units is not None and len(units) > 0 and bool((units["snapshot_month"] <= cutoff_month).all())
+
+    return Snapshot(
+        cutoff=cutoff,
+        leases=known_leases.copy(),
+        concessions=concessions.copy(),
+        asking=asking.copy(),
+        units=units.copy() if units_knowable else None,
+        external=released.copy(),
+    )
+
+
+def snapshot_for_year(tables: CanonicalTables, external: pd.DataFrame, year: int, cfg: dict,
+                      strict: bool = False) -> Snapshot:
+    """Snapshot for forecasting `year` under the agreed information dates (AGENTS.md Section 9.3).
+
+    CRM cutoff = December 31 of year - 1 (`config.cutoff_for`). External cutoff = January 31 of `year`
+    (`config.external_cutoff_for`, mentor-approved 2026-10-03); with `strict=True` it is the CRM cutoff instead, which is
+    the Dec-31 sensitivity version. Backtests and the 2026 forecast build their snapshots only through this function so
+    the rule is applied identically everywhere.
+    """
+    cutoff = cutoff_for(year, cfg)
+    external_cutoff = cutoff if strict else external_cutoff_for(year, cfg)
+    return make_snapshot(tables, external, cutoff, external_cutoff)

@@ -18,10 +18,10 @@ from dataclasses import replace
 import pandas as pd
 import pytest
 
-from leaselens.config import cutoff_for
-from leaselens.contracts import EXTERNAL_COLUMNS, CanonicalTables
-from leaselens.forecast.asof import make_snapshot, snapshot_for_year
-from leaselens.forecast.combine import forecast
+from halolens.config import cutoff_for
+from halolens.contracts import EXTERNAL_COLUMNS, CanonicalTables
+from halolens.forecast.asof import make_snapshot, snapshot_for_year
+from halolens.forecast.combine import forecast
 
 
 HISTORICAL_FOLD_YEAR = 2025   # cutoff 2024-12-31: the synthetic data has plenty of rows after it

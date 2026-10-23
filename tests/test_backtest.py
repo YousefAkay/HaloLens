@@ -10,12 +10,12 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from leaselens.evaluate.backtest import (actual_for_year, backtest_all_models, backtest_baselines, backtest_both_rules,
+from halolens.evaluate.backtest import (actual_for_year, backtest_all_models, backtest_baselines, backtest_both_rules,
                                          run_backtest, select_champion, summarize_models)
-from leaselens.evaluate.metrics import absolute_error_pp, mean_absolute_error_pp, signed_error_pp
-from leaselens.forecast.asof import make_snapshot
-from leaselens.forecast.baselines import BASELINES, frozen_weights, training_pairs
-from leaselens.config import cutoff_for
+from halolens.evaluate.metrics import absolute_error_pp, mean_absolute_error_pp, signed_error_pp
+from halolens.forecast.asof import make_snapshot
+from halolens.forecast.baselines import BASELINES, frozen_weights, training_pairs
+from halolens.config import cutoff_for
 from tests.test_baselines import (ABS_TOLERANCE_PP, YEARLY_GROWTH, annual_leases, empty_external, market_rows,
                                   tables_from)
 
@@ -120,15 +120,15 @@ def test_backtest_folds_do_not_see_future_leases(tables, cfg):
 
 def test_baseline_backtest_runs_on_the_synthetic_fixtures(raw, cfg):
     """Done-when check: baselines backtest on synthetic data (aggregates only)."""
-    from leaselens.io import canonicalize
+    from halolens.io import canonicalize
     result = backtest_baselines(canonicalize(raw), empty_external(), cfg)
     assert result[result["model"] != "B2_market_anchor"]["error_pp_net"].notna().any()
 
 
 def test_run_backtest_uses_the_same_forecast_as_the_engine_pipeline(raw, cfg):
     """backtest() must call the very forecast() behind estimate_2026(): same snapshot, same numbers."""
-    from leaselens.forecast.combine import forecast
-    from leaselens.io import canonicalize
+    from halolens.forecast.combine import forecast
+    from halolens.io import canonicalize
     synthetic = canonicalize(raw)
     fold = run_backtest(synthetic, empty_external(), 2025, cfg)
     direct = forecast(make_snapshot(synthetic, empty_external(), cutoff_for(2025, cfg)), cfg)
@@ -138,7 +138,7 @@ def test_run_backtest_uses_the_same_forecast_as_the_engine_pipeline(raw, cfg):
 
 
 def test_all_models_table_adds_the_engine_to_the_baselines(raw, cfg):
-    from leaselens.io import canonicalize
+    from halolens.io import canonicalize
     table = backtest_all_models(canonicalize(raw), empty_external(), cfg)
     assert set(table["model"]) == set(BASELINES) | {"E1_engine_blend", "E2_regulated"}
     engine = table[table["model"] == "E1_engine_blend"]
@@ -148,7 +148,7 @@ def test_all_models_table_adds_the_engine_to_the_baselines(raw, cfg):
 
 
 def test_model_summary_separates_selection_years_from_the_holdout(raw, cfg):
-    from leaselens.io import canonicalize
+    from halolens.io import canonicalize
     table = backtest_all_models(canonicalize(raw), empty_external(), cfg)
     summary = summarize_models(table, cfg).set_index("model")
     engine = table[table["model"] == "E1_engine_blend"].set_index("year")["abs_error_pp_net"]
@@ -171,8 +171,8 @@ def january_release_market(year: int) -> pd.DataFrame:
 
 
 def test_b2_uses_a_january_release_under_the_jan_31_rule_but_not_under_the_strict_rule(tables, cfg):
-    from leaselens.forecast.baselines import market_anchor
-    from leaselens.forecast.asof import snapshot_for_year
+    from halolens.forecast.baselines import market_anchor
+    from halolens.forecast.asof import snapshot_for_year
     external = january_release_market(2025)
     jan31 = market_anchor(snapshot_for_year(tables, external, 2025, cfg), cfg)
     strict = market_anchor(snapshot_for_year(tables, external, 2025, cfg, strict=True), cfg)
@@ -199,7 +199,7 @@ def test_both_rules_table_has_one_block_per_rule(tables, cfg):
 
 
 def test_table_carries_contract_and_net_forecast_and_actual(raw, cfg):
-    from leaselens.io import canonicalize
+    from halolens.io import canonicalize
     table = backtest_all_models(canonicalize(raw), empty_external(), cfg, years=[2025])
     engine = table[table["model"] == "E1_engine_blend"].iloc[0]
     for column in ("forecast_net_pct", "actual_net_pct", "forecast_contract_pct", "actual_contract_pct",
@@ -209,7 +209,7 @@ def test_table_carries_contract_and_net_forecast_and_actual(raw, cfg):
 
 
 def test_run_backtest_reports_the_strict_dec_31_sensitivity(raw, cfg):
-    from leaselens.io import canonicalize
+    from halolens.io import canonicalize
     fold = run_backtest(canonicalize(raw), empty_external(), 2025, cfg)
     sensitivity = fold.coverage["sensitivity_strict_dec31"]
     assert set(sensitivity) == {"forecast_net_pct", "forecast_contract_pct", "error_pp_net", "error_pp_contract"}
@@ -217,7 +217,7 @@ def test_run_backtest_reports_the_strict_dec_31_sensitivity(raw, cfg):
 
 
 def test_run_backtest_omits_the_sensitivity_when_the_config_switches_it_off(raw, cfg):
-    from leaselens.io import canonicalize
+    from halolens.io import canonicalize
     off = {**cfg, "forecast_years": {**cfg["forecast_years"], "external_cutoff_strict_sensitivity": False}}
     assert "sensitivity_strict_dec31" not in run_backtest(canonicalize(raw), empty_external(), 2025, off).coverage
 
@@ -276,7 +276,7 @@ def test_unsupported_selection_metric_raises(cfg):
 
 
 def test_champion_selection_runs_on_the_full_synthetic_table(raw, cfg):
-    from leaselens.io import canonicalize
+    from halolens.io import canonicalize
     table = backtest_both_rules(canonicalize(raw), empty_external(), cfg)
     chosen = select_champion(table, cfg)
     assert chosen["champion"] in set(table["model"])
@@ -287,16 +287,16 @@ def test_champion_selection_runs_on_the_full_synthetic_table(raw, cfg):
 # Champion pipeline: one path behind estimate_2026() and backtest()
 # ---------------------------------------------------------------------------
 def test_empty_external_has_the_contract_columns_and_no_rows():
-    from leaselens.contracts import EXTERNAL_COLUMNS
-    from leaselens.evaluate.backtest import empty_external as library_empty_external
+    from halolens.contracts import EXTERNAL_COLUMNS
+    from halolens.evaluate.backtest import empty_external as library_empty_external
     frame = library_empty_external()
     assert list(frame.columns) == EXTERNAL_COLUMNS and frame.empty
     assert str(frame["release_date"].dtype).startswith("datetime64")
 
 
 def test_tables_from_leases_leaves_concessions_and_listings_empty(raw, cfg):
-    from leaselens.evaluate.backtest import tables_from_leases
-    from leaselens.io import canonicalize
+    from halolens.evaluate.backtest import tables_from_leases
+    from halolens.io import canonicalize
     source = canonicalize(raw)
     rebuilt = tables_from_leases(source.leases, source.asking)
     assert rebuilt.concessions.empty and rebuilt.units.empty
@@ -304,8 +304,8 @@ def test_tables_from_leases_leaves_concessions_and_listings_empty(raw, cfg):
 
 
 def test_champion_pipeline_applies_the_pre_declared_rule(raw, cfg):
-    from leaselens.evaluate.backtest import champion_pipeline
-    from leaselens.io import canonicalize
+    from halolens.evaluate.backtest import champion_pipeline
+    from halolens.io import canonicalize
     synthetic = canonicalize(raw)
     pipeline = champion_pipeline(synthetic, empty_external(), cfg)
     direct = select_champion(backtest_all_models(synthetic, empty_external(), cfg), cfg)
@@ -314,8 +314,8 @@ def test_champion_pipeline_applies_the_pre_declared_rule(raw, cfg):
 
 
 def test_champion_pipeline_reuses_a_precomputed_table(raw, cfg):
-    from leaselens.evaluate.backtest import champion_pipeline
-    from leaselens.io import canonicalize
+    from halolens.evaluate.backtest import champion_pipeline
+    from halolens.io import canonicalize
     synthetic = canonicalize(raw)
     table = backtest_all_models(synthetic, empty_external(), cfg)
     assert champion_pipeline(synthetic, empty_external(), cfg, table)["champion"] == champion_pipeline(
@@ -323,9 +323,9 @@ def test_champion_pipeline_reuses_a_precomputed_table(raw, cfg):
 
 
 def test_champion_forecast_is_the_champions_own_forecast_for_the_target_year(raw, cfg):
-    from leaselens.evaluate.backtest import champion_forecast, champion_pipeline
-    from leaselens.forecast.asof import snapshot_for_year
-    from leaselens.io import canonicalize
+    from halolens.evaluate.backtest import champion_forecast, champion_pipeline
+    from halolens.forecast.asof import snapshot_for_year
+    from halolens.io import canonicalize
     synthetic = canonicalize(raw)
     pipeline = champion_pipeline(synthetic, empty_external(), cfg)
     result = champion_forecast(synthetic, empty_external(), cfg)
@@ -335,8 +335,8 @@ def test_champion_forecast_is_the_champions_own_forecast_for_the_target_year(raw
 
 
 def test_champion_backtest_uses_the_same_champion_and_reports_the_sensitivity(raw, cfg):
-    from leaselens.evaluate.backtest import champion_backtest, champion_pipeline
-    from leaselens.io import canonicalize
+    from halolens.evaluate.backtest import champion_backtest, champion_pipeline
+    from halolens.io import canonicalize
     synthetic = canonicalize(raw)
     fold = champion_backtest(synthetic, empty_external(), 2025, cfg)
     assert fold.coverage["champion"] == champion_pipeline(synthetic, empty_external(), cfg)["champion"]
@@ -347,8 +347,8 @@ def test_champion_backtest_uses_the_same_champion_and_reports_the_sensitivity(ra
 
 def test_estimate_and_backtest_wrappers_share_one_champion(raw, cfg):
     """The 2026 headline and the backtest folds must come from the same model."""
-    from leaselens.evaluate.backtest import champion_backtest, champion_forecast, tables_from_leases
-    from leaselens.io import canonicalize
+    from halolens.evaluate.backtest import champion_backtest, champion_forecast, tables_from_leases
+    from halolens.io import canonicalize
     source = canonicalize(raw)
     tables = tables_from_leases(source.leases, source.asking)
     estimate = champion_forecast(tables, None, cfg)
@@ -357,8 +357,8 @@ def test_estimate_and_backtest_wrappers_share_one_champion(raw, cfg):
 
 
 def test_headline_table_lists_every_model_under_both_rules(raw, cfg):
-    from leaselens.evaluate.backtest import headline_table
-    from leaselens.io import canonicalize
+    from halolens.evaluate.backtest import headline_table
+    from halolens.io import canonicalize
     table = headline_table(canonicalize(raw), None, cfg)
     assert len(table) == 2 * 6 and set(table["rule"]) == {"jan31", "dec31_strict"}
     ran = table[table["note"] == ""]
@@ -369,8 +369,8 @@ def test_headline_table_lists_every_model_under_both_rules(raw, cfg):
 
 
 def test_headline_table_matches_the_champion_forecast_for_the_champion(raw, cfg):
-    from leaselens.evaluate.backtest import champion_forecast, headline_table
-    from leaselens.io import canonicalize
+    from halolens.evaluate.backtest import champion_forecast, headline_table
+    from halolens.io import canonicalize
     synthetic = canonicalize(raw)
     champion = champion_forecast(synthetic, None, cfg)
     row = headline_table(synthetic, None, cfg).query("rule == 'jan31' and model == @champion.model_name").iloc[0]
@@ -378,8 +378,8 @@ def test_headline_table_matches_the_champion_forecast_for_the_champion(raw, cfg)
 
 
 def test_french_date_helpers_write_dates_from_values_not_literals(cfg):
-    from leaselens.config import cutoff_for, external_cutoff_for
-    from leaselens.evaluate.backtest import french_date, french_day_month
+    from halolens.config import cutoff_for, external_cutoff_for
+    from halolens.evaluate.backtest import french_date, french_day_month
     assert french_day_month(external_cutoff_for(2026, cfg)) == "31 janvier"
     assert french_day_month(cutoff_for(2026, cfg)) == "31 décembre"
     assert french_date(cfg["regulation"]["ontario_post_2018_exemption_cutoff"]) == "15 novembre 2018"
@@ -392,7 +392,7 @@ def test_sections_08_09_10_11a_11b_type_no_dates_years_or_figures_in_markdown():
     import re
 
     import jupytext
-    from leaselens.config import repo_root
+    from halolens.config import repo_root
     allowed = re.compile(r"`[^`]*`|\\bB[0-3]\\b|\\bE[12]\\b|F-05b|estimate_2026|\\|[-| ]+\\||section \\d+")
     for name in ("08_forecast_method", "09_backtest", "10_forecast_2026", "11a_uncertainty", "11b_scenarios"):
         notebook = jupytext.read(repo_root() / "notebook" / "sections" / f"{name}.py")
@@ -408,8 +408,8 @@ def test_sections_08_09_10_11a_11b_type_no_dates_years_or_figures_in_markdown():
 
 def test_the_notebook_sections_name_their_numerical_tolerance():
     """A bare 1e-9 in a section hides what it is for; the tolerance is one named constant in evaluate.metrics."""
-    from leaselens.config import repo_root
-    from leaselens.evaluate.metrics import TOLERANCE_PP
+    from halolens.config import repo_root
+    from halolens.evaluate.metrics import TOLERANCE_PP
     assert 0 < TOLERANCE_PP < 1e-6
     for name in ("08_forecast_method", "09_backtest", "10_forecast_2026", "11a_uncertainty", "11b_scenarios"):
         source = (repo_root() / "notebook" / "sections" / f"{name}.py").read_text(encoding="utf-8")
@@ -419,7 +419,7 @@ def test_the_notebook_sections_name_their_numerical_tolerance():
 
 
 def test_references_file_cites_the_listed_methods_with_links():
-    from leaselens.config import repo_root
+    from halolens.config import repo_root
     text = (repo_root() / "docs" / "references.md").read_text(encoding="utf-8")
     assert text.count("http") >= 8
     for author in ("Durbin", "Hyndman", "Efron", "Cameron", "James", "Hastings"):

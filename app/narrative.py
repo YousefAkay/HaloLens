@@ -21,9 +21,9 @@ from typing import Any
 from dotenv import load_dotenv
 
 from app.number_guard import ungrounded_numbers
-from leaselens.config import load_config, repo_root
-from leaselens.contracts import INFORMATION_RULES, LEVER_LABELS, NEWBUILD_LABELS
-from leaselens.forecast.combine import REGULATED_MODEL_NAME
+from halolens.config import load_config, repo_root
+from halolens.contracts import INFORMATION_RULES, LEVER_LABELS, NEWBUILD_LABELS
+from halolens.forecast.combine import REGULATED_MODEL_NAME
 
 API_KEY_VARIABLE = "ANTHROPIC_API_KEY"
 CACHE_FILE = Path("app") / "cache" / "qa_presets.json"

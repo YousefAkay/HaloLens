@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import streamlit as st
 
-from leaselens.contracts import COLOR_CONTRACT, COLOR_NET
+from halolens.contracts import COLOR_CONTRACT, COLOR_NET
 
 NET = COLOR_NET  # anything that means "net of incentives": the same colour as the notebook charts (AGENTS.md section 11)
 CONTRACT = COLOR_CONTRACT  # anything that means "contractual rent": likewise

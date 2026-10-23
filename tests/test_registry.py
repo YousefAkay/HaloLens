@@ -16,11 +16,11 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from leaselens.config import external_cutoff_for, load_config, repo_root
-from leaselens.contracts import EXTERNAL_COLUMNS, MONTHS_PER_YEAR, PAIRS_COLUMNS, PERCENT
-from leaselens.market.reconcile_market import (PROVENANCE_COLUMNS, RECONCILE_COLUMNS, SUMMARY_COLUMNS, provenance_table,
+from halolens.config import external_cutoff_for, load_config, repo_root
+from halolens.contracts import EXTERNAL_COLUMNS, MONTHS_PER_YEAR, PAIRS_COLUMNS, PERCENT
+from halolens.market.reconcile_market import (PROVENANCE_COLUMNS, RECONCILE_COLUMNS, SUMMARY_COLUMNS, provenance_table,
                                               reconcile, reconcile_summary)
-from leaselens.market.registry import (WATCH_STATUSES, as_of, load_external, load_watch, parse_external, validate_external,
+from halolens.market.registry import (WATCH_STATUSES, as_of, load_external, load_watch, parse_external, validate_external,
                                        watch_status, watch_summary)
 
 CUTOFF = pd.Timestamp("2022-12-31")
@@ -458,7 +458,7 @@ def test_committed_reconcile_series_exist_in_sources(cfg):
 # --- Section 12: references compiled from docs/references.md (measure.labels.track_references_markdown) ---------------
 
 def test_track_references_drops_title_and_boilerplate_and_shifts_headings():
-    from leaselens.measure.labels import track_references_markdown
+    from halolens.measure.labels import track_references_markdown
 
     cfg = load_config()["references"]
     boilerplate = "Append one bullet per entry."
@@ -473,7 +473,7 @@ def test_track_references_drops_title_and_boilerplate_and_shifts_headings():
 
 
 def test_track_references_empty_file_and_heading_cap():
-    from leaselens.measure.labels import MAX_HEADING_LEVEL, track_references_markdown
+    from halolens.measure.labels import MAX_HEADING_LEVEL, track_references_markdown
 
     cfg = load_config()["references"]
     boilerplate = "Append one bullet per entry."

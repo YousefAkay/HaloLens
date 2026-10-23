@@ -26,14 +26,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from leaselens.config import cutoff_for, external_cutoff_for
-from leaselens.evaluate.backtest import (backtest_both_rules, champion_backtest, champion_forecast, champion_pipeline,
+from halolens.config import cutoff_for, external_cutoff_for
+from halolens.evaluate.backtest import (backtest_both_rules, champion_backtest, champion_forecast, champion_pipeline,
                                          french_date, french_day_month, headline_table, tables_from_leases)
-from leaselens.contracts import COLOR_NAIVE, COLOR_NET
-from leaselens.evaluate.metrics import TOLERANCE_PP
-from leaselens.forecast.asof import snapshot_for_year
-from leaselens.forecast.baselines import rate_logs_by_year, to_pct
-from leaselens.market.registry import load_external
+from halolens.contracts import COLOR_NAIVE, COLOR_NET
+from halolens.evaluate.metrics import TOLERANCE_PP
+from halolens.forecast.asof import snapshot_for_year
+from halolens.forecast.baselines import rate_logs_by_year, to_pct
+from halolens.market.registry import load_external
 
 if external is None:
     external = load_external(Path(cfg["_root"]) / cfg["data"]["public_dir"] / cfg["external"]["sources_file"])
@@ -101,7 +101,7 @@ display(Markdown(
 # appliqué à l'autre.
 
 # %%
-from leaselens.forecast.scenarios import headline_by_province
+from halolens.forecast.scenarios import headline_by_province
 
 province_of = tables.leases.drop_duplicates("prop_code").set_index("prop_code")["province"]
 split = headline_by_province(final, province_of).rename(columns={

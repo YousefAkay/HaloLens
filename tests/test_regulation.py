@@ -13,14 +13,14 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from leaselens.config import cutoff_for, external_cutoff_for, load_config
-from leaselens.contracts import PAIRS_COLUMNS, PERCENT
-from leaselens.market.registry import load_external
-from leaselens.market.regulation import (COMPARISON_COLUMNS, EVIDENCE_COLUMNS, MATRIX_COLUMNS, REFERENCE_COLUMNS,
+from halolens.config import cutoff_for, external_cutoff_for, load_config
+from halolens.contracts import PAIRS_COLUMNS, PERCENT
+from halolens.market.registry import load_external
+from halolens.market.regulation import (COMPARISON_COLUMNS, EVIDENCE_COLUMNS, MATRIX_COLUMNS, REFERENCE_COLUMNS,
                                          applicability_matrix, exemption_evidence, reference_lines,
                                          renewals_vs_reference)
-from leaselens.measure.pairs import build_pairs
-from leaselens.measure.renewals import NOTE_THIN_CELL, SPLIT_COLUMNS, split_summary
+from halolens.measure.pairs import build_pairs
+from halolens.measure.renewals import NOTE_THIN_CELL, SPLIT_COLUMNS, split_summary
 
 YEAR = 2024
 RENEWAL_GROWTH = 0.03
@@ -217,7 +217,7 @@ def test_exemption_evidence_counts_renewals_above_guideline(real_cfg):
 # measure.labels (French dates in notebook text) and the templated config text
 # ---------------------------------------------------------------------------
 def test_french_dates_from_config():
-    from leaselens.measure.labels import french_date, french_month, french_month_day, french_month_year
+    from halolens.measure.labels import french_date, french_month, french_month_day, french_month_year
     assert french_date("2018-11-15") == "15 novembre 2018"
     assert french_date("2026-01-01") == "1er janvier 2026"
     assert french_date("2026-01-19", with_year=False) == "19 janvier"

@@ -26,17 +26,17 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from IPython.display import Markdown, display
 
-from leaselens.config import cutoff_for, external_cutoff_for
-from leaselens.contracts import COLOR_CONTRACT, COLOR_MARKET, COLOR_NET
-from leaselens.forecast.asof import make_snapshot
-from leaselens.forecast.combine import forecast_regulated
-from leaselens.forecast.scenarios import CENTRAL, scenario_table
-from leaselens.market.registry import load_external
-from leaselens.market.regulation import (EXEMPTION_SCENARIO, applicability_matrix, exemption_evidence,
+from halolens.config import cutoff_for, external_cutoff_for
+from halolens.contracts import COLOR_CONTRACT, COLOR_MARKET, COLOR_NET
+from halolens.forecast.asof import make_snapshot
+from halolens.forecast.combine import forecast_regulated
+from halolens.forecast.scenarios import CENTRAL, scenario_table
+from halolens.market.registry import load_external
+from halolens.market.regulation import (EXEMPTION_SCENARIO, applicability_matrix, exemption_evidence,
                                          reference_lines, renewals_vs_reference)
-from leaselens.measure.labels import french_date, french_month_day, french_month_year
-from leaselens.measure.pairs import build_pairs
-from leaselens.measure.renewals import split_summary
+from halolens.measure.labels import french_date, french_month_day, french_month_year
+from halolens.measure.pairs import build_pairs
+from halolens.measure.renewals import split_summary
 
 LEASE_TYPE_FR = {"renewal": "renouvellement", "turnover": "relocation"}
 NEWBUILD_SCENARIO_ROW = "ontario_newbuild_guideline_applies"

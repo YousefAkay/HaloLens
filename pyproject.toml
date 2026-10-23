@@ -3,7 +3,7 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "leaselens"
+name = "halolens"
 version = "0.1.0"
 description = "Halo Lens: same-unit rent-growth forecast from lease history and public market data"
 requires-python = ">=3.11"
@@ -18,7 +18,7 @@ testpaths = ["tests"]
 pythonpath = ["src", "."]
 addopts = "-q"
 # Hide known library deprecations so test output stays readable. Each filter is scoped by the module the
-# warning is attributed to, so warnings raised from our own code (src/leaselens, tests) still show.
+# warning is attributed to, so warnings raised from our own code (src/halolens, tests) still show.
 filterwarnings = [
     "ignore:The 'generic' unit for NumPy timedelta:DeprecationWarning:pandas.*",
     "ignore:The 'generic' unit for NumPy timedelta:DeprecationWarning:numpy.*",

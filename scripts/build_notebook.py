@@ -25,7 +25,7 @@ import nbformat
 from nbclient import NotebookClient
 from nbclient.exceptions import CellExecutionError
 
-from leaselens.config import MODE_ENV_VAR, load_config, output_dir, repo_root
+from halolens.config import MODE_ENV_VAR, load_config, output_dir, repo_root
 
 SECTIONS_DIR = "notebook/sections"
 

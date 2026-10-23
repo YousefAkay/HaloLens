@@ -12,9 +12,9 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from leaselens.contracts import LEASES_COLUMNS, PERCENT
-from leaselens.measure.composition import (BRIDGE_COLUMNS, NOTE_NO_WEIGHTS, mix_by_year, rent_bridge)
-from leaselens.measure.pairs import build_pairs
+from halolens.contracts import LEASES_COLUMNS, PERCENT
+from halolens.measure.composition import (BRIDGE_COLUMNS, NOTE_NO_WEIGHTS, mix_by_year, rent_bridge)
+from halolens.measure.pairs import build_pairs
 
 CHEAP_RENT = 1000.0
 DEAR_RENT = 3000.0

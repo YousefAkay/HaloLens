@@ -29,10 +29,10 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
-from leaselens.contracts import COLOR_CONTRACT, COLOR_NET
-from leaselens.evaluate.backtest import champion_forecast, champion_pipeline
-from leaselens.evaluate.uncertainty import bootstrap_interval, unit_bootstrap
-from leaselens.market.registry import load_external
+from halolens.contracts import COLOR_CONTRACT, COLOR_NET
+from halolens.evaluate.backtest import champion_forecast, champion_pipeline
+from halolens.evaluate.uncertainty import bootstrap_interval, unit_bootstrap
+from halolens.market.registry import load_external
 
 if external is None:
     external = load_external(Path(cfg["_root"]) / cfg["data"]["public_dir"] / cfg["external"]["sources_file"])

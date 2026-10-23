@@ -27,11 +27,11 @@ from pathlib import Path
 
 import pandas as pd
 
-from leaselens.config import cutoff_for, external_cutoff_for
-from leaselens.evaluate.backtest import all_models, french_day_month
-from leaselens.forecast.asof import snapshot_for_year
-from leaselens.forecast.baselines import frozen_weights, training_pairs
-from leaselens.market.registry import load_external
+from halolens.config import cutoff_for, external_cutoff_for
+from halolens.evaluate.backtest import all_models, french_day_month
+from halolens.forecast.asof import snapshot_for_year
+from halolens.forecast.baselines import frozen_weights, training_pairs
+from halolens.market.registry import load_external
 
 if external is None:
     external = load_external(Path(cfg["_root"]) / cfg["data"]["public_dir"] / cfg["external"]["sources_file"])

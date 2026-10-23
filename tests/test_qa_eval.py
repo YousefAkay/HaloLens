@@ -14,7 +14,7 @@ import pytest
 
 import app.narrative as narrative
 from app.number_guard import ungrounded_numbers
-from leaselens.config import load_config, repo_root
+from halolens.config import load_config, repo_root
 
 AGGREGATES = repo_root() / "outputs" / "public" / "aggregates_synthetic.json"
 

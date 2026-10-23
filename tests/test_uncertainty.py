@@ -11,11 +11,11 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from leaselens.evaluate.backtest import champion_pipeline, empty_external
-from leaselens.evaluate.uncertainty import (COPY_SEPARATOR, DRAW_COLUMNS, bootstrap_interval, resample_units,
+from halolens.evaluate.backtest import champion_pipeline, empty_external
+from halolens.evaluate.uncertainty import (COPY_SEPARATOR, DRAW_COLUMNS, bootstrap_interval, resample_units,
                                             unit_bootstrap)
-from leaselens.forecast.asof import snapshot_for_year
-from leaselens.forecast.baselines import last_year
+from halolens.forecast.asof import snapshot_for_year
+from halolens.forecast.baselines import last_year
 from tests.test_baselines import annual_leases, tables_from
 
 N_DRAWS = 25
@@ -79,7 +79,7 @@ def test_resampling_does_not_modify_the_input_tables(tables):
 
 def test_resampled_samples_still_build_valid_pairs(tables, cfg):
     """The relabelled copies keep consecutive leases of one unit together, so pairs are built within each copy."""
-    from leaselens.measure.pairs import build_pairs
+    from halolens.measure.pairs import build_pairs
     original = build_pairs(tables.leases, cfg)
     sample = build_pairs(resample_units(tables, np.random.default_rng(6)).leases, cfg)
     assert 0.5 * len(original) < len(sample) < 1.6 * len(original)

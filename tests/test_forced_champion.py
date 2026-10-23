@@ -10,14 +10,14 @@ from __future__ import annotations
 import pytest
 from jsonschema import Draft202012Validator, FormatChecker
 
-import leaselens.evaluate.backtest as backtest_module
-import leaselens.export.aggregates as aggregates_module
-from leaselens.config import repo_root
-from leaselens.contracts import AGGREGATES_SCHEMA
-from leaselens.evaluate.backtest import (all_models, backtest_both_rules, champion_backtest, champion_forecast,
+import halolens.evaluate.backtest as backtest_module
+import halolens.export.aggregates as aggregates_module
+from halolens.config import repo_root
+from halolens.contracts import AGGREGATES_SCHEMA
+from halolens.evaluate.backtest import (all_models, backtest_both_rules, champion_backtest, champion_forecast,
                                          champion_pipeline, tables_from_leases)
-from leaselens.export.aggregates import build_aggregates
-from leaselens.market.registry import load_external
+from halolens.export.aggregates import build_aggregates
+from halolens.market.registry import load_external
 
 MODELS = sorted(all_models())
 

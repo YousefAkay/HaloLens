@@ -23,16 +23,16 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from leaselens.config import cutoff_for
-from leaselens.contracts import COLOR_MARKET, COLOR_NAIVE, COLOR_NET
-from leaselens.evaluate.backtest import french_date, headline_table
-from leaselens.forecast.asof import snapshot_for_year
-from leaselens.forecast.combine import forecast_regulated
-from leaselens.forecast.scenarios import scenario_table
-from leaselens.incentives.engine import discount_share
-from leaselens.market.registry import load_external
-from leaselens.market.regulation import EXEMPTION_SCENARIO, applicability_matrix
-from leaselens.measure.pairs import build_pairs
+from halolens.config import cutoff_for
+from halolens.contracts import COLOR_MARKET, COLOR_NAIVE, COLOR_NET
+from halolens.evaluate.backtest import french_date, headline_table
+from halolens.forecast.asof import snapshot_for_year
+from halolens.forecast.combine import forecast_regulated
+from halolens.forecast.scenarios import scenario_table
+from halolens.incentives.engine import discount_share
+from halolens.market.registry import load_external
+from halolens.market.regulation import EXEMPTION_SCENARIO, applicability_matrix
+from halolens.measure.pairs import build_pairs
 
 if external is None:
     external = load_external(Path(cfg["_root"]) / cfg["data"]["public_dir"] / cfg["external"]["sources_file"])
@@ -159,9 +159,9 @@ plt.show()
 # %%
 import numpy as np
 
-from leaselens.evaluate.backtest import champion_pipeline
-from leaselens.evaluate.metrics import TOLERANCE_PP
-from leaselens.forecast.scenarios import sensitivity_table
+from halolens.evaluate.backtest import champion_pipeline
+from halolens.evaluate.metrics import TOLERANCE_PP
+from halolens.forecast.scenarios import sensitivity_table
 
 if "champion" not in globals():
     champion = champion_pipeline(tables, external, cfg)["champion"]

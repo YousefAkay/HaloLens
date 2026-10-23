@@ -30,7 +30,7 @@ rules:
   - name: fake_schema_names
     type: literal
     patterns: ["fakeColumnA", "fakeColumnB"]
-    allowed_paths: ["src/leaselens/io/*", "tests/*"]
+    allowed_paths: ["src/halolens/io/*", "tests/*"]
 
   # regex: case-sensitive unless ignore_case is true
   - name: fake_extract_counts

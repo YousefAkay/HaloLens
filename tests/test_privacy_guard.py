@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from leaselens.config import repo_root
-from leaselens.contracts import SOURCE_FILES
+from halolens.config import repo_root
+from halolens.contracts import SOURCE_FILES
 
 ALLOWED_CSV_PREFIXES = ("data/public/", "data/synthetic/")
 FORBIDDEN_PREFIXES = ("data/private/", "outputs/private/", "models/")

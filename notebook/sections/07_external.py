@@ -28,13 +28,13 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 from IPython.display import Markdown, display
 
-from leaselens.config import external_cutoff_for
-from leaselens.contracts import COLOR_CONTRACT, COLOR_MARKET, COLOR_NET
-from leaselens.market.reconcile_market import provenance_table, reconcile, reconcile_summary
-from leaselens.market.registry import as_of, load_external, load_watch, validate_external, watch_summary
-from leaselens.market.regulation import EXEMPTION_SCENARIO, applicability_matrix
-from leaselens.measure.labels import french_date, french_month, french_month_day
-from leaselens.measure.pairs import build_pairs
+from halolens.config import external_cutoff_for
+from halolens.contracts import COLOR_CONTRACT, COLOR_MARKET, COLOR_NET
+from halolens.market.reconcile_market import provenance_table, reconcile, reconcile_summary
+from halolens.market.registry import as_of, load_external, load_watch, validate_external, watch_summary
+from halolens.market.regulation import EXEMPTION_SCENARIO, applicability_matrix
+from halolens.measure.labels import french_date, french_month, french_month_day
+from halolens.measure.pairs import build_pairs
 
 ROLE_FR = {"compared": "comparée (7.3)", "context_only": "contexte régional seulement",
            "reference": "référence (sections 6 et 8)"}

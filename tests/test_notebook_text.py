@@ -11,7 +11,7 @@ import re
 import jupytext
 import pytest
 
-from leaselens.config import repo_root
+from halolens.config import repo_root
 
 SECTIONS = ["00_executive", "01_definition", "02_data_dictionary_qa", "11a_uncertainty", "12_references"]
 TASK_ID = re.compile(r"\b[IMF]-\d{2}[a-z]?\b")
