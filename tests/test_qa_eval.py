@@ -1,6 +1,6 @@
 """Evaluation set for the Q&A guard: hand-written fake model responses, no API calls.
 
-Each case feeds a scripted response through `ask_analysis` or `scenario_copilot` and checks the outcome:
+Each case feeds a scripted response through `qa_answers.polish` or `scenario_copilot` and checks the outcome:
 refusal topics, language detection, section citations, long floats, truncation, ungrounded numbers, a clean answer.
 The aggregates are the committed synthetic file.
 """
@@ -13,6 +13,7 @@ from types import SimpleNamespace
 import pytest
 
 import app.narrative as narrative
+from app import qa_answers
 from app.number_guard import ungrounded_numbers
 from halolens.config import load_config, repo_root
 
@@ -45,9 +46,11 @@ def headline(doc: dict) -> float:
     return narrative.baseline_row(doc, "jan31")["headline_net_pct"]
 
 
-def ask(question: str, doc: dict, *responses):
+def polish(topic: str, doc: dict, lang: str, *responses):
+    """Run the optional rewrite of the deterministic answer on a scripted client."""
     client = FakeClient(*responses)
-    return narrative.ask_analysis(question, doc, [], client), client
+    answer, sheet = qa_answers.compose(topic, doc, lang)
+    return qa_answers.polish(answer, sheet, "question", client), answer, client
 
 
 # ---------------------------------------------------------------- refusal topics, both languages
@@ -60,10 +63,10 @@ def ask(question: str, doc: dict, *responses):
     ("What is the total rent roll?", "en"),
 ])
 def test_refusal_topics_are_refused_without_calling_the_model(doc, question, lang):
-    result, client = ask(question, doc)
-    assert result["status"] == "refused"
-    assert result["text"] == narrative.REFUSAL[lang]
-    assert client.calls == []
+    client = FakeClient()
+    answer = qa_answers.answer_question(question, doc, client)
+    assert answer.topic == "forbidden" and answer.lang == lang
+    assert answer.lead == qa_answers.REFUSAL[lang][0] and client.calls == []
 
 
 # ---------------------------------------------------------------- language detection
@@ -99,59 +102,66 @@ def test_decimal_limit_comes_from_the_config():
     assert ungrounded_numbers(f"{1.0 / 3:.{limit + 1}f}", {"x": 1.0 / 3}) != []
 
 
-def test_the_answer_prompt_asks_for_one_decimal(doc):
-    _, client = ask("Quelle est la hausse nette ?", doc, reply(f"Voir §10 : {headline(doc):.1f} %."))
-    assert "une décimale" in client.calls[0]["system"]
+def test_the_rewrite_prompt_asks_to_keep_every_number(doc):
+    _, _, client = polish("headline", doc, "en", reply("x"))
+    assert "Keep every number exactly" in client.calls[0]["system"]
 
 
-# ---------------------------------------------------------------- ask_analysis outcomes
-def test_clean_grounded_answer_passes(doc):
-    text = f"Voir §10 : la hausse nette est de {headline(doc):.1f} %."
-    result, client = ask("Quelle est la hausse nette ?", doc, reply(text))
-    assert result == {"status": "ai", "text": text}
+def good_text(doc: dict, lang: str = "en") -> str:
+    answer, _ = qa_answers.compose("headline", doc, lang)
+    return answer.lead + "\n" + "\n".join(f"- {bullet}" for bullet in answer.bullets[:3])
+
+
+# ---------------------------------------------------------------- polish outcomes
+def test_grounded_rewrite_is_accepted_and_keeps_the_read_more_line(doc):
+    result, answer, client = polish("headline", doc, "en", reply(good_text(doc)))
+    assert result.source == "polished" and result.read_more == answer.read_more
     assert len(client.calls) == 1
 
 
-def test_long_float_answer_is_retried_then_accepted_when_rounded(doc):
-    bad = f"Voir §10 : la hausse nette est de {headline(doc):.12f} %."
-    good = f"Voir §10 : la hausse nette est de {headline(doc):.1f} %."
-    result, client = ask("Quelle est la hausse nette ?", doc, reply(bad), reply(good))
-    assert result["status"] == "ai" and result["text"] == good
-    assert len(client.calls) == 2
+def test_long_float_rewrite_is_rejected(doc):
+    bad = good_text(doc).replace(f"{headline(doc):.1f}", f"{headline(doc):.12f}")
+    result, answer, _ = polish("headline", doc, "en", reply(bad))
+    assert result == answer
 
 
-def test_ungrounded_number_falls_back_after_one_retry(doc):
-    text = "Voir §10 : la hausse nette est de 41,7 %."
-    result, client = ask("Quelle est la hausse nette ?", doc, reply(text), reply(text))
-    assert result["status"] == "fallback"
-    assert "41" not in result["text"]
-    assert len(client.calls) == 2
+def test_ungrounded_number_in_a_rewrite_keeps_the_deterministic_answer(doc):
+    result, answer, _ = polish("headline", doc, "en", reply(good_text(doc).replace("increase", "increase of 41.7 %", 1)))
+    assert result == answer and "41" not in result.text
 
 
-def test_truncated_answer_is_retried_then_accepted(doc):
-    truncated = reply(f"Voir §10 : la hausse nette est de {headline(doc):.1f} %", stop_reason="max_tokens")
-    good = f"Voir §10 : la hausse nette est de {headline(doc):.1f} %."
-    result, client = ask("Quelle est la hausse nette ?", doc, truncated, reply(good))
-    assert result["status"] == "ai" and result["text"] == good
-    assert len(client.calls) == 2
+def test_truncated_rewrite_is_rejected(doc):
+    result, answer, _ = polish("headline", doc, "en", reply(good_text(doc), stop_reason="max_tokens"))
+    assert result == answer
 
 
-def test_two_truncated_answers_fall_back(doc):
-    truncated = reply(f"Voir §10 : la hausse nette est de {headline(doc):.1f} %", stop_reason="max_tokens")
-    result, client = ask("Quelle est la hausse nette ?", doc, truncated, truncated)
-    assert result["status"] == "fallback"
-    assert len(client.calls) == 2
+def test_rewrite_in_the_wrong_language_is_rejected(doc):
+    result, answer, _ = polish("headline", doc, "en", reply(good_text(doc, "fr")))
+    assert result == answer
 
 
-def test_answer_without_a_valid_citation_is_not_accepted(doc):
-    no_citation = f"La hausse nette est de {headline(doc):.1f} %."
-    result, _ = ask("Quelle est la hausse nette ?", doc, reply(no_citation), reply(no_citation))
-    assert result["status"] == "fallback"
+def test_rewrite_with_a_model_code_or_section_token_is_rejected(doc):
+    for extra in ("(see §05)", "from B0_last_year"):
+        text = good_text(doc).replace("increase", f"increase {extra}", 1)
+        result, answer, _ = polish("headline", doc, "en", reply(text))
+        assert result == answer
+
+
+def test_a_failing_client_never_raises(doc):
+    class Broken:
+        messages = None
+
+        def create(self, **kwargs):
+            raise TimeoutError("down")
+
+    Broken.messages = Broken()
+    answer, sheet = qa_answers.compose("headline", doc, "en")
+    assert qa_answers.polish(answer, sheet, "q", Broken()) == answer
 
 
 def test_the_token_limit_is_raised_and_sent(doc):
     assert load_config()["app"]["llm_max_tokens"] == 1500
-    _, client = ask("Quelle est la hausse nette ?", doc, reply(f"Voir §10 : {headline(doc):.1f} %."))
+    _, _, client = polish("headline", doc, "en", reply(good_text(doc)))
     assert client.calls[0]["max_tokens"] == 1500
 
 

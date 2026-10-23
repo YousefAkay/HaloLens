@@ -164,8 +164,10 @@ button[data-baseweb="tab"][aria-selected="true"] {{ color:var(--accent-text); fo
 .ll-q {{ font-style:italic; font-size:20px; margin:30px 0 8px; }}
 .ll-a {{ font-size:{ANSWER_PX}px; font-weight:600; line-height:1.3; margin:0 0 10px; }}
 .ll-a-list {{ margin:0 0 10px 1.1em; padding:0; }}
+.ll-a-topic {{ font-size:{KICKER_PX}px; letter-spacing:.04em; text-transform:uppercase; color:var(--accent-text); margin:0 0 6px; }}
+.ll-a-list li {{ margin:0 0 6px; max-width:760px; }}
+.ll-a-more {{ font-size:16px; margin:0 0 6px; max-width:760px; }}
 .ll-a-foot {{ font-size:14px; color:var(--n600); }}
-.ll-a-foot .ok {{ color:var(--accent-text); margin-left:14px; }}
 .ll-chip {{ display:inline-block; padding:2px 10px; margin:0 6px 6px 0; background:var(--surface); font-size:14px; }}
 .ll-plain {{ font-size:17px; color:var(--n600); max-width:640px; }}
 

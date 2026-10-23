@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import html
 import math
-import re
 from typing import Any
 
 import pandas as pd
@@ -30,7 +29,6 @@ DOT_BASE_PX, DOT_PER_PAIR_PX, DOT_MAX_PX = 10.0, 0.6, 30.0  # building dot diame
 AXIS_STEP = 1.0  # tick spacing of the percent axes
 MONTHS = {"en": ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"),
           "fr": ("janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc.")}
-SECTION_REFERENCE = re.compile(r"§\d+[ab]?")
 NUMERIC_SETTINGS = {"max_gap", "quantiles", "years"}  # sensitivity variants whose setting is shown next to the label
 SHIFT_SETTINGS = {"incentives_deeper", "incentives_shallower", "more_renewals", "fewer_renewals"}  # settings in pp
 MODEL_CHOICE = "model_choice"
@@ -418,24 +416,14 @@ def chips_html(items: list[str]) -> str:
     return "".join(f'<span class="ll-chip">{esc(item)}</span>' for item in items)
 
 
-def answer_html(question: str, text: str, lang: str, checked: bool) -> str:
-    """An answer set like a newspaper Q&A: italic question, short bold answer, bullets, sources and the match mark.
+def answer_card_html(question: str, topic: str, lead: str, bullets: list[str], read_more: str, caption: str, lang: str) -> str:
+    """The answer card: the question in italics, a topic heading, one short answer, bullets, a read-more line, a caption.
 
-    The first line is the short answer (its ** markers are dropped); lines starting with "-" or "*" become bullets; the other
-    lines are paragraphs. Section references (§05, §11a) found in the text are listed in the footer. `checked` adds the
-    mark that the numbers were matched to the aggregates (only for answers that passed the number guard).
+    Every piece is escaped; the card has no box (the theme has none), only type scale and spacing.
     """
-    lines = [line.strip() for line in text.strip().splitlines() if line.strip()]
-    lead = re.sub(r"\*\*", "", lines[0]) if lines else ""
-    bullets = [re.sub(r"^[-*]\s*", "", line) for line in lines[1:] if re.match(r"^[-*]\s", line)]
-    paragraphs = [re.sub(r"\*\*", "", line) for line in lines[1:] if not re.match(r"^[-*]\s", line)]
-    sections = list(dict.fromkeys(SECTION_REFERENCE.findall(text)))
-    foot = []
-    if sections:
-        foot.append(esc(t("ask_sources", lang, sections=" · ".join(sections))))
-    if checked:
-        foot.append(f'<span class="ok">{esc(t("ask_checked", lang))}</span>')
-    return (f'<div class="ll-q">{esc(question)}</div><p class="ll-a">{esc(lead)}</p>'
-            + "".join(f"<p>{esc(paragraph)}</p>" for paragraph in paragraphs)
+    return (f'<div class="ll-q">{esc(question)}</div>'
+            f'<div class="ll-a-topic">{esc(t(f"topic_{topic}", lang))}</div>'
+            f'<p class="ll-a">{esc(lead)}</p>'
             + (f'<ul class="ll-a-list">{"".join(f"<li>{esc(item)}</li>" for item in bullets)}</ul>' if bullets else "")
-            + (f'<div class="ll-a-foot">{" ".join(foot)}</div>' if foot else ""))
+            + (f'<div class="ll-a-more">{esc(read_more)}</div>' if read_more else "")
+            + (f'<div class="ll-a-foot">{esc(caption)}</div>' if caption else ""))

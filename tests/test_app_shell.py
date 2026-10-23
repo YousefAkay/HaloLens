@@ -82,35 +82,20 @@ def test_loader_rejects_a_non_conforming_file(tmp_path):
 def _qa_view(document):
     from app.streamlit_app import ask_analysis_view
 
-    ask_analysis_view(document, "en")              # NO_KEY_MESSAGES are the English texts; the app itself opens in French
+    ask_analysis_view(document, "en")
 
 
-@pytest.mark.parametrize("mode, cached, reason", [
-    ("real", "SYNTHETIC CACHED TEXT: 99.9 %", "cache_synthetic_only"),
-    ("synthetic", None, "cache_missing"),
-    ("synthetic", "SYNTHETIC CACHED TEXT: 99.9 %", "cache_rejected"),
-])
-def test_no_key_qa_view_explains_unavailability_without_rendering_cache(monkeypatch, mode, cached, reason):
+@pytest.mark.parametrize("mode", ["synthetic", "real"])
+def test_no_key_qa_view_answers_from_the_aggregates_in_both_modes(monkeypatch, mode):
     document = json.loads(synthetic_path().read_text(encoding="utf-8"))
     document["mode"] = mode  # routing only: all values are invented, even when labelled real
-    question = narrative.PRESET_QUESTIONS[0]
     monkeypatch.setattr(streamlit_app, "_client", lambda: None)
-    monkeypatch.setattr(streamlit_app, "_notes", lambda: [])
-
-    def load_cache():
-        if mode == "real":
-            pytest.fail("real-mode Q&A must not load the synthetic cache")
-        return {question: cached} if cached is not None else {}
-
-    monkeypatch.setattr(narrative, "load_preset_cache", load_cache)
     at = AppTest.from_function(_qa_view, args=(document,), default_timeout=TIMEOUT_SECONDS).run()
-    at.button(key="pill_0").click().run()          # the first preset question, as a pill
-    assert not at.exception
+    at.button(key="pill_0").click().run()          # the first preset question, as a button
+    assert not at.exception and not at.info
     page = html.unescape(" ".join(element.value for element in at.markdown))
-    assert streamlit_app.NO_KEY_MESSAGES[reason] in page          # a plain paragraph, no info box
-    assert not at.info
-    assert "SYNTHETIC CACHED TEXT" not in page
-    assert "Preset answers are not cached" not in page
+    assert f"{document['headline']['net_pct']:.1f} %" in page
+    assert ("synthetic demo" if mode == "synthetic" else "your data") in page
 
 
 def test_masthead_and_page_title_show_halo_lens(app):

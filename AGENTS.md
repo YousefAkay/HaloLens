@@ -39,7 +39,7 @@ backtest. Humans and coding agents follow the same rules.
 - External APIs only receive public pages or aggregate JSON, never row-level data.
 - Leak scanner: `python scripts/leak_scan.py` checks the tree and git history against a private denylist kept in
   `outputs/private/leak_denylist.yaml` (start from `config/leak_denylist.example.yaml`). It prints counts and paths only.
-- Secrets go in `.env` (`ANTHROPIC_API_KEY`); every AI feature must work without a key through cached fallbacks.
+- Secrets go in `.env` (`ANTHROPIC_API_KEY`); every AI feature must work without a key through deterministic fallbacks.
 
 ## Commands
 

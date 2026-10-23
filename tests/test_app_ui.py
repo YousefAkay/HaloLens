@@ -16,7 +16,7 @@ import pandas as pd
 import pytest
 from streamlit.testing.v1 import AppTest
 
-from app import narrative, streamlit_app
+from app import narrative, qa_answers, streamlit_app
 from app.ui import DEFAULT_LANG, LABELS, LANGS, t
 from app.ui import components as ui
 from app.ui import theme
@@ -119,7 +119,7 @@ def test_every_component_escapes_dynamic_text():
     evil = "<b>x</b>"
     assert evil not in ui.section_header("a", evil, evil)
     assert evil not in ui.tornado([{"label": evil, "delta": 1.0}])
-    assert evil not in ui.answer_html(evil, f"{evil}\n- {evil}", "en", checked=True)
+    assert evil not in ui.answer_card_html(evil, "headline", evil, [evil], evil, evil, "en")
     assert evil not in ui.chips_html([evil])
     cells = ui.building_cells(SYNTHETIC, "en").assign(label=evil)
     assert evil not in ui.building_dots(cells, "en")
@@ -132,12 +132,11 @@ def test_the_stats_use_the_documents_provinces_and_say_not_available_when_null()
     assert t("stat_province_na", "en") in ui.stats(document, "en")
 
 
-def test_answer_html_sets_lead_bullets_sources_and_the_match_mark():
-    text = "**Short answer here.**\nA paragraph.\n- first point\n- second point\nSee §05 and §11a, again §05."
-    markup = ui.answer_html("Why?", text, "en", checked=True)
-    assert 'class="ll-q">Why?' in markup and 'class="ll-a">Short answer here.' in markup
-    assert markup.count("<li>") == 2 and "§05 · §11a" in markup and "numbers matched" in markup
-    assert "numbers matched" not in ui.answer_html("Why?", text, "en", checked=False)
+def test_answer_card_sets_question_heading_lead_bullets_read_more_and_caption():
+    markup = ui.answer_card_html("Why?", "headline", "Short answer.", ["one", "two"], "Read more: X.", "Computed from the demo.", "en")
+    assert 'class="ll-q">Why?' in markup and 'class="ll-a">Short answer.' in markup
+    assert markup.count("<li>") == 2 and "Read more: X." in markup and "Computed from the demo." in markup
+    assert t("topic_headline", "en") in markup
 
 
 def test_tornado_rows_are_sorted_capped_and_skip_zero_and_missing_changes():
@@ -259,7 +258,7 @@ def test_every_label_is_used_somewhere():
     sources = "\n".join(path.read_text(encoding="utf-8") for path in (repo_root() / "app").rglob("*.py")
                         if path.name != "labels.py")
     built_from_a_prefix = ("why_step_", "why_title_", "why_body_", "opt_incentive_", "opt_renewal_", "opt_newbuild_", "province_",
-                           "as_", "va_", "no_key_", "val_headline_")                   # keys assembled with an f-string
+                           "as_", "va_", "no_key_", "val_headline_", "topic_")                   # keys assembled with an f-string
     unused = [key for key in LABELS["en"]
               if not key.startswith(built_from_a_prefix + ("tab_",)) and f'"{key}"' not in sources and f"'{key}'" not in sources]
     assert not unused, unused
@@ -522,9 +521,8 @@ def _ask_view(document, lang):
 
 def ask_app(monkeypatch, ask=None, key=False, lang="en") -> AppTest:
     monkeypatch.setattr(streamlit_app, "_client", lambda: object() if key else None)
-    monkeypatch.setattr(streamlit_app, "_notes", lambda: [])
     if ask is not None:
-        monkeypatch.setattr(narrative, "ask_analysis", ask)
+        monkeypatch.setattr(qa_answers, "answer_question", ask)
     return AppTest.from_function(_ask_view, args=(SYNTHETIC, lang), default_timeout=TIMEOUT_SECONDS).run()
 
 
@@ -537,53 +535,6 @@ def lab_app(monkeypatch, copilot=None) -> AppTest:
 ROW = narrative.scenario_row(SYNTHETIC, "plus", "zero", "guideline", "dec31_strict")
 
 
-@pytest.mark.parametrize("answer, shown, hidden", [
-    ({"status": "ai", "text": "**AI LEAD 4.9 %**\nmore text §05"}, "AI LEAD 4.9 %", None),
-    ({"status": "fallback", "text": "GUARDED TEXT"}, "GUARDED TEXT", None),
-    ({"status": "refused", "text": "REFUSED TEXT"}, "REFUSED TEXT", None),
-    ({"status": "no_key", "text": "CACHED OK"}, "CACHED OK", None),
-    ({"status": "no_key", "text": "REJECTED SYNTHETIC 99.9 %", "reason": "cache_rejected"},
-     t("no_key_cache_rejected", "en"), "REJECTED SYNTHETIC"),
-    ({"status": "no_key", "text": None, "reason": "cache_synthetic_only"}, t("no_key_cache_synthetic_only", "en"), None),
-    ({"status": "no_key", "text": None, "reason": "cache_missing"}, t("no_key_cache_missing", "en"), None),
-    ({"status": "no_key", "text": None, "reason": "something_new"}, t("no_key_generic", "en"), None),
-    ({"status": "unavailable", "text": None}, t("ask_unavailable", "en"), None),
-    ({"status": "unavailable", "text": None, "reason": "privacy"}, t("no_key_generic", "en"), None),
-    ({"status": "fallback", "text": None}, t("ask_fallback", "en"), None),
-    ({"status": "surprise", "text": "UNKNOWN STATUS TEXT"}, t("ask_unavailable", "en"), "UNKNOWN STATUS TEXT"),
-])
-def test_every_answer_status_renders_calmly(monkeypatch, answer, shown, hidden):
-    at = ask_app(monkeypatch, ask=lambda *args, **kwargs: answer)
-    at.button(key="pill_0").click().run()
-    assert not at.exception
-    assert shown in text_of(at)
-    if hidden:
-        assert hidden not in text_of(at)
-    assert not at.info and not at.warning                                    # no boxes: plain paragraphs
-
-
-def test_the_no_key_message_is_one_plain_paragraph_with_the_existing_text(monkeypatch):
-    document = copy.deepcopy(SYNTHETIC)
-    document["mode"] = "real"                                                # routing only: the cache must not be used
-    monkeypatch.setattr(streamlit_app, "_client", lambda: None)
-    monkeypatch.setattr(streamlit_app, "_notes", lambda: [])
-    monkeypatch.setattr(narrative, "load_preset_cache", lambda: pytest.fail("real mode must not load the synthetic cache"))
-    at = AppTest.from_function(_ask_view, args=(document, "en"), default_timeout=TIMEOUT_SECONDS).run()
-    at.button(key="pill_0").click().run()
-    assert not at.exception and not at.info
-    assert streamlit_app.NO_KEY_MESSAGES["cache_synthetic_only"] in text_of(at)
-    assert "SYNTHETIC CACHED" not in text_of(at)
-
-
-def test_a_checked_answer_shows_sources_and_the_match_mark_only_when_it_passed_the_guard(monkeypatch):
-    ok = ask_app(monkeypatch, ask=lambda *a, **k: {"status": "ai", "text": "**Lead.**\n- point\nSee §05 and §11a."})
-    ok.button(key="pill_0").click().run()
-    assert "Sources: §05 · §11a" in text_of(ok) and "numbers matched" in text_of(ok)
-    fallback = ask_app(monkeypatch, ask=lambda *a, **k: {"status": "fallback", "text": "Plain fallback §10"})
-    fallback.button(key="pill_0").click().run()
-    assert "numbers matched" not in text_of(fallback)
-
-
 @pytest.mark.parametrize("failure", [TimeoutError("provider timed out"), ConnectionError("network down"), RuntimeError("boom")])
 def test_a_provider_failure_shows_a_short_message_and_keeps_the_levers(monkeypatch, failure):
     def failing(*args, **kwargs):
@@ -591,7 +542,7 @@ def test_a_provider_failure_shows_a_short_message_and_keeps_the_levers(monkeypat
 
     at = ask_app(monkeypatch, ask=failing)
     at.button(key="pill_0").click().run()
-    assert not at.exception and t("ask_error", "en") in text_of(at)
+    assert not at.exception and t("ask_fallback", "en") in text_of(at)
     assert "Traceback" not in text_of(at) and str(failure) not in text_of(at)
     broken = lab_app(monkeypatch, copilot=failing)
     broken.text_input(key="copilot_question").input("explain").run()
@@ -601,37 +552,37 @@ def test_a_provider_failure_shows_a_short_message_and_keeps_the_levers(monkeypat
 
 
 @pytest.mark.parametrize("lang", LANGS)
-def test_the_preset_questions_are_pills_and_the_occupancy_pill_is_refused(monkeypatch, lang):
+def test_the_five_preset_questions_are_buttons_answered_in_the_page_language(monkeypatch, lang):
     at = ask_app(monkeypatch, lang=lang)
     pills = [button for button in at.button if str(button.key).startswith("pill_")]
-    assert [button.label for button in pills] == streamlit_app._pills(lang)  # English labels in English, French in French
-    at.button(key=f"pill_{len(pills) - 1}").click().run()
-    assert not at.exception
-    assert narrative.REFUSAL[narrative.detect_language(t("example_occupancy", lang))] in text_of(at)
-
-
-def test_clicking_a_pill_sets_the_preset_session_key_and_runs_the_answer(monkeypatch):
-    seen = []
-    at = ask_app(monkeypatch, ask=lambda question, *a, **k: (seen.append(question), {"status": "ai", "text": "ok"})[1])
-    at.button(key="pill_1").click().run()
-    assert seen == [narrative.PRESET_QUESTIONS[1]] and at.session_state["preset"] == narrative.PRESET_QUESTIONS[1]
+    assert [button.label for button in pills] == streamlit_app._pills(lang) and len(pills) == 5
+    for index in range(5):
+        at.button(key=f"pill_{index}").click().run()
+        assert not at.exception and not at.info and not at.warning
+        page = text_of(at)
+        assert t("ask_note", lang) in page
+        assert at.session_state["asked"] == streamlit_app._pills(lang)[index]
+        assert "§" not in page and not re.search(r"\b[BE]\d_[a-z_]+\b", page)
+        assert qa_answers.CAPTION["synthetic"][lang] in page
+        assert ("Read more in the notebook" if lang == "en" else "Pour approfondir") in page
 
 
 def test_a_free_question_runs_only_when_answer_is_pressed(monkeypatch):
     seen = []
-    at = ask_app(monkeypatch, ask=lambda question, *a, **k: (seen.append(question), {"status": "ai", "text": "ok"})[1])
+    at = ask_app(monkeypatch, ask=lambda question, *a, **k: (seen.append(question), qa_answers.compose("headline", SYNTHETIC, "fr")[0])[1])
     at.text_input(key="free_question").input("Quelle est la hausse ?").run()
     assert seen == []
     at.button(key="answer_go").click().run()
     assert seen == ["Quelle est la hausse ?"]
 
 
-def test_a_cached_preset_is_shown_in_the_demo_without_a_key(monkeypatch):
-    monkeypatch.setattr(narrative, "load_preset_cache", lambda: {})
+def test_an_occupancy_question_gets_a_friendly_refusal_and_no_number(monkeypatch):
     at = ask_app(monkeypatch)
-    at.button(key="pill_0").click().run()
-    assert not at.exception and t("no_key_cache_missing", "en") in text_of(at)
-    assert t("ask_no_key_demo", "en") in text_of(at)
+    at.text_input(key="free_question").input("What is the occupancy rate?").run()
+    at.button(key="answer_go").click().run()
+    page = text_of(at)
+    assert not at.exception and qa_answers.REFUSAL["en"][0] in page
+    assert not re.search(r"\d", qa_answers.REFUSAL["en"][0])
 
 
 def test_the_copilot_link_appears_only_when_a_client_exists(monkeypatch):
