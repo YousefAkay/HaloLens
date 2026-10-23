@@ -5,8 +5,8 @@ Demo mode (default) reads outputs/public/aggregates_synthetic.json. Real mode re
 which exists only after the real export (gitignored). Every file is validated against contracts.AGGREGATES_SCHEMA and must
 carry the mode that was selected. The sidebar holds the language, the data mode, Reload and the notes; the tabs are 01 Answer,
 02 Why, 03 Validation, 04 Scenario Lab, 05 Buildings, 06 Questions, 07 Sources (`?view=<tab>` opens one directly). The Claude API
-is called only through app/narrative.py, and only with aggregates, counts-only notes and the question. Without a key the app runs
-on the levers and, in synthetic mode, validated preset answers.
+is called only through app/narrative.py and app/qa_answers.py, and only with aggregates, plain-label facts and the question. Without a key the app runs
+on the levers and deterministic answers to the Questions tab.
 """
 
 from __future__ import annotations
@@ -24,7 +24,7 @@ import pandas as pd
 import streamlit as st
 from jsonschema import Draft202012Validator, FormatChecker
 
-from app import narrative
+from app import narrative, qa_answers
 from app.ui import DEFAULT_LANG, LANGS, t
 from app.ui import components as ui
 from app.ui.components import backtest_frame, rule_summary, selection_ranking  # noqa: F401  (re-exported for tests)
@@ -42,9 +42,6 @@ MODE_OF = {MODE_DEMO: "synthetic", MODE_REAL: "real"}  # the document's own mode
 LEVER_CHOICES = ("minus", "zero", "plus")
 NEWBUILD_CHOICES = ("exempt", "guideline")
 LEVER_DEFAULTS = {"lever_incentive": "zero", "lever_renewal": "zero", "lever_newbuild": "exempt", "lever_rule": "jan31"}
-NO_KEY_REASONS = ("cache_synthetic_only", "cache_missing", "cache_rejected")
-NO_KEY_MESSAGES = {reason: t(f"no_key_{reason}", "en") for reason in NO_KEY_REASONS}
-HIDDEN_ANSWER_REASONS = {"cache_synthetic_only", "cache_rejected"}  # a cached text is never shown for these
 PILL_COLUMNS = 3  # preset question pills per row
 MODE_LABEL = {MODE_DEMO: "mode_demo", MODE_REAL: "mode_real"}  # label keys of the data-mode control (the values stay MODE_*)
 LANG_SHORT = {"en": "EN", "fr": "FR"}  # compact labels of the language control
@@ -93,13 +90,8 @@ def _config() -> dict[str, Any]:
 
 @st.cache_resource
 def _client() -> Any | None:
-    """One Claude client per session, or None without a key (the app then runs on levers and preset answers)."""
+    """One Claude client per session, or None without a key (the app then runs on levers and deterministic answers)."""
     return narrative.get_client()
-
-
-@st.cache_data
-def _notes() -> list[str]:
-    return narrative.committed_notes()
 
 
 def pct(value: float | None, decimals: int = ui.PERCENT_DECIMALS) -> str:
@@ -233,7 +225,7 @@ def _understood(row: dict[str, Any] | None, lang: str) -> None:
 
 
 def _no_key_message(reason: str | None, lang: str) -> str:
-    return t(f"no_key_{reason}", lang) if reason in NO_KEY_REASONS else t("no_key_generic", lang)
+    return t("no_key_generic", lang)
 
 
 def _render_copilot(answer: dict[str, Any] | None, failed: bool, lang: str) -> None:
@@ -332,66 +324,43 @@ def building_view(doc: dict[str, Any], lang: str = DEFAULT_LANG) -> None:
 # ---------------------------------------------------------------------------
 # 06 Ask the analysis
 # ---------------------------------------------------------------------------
-def _render_answer(question: str, result: dict[str, Any] | None, failed: bool, lang: str) -> None:
-    """Every status of ask_analysis, calmly: a rejected or unavailable answer is never shown."""
-    if failed or result is None:
-        _plain(t("ask_error", lang))
+def _render_answer(question: str, answer: qa_answers.Answer | None, failed: bool, lang: str) -> None:
+    """The answer card; if anything went wrong, a calm sentence (never an error message)."""
+    if failed or answer is None:
+        _plain(t("ask_fallback", lang))
         return
-    status, text, reason = result.get("status"), result.get("text"), result.get("reason")
-    if status == "ai" and text:
-        _html(ui.answer_html(question, text, lang, checked=True))
-    elif status == "refused":
-        _plain(text or t("ask_refused", lang))
-    elif status == "no_key":
-        if text and reason not in HIDDEN_ANSWER_REASONS:  # a cached answer already passed the number guard
-            _html(ui.answer_html(question, text, lang, checked=True))
-        else:
-            _plain(_no_key_message(reason, lang))
-    elif status == "fallback":
-        _plain(text or t("ask_fallback", lang))
-    else:  # "unavailable" or anything unknown
-        _plain(_no_key_message(reason, lang) if reason else t("ask_unavailable", lang))
+    _html(ui.answer_card_html(question, answer.topic, answer.lead, answer.bullets, answer.read_more, answer.caption, lang))
 
 
 def _pills(lang: str) -> list[str]:
-    """Chip labels in the page language: the preset questions, then the occupancy example."""
-    presets = narrative.PRESET_QUESTIONS_EN if lang == "en" else narrative.PRESET_QUESTIONS
-    return list(presets) + [t("example_occupancy", lang)]
-
-
-def _pill_question(index: int, lang: str) -> str:
-    """The question a chip sends: always the FRENCH preset at that index (the cached answers are keyed on it).
-
-    The occupancy example is not a preset: it is sent as displayed.
-    """
-    if index < len(narrative.PRESET_QUESTIONS):
-        return narrative.PRESET_QUESTIONS[index]
-    return _pills(lang)[index]
+    """Chip labels in the page language: the five preset questions."""
+    return list(narrative.PRESET_QUESTIONS_EN if lang == "en" else narrative.PRESET_QUESTIONS)
 
 
 def ask_analysis_view(doc: dict[str, Any], lang: str = DEFAULT_LANG) -> None:
+    """Questions tab: five preset questions as buttons and a free-text box; answers come from the aggregates.
+
+    The presets and the free text go through the same deterministic router and composer (app/qa_answers.py). A Claude client,
+    when there is one, only rewords the answer and is ignored if it changes a number.
+    """
     client = _client()
     _html(ui.section_header("ask", t("ask_kicker", lang), t("ask_headline", lang), ai=True))
-    if client is None:
-        _plain(t("ask_no_key_demo", lang) if doc.get("mode") == "synthetic" else t("no_key_cache_synthetic_only", lang))
-    clicked = None
+    _plain(t("ask_note", lang))
     questions = _pills(lang)
     with st.container(key="pills"):
         for start in range(0, len(questions), PILL_COLUMNS):
             for offset, column in enumerate(st.columns(PILL_COLUMNS)):
                 index = start + offset
                 if index < len(questions) and column.button(questions[index], key=f"pill_{index}"):
-                    clicked = _pill_question(index, lang)
-                    st.session_state["preset"] = clicked
-                    st.session_state["preset_shown"] = questions[index]
+                    st.session_state["asked"] = questions[index]
     free = st.text_input(t("ask_free", lang), key="free_question")
-    answer_clicked = st.button(t("ask_answer", lang), key="answer_go")
-    chosen = clicked or free or st.session_state.get("preset", "")
-    if chosen and (clicked or answer_clicked):
+    if st.button(t("ask_answer", lang), key="answer_go") and free.strip():
+        st.session_state["asked"] = free.strip()
+    chosen = st.session_state.get("asked", "")
+    if chosen:
         with st.spinner(t("ask_spinner", lang)):
-            result, failed = _safe(narrative.ask_analysis, chosen, doc, _notes(), client)
-        shown = st.session_state.get("preset_shown", chosen) if chosen == st.session_state.get("preset") else chosen
-        _render_answer(shown, result, failed, lang)
+            answer, failed = _safe(qa_answers.answer_question, chosen, doc, client, lang)
+        _render_answer(chosen, answer, failed, lang)
 
 
 # ---------------------------------------------------------------------------

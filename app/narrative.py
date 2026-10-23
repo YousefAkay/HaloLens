@@ -1,4 +1,4 @@
-"""Scenario copilot and ask-the-analysis Q&A over the aggregates, with a number guard and no-key fallbacks (I-12).
+"""Scenario copilot, privacy wall and shared helpers for the Q&A over the aggregates (I-12). Answers: app/qa_answers.py.
 
 Owner: INT.
 
@@ -26,17 +26,9 @@ from halolens.contracts import INFORMATION_RULES, LEVER_LABELS, NEWBUILD_LABELS
 from halolens.forecast.combine import REGULATED_MODEL_NAME
 
 API_KEY_VARIABLE = "ANTHROPIC_API_KEY"
-CACHE_FILE = Path("app") / "cache" / "qa_presets.json"
 SELECTION_LEVERS = tuple(label for label in LEVER_LABELS if label != "none")  # the three lever settings
 SELECTION_NEWBUILD = tuple(label for label in NEWBUILD_LABELS if label != "none")  # exempt or guideline
 UNIT_LEVEL_KEYS = {"unit_id", "unit_code", "hunit", "sunitcode", "spropcode", "prop_code", "lease_start", "sign_date"}
-FORBIDDEN_TOPIC = re.compile(r"occupation|occupancy|vacance|vacancy|absorption|rent[ -]?roll", re.IGNORECASE)
-REFUSAL = {
-    "fr": "Cet extrait ne permet pas de mesurer l'occupation, la vacance, l'absorption ni le rent roll total "
-          "(voir la section 01 du notebook) : ces chiffres ne sont pas calculés ici.",
-    "en": "This extract cannot measure occupancy, vacancy, absorption or the total rent roll (see notebook section 01), "
-          "so these figures are not computed here.",
-}
 SECTION_MAP = {
     "01": "Définition de la hausse mesurée", "02": "Dictionnaire de données et contrôle qualité",
     "03": "Effet de composition", "04": "Appariement à unité constante",
@@ -45,14 +37,14 @@ SECTION_MAP = {
     "09": "Backtest 2023-2025", "10": "Prévision 2026 et règle du champion", "11a": "Incertitude",
     "11b": "Scénarios 2026", "12": "Références",
 }
-PRESET_QUESTIONS = (
+PRESET_QUESTIONS = (  # the five preset questions of the Questions tab, in French and English (same order)
     "Quelle est la hausse 2026 nette de toutes les concessions ?",
     "Que se passe-t-il si l'effet des incitatifs est plus fort ?",
     "Comment la règle du TAL intervient-elle pour les renouvellements québécois ?",
     "Pourquoi le classement des modèles est-il statistiquement faible ?",
     "Quelles hypothèses déplacent le plus la hausse ?",
 )
-PRESET_QUESTIONS_EN = (  # same order as PRESET_QUESTIONS; a click still sends the French question, so the cached answers match
+PRESET_QUESTIONS_EN = (
     "What is the 2026 increase net of all concessions?",
     "What happens if the effect of incentives is stronger?",
     "How does the TAL rule apply to Québec renewals?",
@@ -223,70 +215,3 @@ def scenario_copilot(question: str, aggregates: dict[str, Any], client: Any | No
         if text and not ungrounded_numbers(text, aggregates):
             return {"status": "ai", "row": row, "text": text}
     return {"status": "fallback", "row": row, "text": fallback_scenario_text(row, base, lang)}
-
-
-# ---------------------------------------------------------------------------- ask the analysis
-def section_citation_present(text: str) -> bool:
-    cited = re.findall(r"§(\d+[ab]?)", text)
-    return bool(cited) and all(number in SECTION_MAP for number in cited)
-
-
-def ask_analysis(question: str, aggregates: dict[str, Any], docs: list[str], client: Any | None) -> dict[str, Any]:
-    """Answer with a citation; no-key cached answers require synthetic mode and grounded numbers."""
-    lang = detect_language(question)
-    if FORBIDDEN_TOPIC.search(question):
-        return {"status": "refused", "text": REFUSAL[lang]}
-    if client is None:
-        if aggregates.get("mode") != "synthetic":
-            return {"status": "no_key", "text": None, "reason": "cache_synthetic_only"}
-        cached = load_preset_cache().get(question)
-        if not isinstance(cached, str) or not cached.strip():
-            return {"status": "no_key", "text": None, "reason": "cache_missing"}
-        if ungrounded_numbers(cached, aggregates):
-            return {"status": "no_key", "text": None, "reason": "cache_rejected"}
-        return {"status": "no_key", "text": cached}
-    section_lines = "\n".join(f"§{number} {title}" for number, title in SECTION_MAP.items())
-    system = (f"Réponds dans la langue de la question ({lang}). Utilise seulement le JSON fourni. Cite toujours au moins "
-              f"une section d'appui avec §NN parmi :\n{section_lines}\nN'écris que des nombres présents dans "
-              "le JSON, arrondis à une décimale au plus (jamais plus de deux) ; ne calcule ni différence ni moyenne ; si un "
-              "nombre n'existe pas, décris-le "
-              "sans chiffre. Si les données ne répondent pas, dis-le sans inventer.")
-    content = json.dumps(privacy_payload(aggregates, question, docs), ensure_ascii=False)  # runtime privacy check
-    for _attempt in range(2):
-        text = _text(_call(client, system, content))
-        if text and section_citation_present(text) and not ungrounded_numbers(text, aggregates):
-            return {"status": "ai", "text": text}
-    return {"status": "fallback", "text": ("Je ne peux pas répondre de façon vérifiée à partir des agrégats : voir la "
-                                           "section §10." if lang == "fr" else
-                                           "I cannot answer this in a verified way from the aggregates: see §10.")}
-
-
-# ---------------------------------------------------------------------------- preset cache (synthetic only)
-def load_preset_cache(root: Path | None = None) -> dict[str, str]:
-    path = (root or repo_root()) / CACHE_FILE
-    if not path.exists():
-        return {}
-    try:
-        return dict(json.loads(path.read_text(encoding="utf-8")).get("answers", {}))
-    except (OSError, ValueError):
-        return {}
-
-
-def build_preset_cache(aggregates: dict[str, Any], client: Any, root: Path | None = None) -> dict[str, str]:
-    """Answers to the five preset questions, generated from the SYNTHETIC aggregates only, and written to the cache."""
-    answers = {}
-    for question in PRESET_QUESTIONS:
-        result = ask_analysis(question, aggregates, committed_notes(root), client)
-        if result["status"] == "ai":
-            answers[question] = result["text"]
-    path = (root or repo_root()) / CACHE_FILE
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps({"source": "synthetic aggregates", "answers": answers}, ensure_ascii=False, indent=2)
-                    + "\n", encoding="utf-8")
-    return answers
-
-
-if __name__ == "__main__":
-    synthetic = json.loads((repo_root() / "outputs" / "public" / "aggregates_synthetic.json").read_text(encoding="utf-8"))
-    cached = build_preset_cache(synthetic, get_client())
-    print(f"Preset cache written: {len(cached)} of {len(PRESET_QUESTIONS)} answers passed the guard (synthetic data).")
