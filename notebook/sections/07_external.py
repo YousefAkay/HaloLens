@@ -168,11 +168,11 @@ display(split_rows.assign(lease_type=split_rows["lease_type"].map(LEASE_TYPE_FR)
 # ### 7.5 Lecture
 
 # %%
-met_buildings = [entry["building"] for entry in cfg["regulation"]["buildings"]
+newbuild_buildings = [entry["building"] for entry in cfg["regulation"]["buildings"]
                  if entry.get("scenario") == EXEMPTION_SCENARIO]
 matrix = applicability_matrix(cfg, tables.leases)
-met_years = matrix.loc[matrix["building"].isin(met_buildings), "first_lease_year"].dropna()
-met_first_year = f"{int(met_years.min())}" if len(met_years) else "non observé"
+newbuild_years = matrix.loc[matrix["building"].isin(newbuild_buildings), "first_lease_year"].dropna()
+newbuild_first_year = f"{int(newbuild_years.min())}" if len(newbuild_years) else "non observé"
 lines = []
 for row in market_summary.itertuples():
     direction = "plus vite" if row.mean_gap_contract_pp > 0 else "moins vite"
@@ -190,7 +190,7 @@ if not turnover.empty and (turnover["mean_gap_contract_pp"] < 0).all():
 few_years = market_summary["n_years"] < len(cfg["forecast_years"]["backtest_years"])
 if few_years.any():
     lines.append(f"- {int(few_years.sum())} comparaison(s) ont moins d'années communes que les années de backtest "
-                 f"(premier bail du projet ontarien neuf dans l'extrait : {met_first_year}) : ce sont des indications, pas des "
+                 f"(premier bail du projet ontarien neuf dans l'extrait : {newbuild_first_year}) : ce sont des indications, pas des "
                  "estimations précises.")
 display(Markdown("\n".join(lines) if lines else "Pas assez d'années communes pour une lecture."))
 display(Markdown(

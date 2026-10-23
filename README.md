@@ -42,7 +42,7 @@ pre-commit install               # optional, for contributors
 | Task | Command |
 |---|---|
 | Tests (synthetic data) | `pytest -q` |
-| Build and execute the notebook on synthetic data | `python scripts/build_notebook.py --synthetic` |
+| Build and execute the notebook on synthetic data (writes `analysis.ipynb`) | `python scripts/build_notebook.py --synthetic` |
 | Build and execute the notebook on your data | `python scripts/build_notebook.py --real` |
 | Export aggregate results for the app | `python scripts/export_aggregates.py --synthetic` (or `--real`) |
 | Launch the dashboard (synthetic demo by default) | `streamlit run app/streamlit_app.py` |
@@ -50,10 +50,15 @@ pre-commit install               # optional, for contributors
 
 ### Using your own data
 
-Put the four lease-history tables (listings, lease history, concessions, asking history) and a `manifest.json` of their
-SHA-256 hashes in a folder of your choice. Point to it with `DATA_DIR` at the top of the notebook's first cell or with the
-environment variable `LEASELENS_DATA_DIR`; without a setting, the notebook reads `data/private/`. Files are verified against
-the manifest before they are read. Outputs computed from your data go to `outputs/private/` (gitignored).
+Put the four tables (`listings.csv`, `lease_history.csv`, `concessions.csv`, `asking_history.csv`, in the column format of
+`data/synthetic/`) and a `manifest.json` of their SHA-256 hashes in a folder of your choice. Point to it with `DATA_DIR` at
+the top of the notebook's first cell or with the environment variable `LEASELENS_DATA_DIR`; without a setting, the notebook
+reads `data/private/`. Files are verified against the manifest before they are read. Outputs computed from your data go to
+`outputs/private/` (gitignored).
+
+If your files have other names, create the optional, gitignored `config/local.yaml` (merged last) with a `data.source_files`
+mapping from logical name (`listings`, `leases`, `concessions`, `asking`) to file name, for example
+`data: {source_files: {leases: my_leases.csv}}`; names you leave out keep their defaults. The manifest must list the same names.
 
 ### Optional: AI features
 

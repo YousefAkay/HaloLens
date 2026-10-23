@@ -312,12 +312,12 @@ from tests.test_baselines import GUIDELINE_PCT, TAL_PCT, regulated_rows   # noqa
 PERCENT_OF_RATE = 100
 
 
-def run_regulated(tables, cfg, strict=False, met_guideline_applies=False, external=None):
+def run_regulated(tables, cfg, strict=False, ontario_newbuild_guideline_applies=False, external=None):
     from leaselens.forecast.asof import snapshot_for_year
     from leaselens.forecast.combine import forecast_regulated
     external = regulated_rows() if external is None else external
     snapshot = snapshot_for_year(tables, external, 2025, cfg, strict=strict)
-    return forecast_regulated(snapshot, cfg, met_guideline_applies=met_guideline_applies)
+    return forecast_regulated(snapshot, cfg, ontario_newbuild_guideline_applies=ontario_newbuild_guideline_applies)
 
 
 def qc_gap() -> float:
@@ -343,16 +343,16 @@ def test_ontario_renewals_keep_the_e1_blend_in_the_central_scenario(cfg):
     assert on_e2["g_source"] == "blend" and on_e2["g_contract"] == pytest.approx(on_e1)
 
 
-def test_met_guideline_scenario_anchors_ontario_renewals_on_the_guideline_plus_its_gap(cfg):
+def test_newbuild_guideline_scenario_anchors_ontario_renewals_on_the_guideline_plus_its_gap(cfg):
     central = run_regulated(engine_tables(), cfg)
-    alternative = run_regulated(engine_tables(), cfg, met_guideline_applies=True)
+    alternative = run_regulated(engine_tables(), cfg, ontario_newbuild_guideline_applies=True)
     gap = np.log1p(CONSTANT_GROWTH[2024]) - np.log1p(GUIDELINE_PCT[2024] / PERCENT_OF_RATE)
     expected = np.log1p(GUIDELINE_PCT[2025] / PERCENT_OF_RATE) + gap
     on_alt = alternative.segments.set_index("prop_code").loc["bbb"]
     assert on_alt["g_source"] == "guideline_anchor" and on_alt["g_contract"] == pytest.approx(expected, abs=2e-3)
     assert alternative.headline_contract_pct < central.headline_contract_pct          # guideline 1.5% < history 3%
     # the central result already carries the alternative's number for the scenario table
-    assert central.segments.set_index("prop_code").loc["bbb", "g_contract_met_alt"] == pytest.approx(on_alt["g_contract"])
+    assert central.segments.set_index("prop_code").loc["bbb", "g_contract_alt"] == pytest.approx(on_alt["g_contract"])
 
 
 def test_strict_rule_falls_back_to_the_latest_released_tal_year(cfg):
@@ -394,7 +394,7 @@ def test_e2_without_ontario_segments_does_not_need_the_guideline(cfg):
     qc_only = tables_from(annual_leases(CONSTANT_GROWTH, units=[u for u in ENGINE_UNITS if u[1] == "QC"]))
     result = run_regulated(qc_only, cfg, external=regulated_rows(guideline={}))
     assert "ON" not in result.components["regulatory_anchors"]
-    assert result.segments["g_contract_met_alt"].notna().all()
+    assert result.segments["g_contract_alt"].notna().all()
 
 
 # ---------------------------------------------------------------------------
@@ -459,12 +459,12 @@ def test_shallower_incentives_cannot_push_the_discount_below_zero(cfg):
     assert row_of(table, "incentives_deeper")["headline_net_pct"] < row_of(table, "central")["headline_net_pct"]
 
 
-def test_met_scenario_matches_the_alternative_forecast(regulated_result, cfg):
+def test_newbuild_scenario_matches_the_alternative_forecast(regulated_result, cfg):
     from leaselens.forecast.scenarios import scenario_table
-    alternative = run_regulated(engine_tables(discount_by_year={2023: 0.03, 2024: 0.05}), cfg, met_guideline_applies=True)
+    alternative = run_regulated(engine_tables(discount_by_year={2023: 0.03, 2024: 0.05}), cfg, ontario_newbuild_guideline_applies=True)
     table = scenario_table(regulated_result, cfg)
-    assert row_of(table, "met_guideline_applies")["headline_net_pct"] == pytest.approx(alternative.headline_net_pct)
-    assert row_of(table, "met_guideline_applies")["headline_net_pct"] < row_of(table, "central")["headline_net_pct"]
+    assert row_of(table, "ontario_newbuild_guideline_applies")["headline_net_pct"] == pytest.approx(alternative.headline_net_pct)
+    assert row_of(table, "ontario_newbuild_guideline_applies")["headline_net_pct"] < row_of(table, "central")["headline_net_pct"]
 
 
 def test_low_and_high_bracket_the_central_and_every_single_lever(regulated_result, cfg):
@@ -476,11 +476,11 @@ def test_low_and_high_bracket_the_central_and_every_single_lever(regulated_resul
     assert table.loc["low", "delta_net_pp"] < 0 < table.loc["high", "delta_net_pp"]
 
 
-def test_scenarios_on_an_e1_result_leave_the_met_rows_empty_but_still_give_low_and_high(cfg):
+def test_scenarios_on_an_e1_result_leave_the_newbuild_rows_empty_but_still_give_low_and_high(cfg):
     from leaselens.forecast.scenarios import scenario_table
     table = scenario_table(run_forecast(engine_tables(), cfg), cfg).set_index("scenario")
-    assert np.isnan(table.loc["met_guideline_applies", "headline_net_pct"])
-    assert np.isfinite(table.loc["low", "headline_net_pct"]) and not table.loc["low", "met_guideline_applies"]
+    assert np.isnan(table.loc["ontario_newbuild_guideline_applies", "headline_net_pct"])
+    assert np.isfinite(table.loc["low", "headline_net_pct"]) and not table.loc["low", "ontario_newbuild_guideline_applies"]
 
 
 def test_incentive_shift_is_capped_at_the_maximum_discount_share(regulated_result, cfg):
@@ -589,7 +589,7 @@ def test_sensitivity_table_lists_one_row_per_variant_sorted_by_absolute_change(c
     assert list(table.columns) == SENSITIVITY_COLUMNS
     assert table["abs_delta_pp"].dropna().is_monotonic_decreasing
     assert not table.duplicated(["assumption", "variant", "setting", "model"]).any()
-    expected_groups = {"information_rule", "gap_bounds", "winsorization", "weight_window", "met_applicability",
+    expected_groups = {"information_rule", "gap_bounds", "winsorization", "weight_window", "newbuild_applicability",
                        "incentive_intensity", "renewal_mix", "model_choice"}
     assert set(table["assumption"]) == expected_groups
     assert (table["delta_pp"].abs() - table["abs_delta_pp"]).abs().max() < 1e-12
@@ -633,7 +633,7 @@ def test_regulatory_levers_are_the_e2_scenario_deltas(cfg):
     table = run_sensitivity(cfg).set_index("variant")
     tables, regulated = sensitivity_inputs(cfg)
     scenarios = scenario_table(run_regulated(tables, cfg), cfg).set_index("scenario")
-    for variant in ("met_guideline_applies", "incentives_deeper", "incentives_shallower", "more_renewals", "fewer_renewals"):
+    for variant in ("ontario_newbuild_guideline_applies", "incentives_deeper", "incentives_shallower", "more_renewals", "fewer_renewals"):
         assert table.loc[variant, "delta_pp"] == pytest.approx(scenarios.loc[variant, "delta_net_pp"])
         assert table.loc[variant, "model"] == "E2_regulated"
 

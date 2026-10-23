@@ -2,7 +2,7 @@
 
 Usage:
     python scripts/export_aggregates.py --synthetic   # committed fixtures -> outputs/public/aggregates_synthetic.json
-    python scripts/export_aggregates.py --real        # sponsor CSVs in data/private -> outputs/private/aggregates.json
+    python scripts/export_aggregates.py --real        # your CSVs in data/private -> outputs/private/aggregates.json
 
 --real writes a gitignored file that holds CRM-derived aggregates; never commit it. Its console output is limited to
 the headline, the model, the number of backtest rows and the coverage counts.
@@ -16,7 +16,7 @@ import sys
 
 import numpy as np
 
-from leaselens.config import data_dir, load_config, output_dir, repo_root
+from leaselens.config import data_dir, load_config, output_dir, repo_root, source_files
 from leaselens.export.aggregates import build_aggregates, export
 from leaselens.io import canonicalize, load_raw
 from leaselens.market.registry import load_external
@@ -32,12 +32,12 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Export aggregates (counts and percentages only).")
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument("--synthetic", action="store_true", help="committed synthetic fixtures")
-    mode.add_argument("--real", action="store_true", help="sponsor CSVs in data/private")
+    mode.add_argument("--real", action="store_true", help="your CSVs in data/private")
     args = parser.parse_args(argv)
 
     cfg = load_config(mode="real" if args.real else "synthetic")
     np.random.seed(cfg["random_seed"])
-    tables = canonicalize(load_raw(data_dir(cfg)))
+    tables = canonicalize(load_raw(data_dir(cfg), source_files=source_files(cfg)))
     external = load_external(repo_root() / cfg["data"]["public_dir"] / cfg["external"]["sources_file"])
     document = build_aggregates(tables, external, cfg)
 

@@ -141,7 +141,7 @@ def test_ontario_exemption_scenario_matches_forecast_levers(real_cfg):
     row = ontario.iloc[0]
     assert row["scenario"] == "ontario_post_2018_exemption"
     applies = [bool(row["binding_central"]), bool(row["binding_alternative"])]
-    assert applies == real_cfg["scenarios"]["met_guideline_applies"]
+    assert applies == real_cfg["scenarios"]["ontario_newbuild_guideline_applies"]
 
 
 def test_quebec_reference_is_never_binding(real_cfg):
@@ -192,7 +192,7 @@ def test_renewals_vs_reference_joins_same_province_only(no_clip_cfg):
     assert comparison.loc[0, "gap_pp"] == pytest.approx(expected_gap)
 
 
-def met_renewal(unit: str, year: int, increase_pct: float) -> dict:
+def newbuild_renewal(unit: str, year: int, increase_pct: float) -> dict:
     """One eligible renewal pair of the Ontario new-build property with the given 12-month contractual increase."""
     row = pair(unit, "ON", True, math.log1p(increase_pct / PERCENT), year)
     return {**row, "building": "Lakeview Residences"}
@@ -201,8 +201,8 @@ def met_renewal(unit: str, year: int, increase_pct: float) -> dict:
 def test_exemption_evidence_counts_renewals_above_guideline(real_cfg):
     guideline = 2.5
     years = [YEAR - 1, YEAR]
-    rows = [met_renewal("a", YEAR, guideline), met_renewal("b", YEAR, guideline + 1.0),
-            met_renewal("c", YEAR, guideline + 3.0)]
+    rows = [newbuild_renewal("a", YEAR, guideline), newbuild_renewal("b", YEAR, guideline + 1.0),
+            newbuild_renewal("c", YEAR, guideline + 3.0)]
     rows.append({**pair("q", "QC", True, 0.2), "building": "North Court"})   # Québec renewal: never counted
     references = pd.DataFrame({"year": years, "province": ["ON", "ON"], "reference_pct": [guideline, guideline]})
     evidence = exemption_evidence(pairs_frame(rows), references, real_cfg, years).set_index("year")

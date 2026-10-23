@@ -22,13 +22,13 @@ from dotenv import load_dotenv
 
 from app.number_guard import ungrounded_numbers
 from leaselens.config import load_config, repo_root
-from leaselens.contracts import INFORMATION_RULES, LEVER_LABELS, MET_LABELS
+from leaselens.contracts import INFORMATION_RULES, LEVER_LABELS, NEWBUILD_LABELS
 from leaselens.forecast.combine import REGULATED_MODEL_NAME
 
 API_KEY_VARIABLE = "ANTHROPIC_API_KEY"
 CACHE_FILE = Path("app") / "cache" / "qa_presets.json"
 SELECTION_LEVERS = tuple(label for label in LEVER_LABELS if label != "none")  # the three lever settings
-SELECTION_MET = tuple(label for label in MET_LABELS if label != "none")  # exempt or guideline
+SELECTION_NEWBUILD = tuple(label for label in NEWBUILD_LABELS if label != "none")  # exempt or guideline
 UNIT_LEVEL_KEYS = {"unit_id", "unit_code", "hunit", "sunitcode", "spropcode", "prop_code", "lease_start", "sign_date"}
 FORBIDDEN_TOPIC = re.compile(r"occupation|occupancy|vacance|vacancy|absorption|rent[ -]?roll", re.IGNORECASE)
 REFUSAL = {
@@ -151,11 +151,11 @@ SELECT_TOOL = {
     "description": "Choose one row of the precomputed scenario grid. Never compute a number.",
     "input_schema": {
         "type": "object", "additionalProperties": False,
-        "required": ["incentive_shift", "renewal_shift", "met_regime", "information_rule"],
+        "required": ["incentive_shift", "renewal_shift", "newbuild_regime", "information_rule"],
         "properties": {
             "incentive_shift": {"enum": list(SELECTION_LEVERS)},
             "renewal_shift": {"enum": list(SELECTION_LEVERS)},
-            "met_regime": {"enum": list(SELECTION_MET)},
+            "newbuild_regime": {"enum": list(SELECTION_NEWBUILD)},
             "information_rule": {"enum": list(INFORMATION_RULES)},
         },
     },
@@ -164,32 +164,32 @@ SELECT_SYSTEM = ("Tu choisis un scénario dans la grille précalculée en appela
                  "chiffre. Choisis les valeurs qui correspondent à la question ; par défaut : zero, zero, exempt, jan31.")
 
 
-def scenario_row(aggregates: dict[str, Any], incentive: str, renewal: str, met: str, rule: str) -> dict[str, Any] | None:
+def scenario_row(aggregates: dict[str, Any], incentive: str, renewal: str, newbuild: str, rule: str) -> dict[str, Any] | None:
     """Exact lookup of one E2 row of the scenario grid; None when the combination is not in the grid."""
     for row in aggregates.get("scenario_grid", []):
         if (row["model"] == REGULATED_MODEL_NAME and row["incentive_shift"] == incentive
-                and row["renewal_shift"] == renewal and row["met_regime"] == met and row["information_rule"] == rule):
+                and row["renewal_shift"] == renewal and row["newbuild_regime"] == newbuild and row["information_rule"] == rule):
             return row
     return None
 
 
 def baseline_row(aggregates: dict[str, Any], rule: str = "jan31") -> dict[str, Any] | None:
-    """The E2 central row (no lever moved, Met exempt) under the given information rule: the comparison point."""
+    """The E2 central row (no lever moved, new-build exempt) under the given information rule: the comparison point."""
     return scenario_row(aggregates, "zero", "zero", "exempt", rule)
 
 
 def _valid_selection(arguments: dict[str, Any]) -> bool:
     return (arguments.get("incentive_shift") in SELECTION_LEVERS and arguments.get("renewal_shift") in SELECTION_LEVERS
-            and arguments.get("met_regime") in SELECTION_MET and arguments.get("information_rule") in INFORMATION_RULES)
+            and arguments.get("newbuild_regime") in SELECTION_NEWBUILD and arguments.get("information_rule") in INFORMATION_RULES)
 
 
 def fallback_scenario_text(row: dict[str, Any], base: dict[str, Any] | None, lang: str) -> str:
     """Deterministic sentence from the grid row and the baseline; it passes the guard by construction."""
     net, contract = f"{row['headline_net_pct']:.1f} %", f"{row['headline_contract_pct']:.1f} %"
     if base is None or base["headline_net_pct"] is None:
-        return (f"Scénario {row['incentive_shift']}/{row['renewal_shift']}/{row['met_regime']} : hausse nette {net}."
+        return (f"Scénario {row['incentive_shift']}/{row['renewal_shift']}/{row['newbuild_regime']} : hausse nette {net}."
                 if lang == "fr" else
-                f"Scenario {row['incentive_shift']}/{row['renewal_shift']}/{row['met_regime']}: net increase {net}.")
+                f"Scenario {row['incentive_shift']}/{row['renewal_shift']}/{row['newbuild_regime']}: net increase {net}.")
     base_net = f"{base['headline_net_pct']:.1f} %"
     if lang == "fr":
         return (f"Dans ce scénario, la hausse nette est de {net} (contractuelle : {contract}), contre {base_net} dans le "
@@ -211,7 +211,7 @@ def scenario_copilot(question: str, aggregates: dict[str, Any], client: Any | No
                       if getattr(block, "type", "") == "tool_use" and block.name == "select_scenario"), {})
     if not _valid_selection(arguments):
         return {"status": "fallback", "row": None, "text": None}
-    row = scenario_row(aggregates, arguments["incentive_shift"], arguments["renewal_shift"], arguments["met_regime"],
+    row = scenario_row(aggregates, arguments["incentive_shift"], arguments["renewal_shift"], arguments["newbuild_regime"],
                        arguments["information_rule"])
     if row is None:
         return {"status": "fallback", "row": None, "text": None}

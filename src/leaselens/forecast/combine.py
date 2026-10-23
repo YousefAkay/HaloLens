@@ -116,14 +116,14 @@ def _regulatory_anchor(pairs: pd.DataFrame, bounds: dict, external: pd.DataFrame
 
 
 def _engine(snapshot: Snapshot, cfg: dict, regulated: bool, model_name: str,
-            met_guideline_applies: bool = False) -> ForecastResult:
+            ontario_newbuild_guideline_applies: bool = False) -> ForecastResult:
     """Shared pipeline of E1 (`regulated=False`) and E2 (`regulated=True`); see `forecast` and `forecast_regulated`.
 
     With `regulated=True`, Québec renewal segments are anchored on the TAL percentage of the target year plus a gap learned
     on training years; Ontario renewals (the Ontario new-build property) keep the E1 blend (central scenario: exempt) unless
-    `met_guideline_applies`, which anchors them on the Ontario guideline plus its own training gap. Turnovers and the
+    `ontario_newbuild_guideline_applies`, which anchors them on the Ontario guideline plus its own training gap. Turnovers and the
     incentive engine are identical in both models. `segments` gains `province`, `n_pairs_window`, `g_source` and
-    `g_contract_met_alt` (contract growth if the Ontario guideline applied; NaN when it cannot be computed).
+    `g_contract_alt` (contract growth if the Ontario guideline applied; NaN when it cannot be computed).
 
     Inputs: a Snapshot (already cut at the cutoff) and the merged config (`combine`, `headline`, `winsorize`, `pairs`,
     `asking`, `incentives`, `nowcast`). Output: ForecastResult for the year after the cutoff. `segments` holds, per
@@ -165,7 +165,7 @@ def _engine(snapshot: Snapshot, cfg: dict, regulated: bool, model_name: str,
         contract.append(value)
     table["g_contract"] = contract
     table["g_source"] = SOURCE_BLEND
-    table["g_contract_met_alt"] = np.nan
+    table["g_contract_alt"] = np.nan
     anchors = {}
     if regulated:
         settings_a = cfg["anchors"]
@@ -177,7 +177,7 @@ def _engine(snapshot: Snapshot, cfg: dict, regulated: bool, model_name: str,
                                                settings_a["tal_metric"], cfg)
             table.loc[in_qc, "g_contract"] = anchors["QC"]["anchor_log"]
             table.loc[in_qc, "g_source"] = SOURCE_TAL
-        table["g_contract_met_alt"] = table["g_contract"]
+        table["g_contract_alt"] = table["g_contract"]
         if in_on.any():
             try:
                 anchors["ON"] = _regulatory_anchor(pairs, bounds, snapshot.external, cutoff,
@@ -185,14 +185,14 @@ def _engine(snapshot: Snapshot, cfg: dict, regulated: bool, model_name: str,
             except ValueError as problem:
                 anchors["ON"] = {"error": str(problem)}
             if "anchor_log" in anchors["ON"]:
-                table.loc[in_on, "g_contract_met_alt"] = anchors["ON"]["anchor_log"]
-                if met_guideline_applies:
+                table.loc[in_on, "g_contract_alt"] = anchors["ON"]["anchor_log"]
+                if ontario_newbuild_guideline_applies:
                     table.loc[in_on, "g_contract"] = anchors["ON"]["anchor_log"]
                     table.loc[in_on, "g_source"] = SOURCE_GUIDELINE
-            elif met_guideline_applies:
+            elif ontario_newbuild_guideline_applies:
                 raise ValueError(f"Ontario guideline anchor unavailable: {anchors['ON']['error']}")
             else:
-                table.loc[in_on, "g_contract_met_alt"] = np.nan
+                table.loc[in_on, "g_contract_alt"] = np.nan
 
     discounts = forecast_discount(snapshot, cfg)[keys + ["d0", "d1"]]
     table = table.merge(discounts, on=keys, how="left")
@@ -224,8 +224,8 @@ def _engine(snapshot: Snapshot, cfg: dict, regulated: bool, model_name: str,
             "Segment weights are frozen shares of eligible pairs in the window before the cutoff; they describe lease "
             "transitions, not occupancy or turnover rate.",
             ("Québec renewals are anchored on the TAL percentage of the target year plus the training gap; Ontario renewals "
-             + ("are anchored on the Ontario guideline (alternative Met scenario)." if met_guideline_applies
-                else "keep the history/nowcast blend (central Met scenario: exempt)."))
+             + ("are anchored on the Ontario guideline (alternative new-build scenario)." if ontario_newbuild_guideline_applies
+                else "keep the history/nowcast blend (central new-build scenario: exempt)."))
             if regulated else
             "No regulatory anchor is applied to renewals in this model (see E2_regulated).",
         ])
@@ -236,7 +236,7 @@ def forecast(snapshot: Snapshot, cfg: dict) -> ForecastResult:
     return _engine(snapshot, cfg, regulated=False, model_name=MODEL_NAME)
 
 
-def forecast_regulated(snapshot: Snapshot, cfg: dict, met_guideline_applies: bool = False) -> ForecastResult:
-    """E2_regulated: E1 with Québec renewals anchored on the TAL percentage (central Met scenario unless told otherwise)."""
+def forecast_regulated(snapshot: Snapshot, cfg: dict, ontario_newbuild_guideline_applies: bool = False) -> ForecastResult:
+    """E2_regulated: E1 with Québec renewals anchored on the TAL percentage (central new-build scenario unless told otherwise)."""
     return _engine(snapshot, cfg, regulated=True, model_name=REGULATED_MODEL_NAME,
-                   met_guideline_applies=met_guideline_applies)
+                   ontario_newbuild_guideline_applies=ontario_newbuild_guideline_applies)

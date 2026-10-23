@@ -4,7 +4,7 @@ Owner: FCT. Implements `scenario_table` (AGENTS.md Section 7.3) and `building_be
 
 Scenarios are computed from the segment table of an E2_regulated forecast, so they are exact re-aggregations of the same
 segment forecasts, not new models. Levers (forecast.yaml `scenarios`): incentive intensity (shift of every segment's
-forecast discount share d1), renewal mix (shift of the renewal share of the frozen weights), and Met applicability
+forecast discount share d1), renewal mix (shift of the renewal share of the frozen weights), and new-build applicability
 (Ontario guideline applies to the Ontario new-build property's renewals instead of the exempt central case). Scenario ranges are scenarios, not
 prediction intervals (AGENTS.md 9.4).
 """
@@ -19,7 +19,7 @@ import pandas as pd
 from leaselens.contracts import PERCENT, ForecastResult
 from leaselens.forecast.baselines import to_pct
 
-SCENARIO_COLUMNS = ["scenario", "incentive_shift_pp", "renewal_share_shift_pp", "met_guideline_applies",
+SCENARIO_COLUMNS = ["scenario", "incentive_shift_pp", "renewal_share_shift_pp", "ontario_newbuild_guideline_applies",
                     "headline_net_pct", "headline_contract_pct", "delta_net_pp"]
 CENTRAL = "central"
 
@@ -37,13 +37,13 @@ def _reweight(weights: pd.Series, is_renewal: pd.Series, shift: float) -> pd.Ser
 
 
 def evaluate_scenario(segments: pd.DataFrame, cfg: dict, incentive_shift_pp: float = 0.0,
-                      renewal_share_shift_pp: float = 0.0, met_guideline_applies: bool = False) -> dict:
+                      renewal_share_shift_pp: float = 0.0, ontario_newbuild_guideline_applies: bool = False) -> dict:
     """Headline net and contract % for one lever setting, re-aggregating the segment forecasts.
 
-    Returns {"headline_net_pct", "headline_contract_pct"}; both NaN when `met_guideline_applies` is requested but the
+    Returns {"headline_net_pct", "headline_contract_pct"}; both NaN when `ontario_newbuild_guideline_applies` is requested but the
     segment table has no Ontario-guideline contract growth for every segment.
     """
-    contract = segments["g_contract_met_alt"] if met_guideline_applies else segments["g_contract"]
+    contract = segments["g_contract_alt"] if ontario_newbuild_guideline_applies else segments["g_contract"]
     if contract.isna().any():
         return {"headline_net_pct": np.nan, "headline_contract_pct": np.nan}
     cap = cfg["incentives"]["max_discount_share"]
@@ -57,17 +57,17 @@ def evaluate_scenario(segments: pd.DataFrame, cfg: dict, incentive_shift_pp: flo
 def scenario_table(result: ForecastResult, cfg: dict) -> pd.DataFrame:
     """Return headline under each scenario lever (forecast.yaml scenarios).
 
-    Rows: `central` (no shift, Met exempt); one row per lever moved alone (`incentives_deeper` / `incentives_shallower`,
-    `more_renewals` / `fewer_renewals`, `met_guideline_applies`); and `low` / `high`, the lowest and highest net headline
+    Rows: `central` (no shift, new-build exempt); one row per lever moved alone (`incentives_deeper` / `incentives_shallower`,
+    `more_renewals` / `fewer_renewals`, `ontario_newbuild_guideline_applies`); and `low` / `high`, the lowest and highest net headline
     over every combination of the levers. `delta_net_pp` is relative to central. Expects an E2_regulated result
-    (its segments carry `g_contract_met_alt`); on any other result the Ontario new-build rows are NaN and left out of low/high.
+    (its segments carry `g_contract_alt`); on any other result the new-build rows are NaN and left out of low/high.
     """
     settings = cfg["scenarios"]
     incentive, renewal = settings["incentive_intensity_shift_pp"], settings["renewal_share_shift_pp"]
-    met_values = list(settings["met_guideline_applies"])
+    newbuild_values = list(settings["ontario_newbuild_guideline_applies"])
     segments = result.segments
-    if "g_contract_met_alt" not in segments.columns:
-        segments = segments.assign(g_contract_met_alt=np.nan)
+    if "g_contract_alt" not in segments.columns:
+        segments = segments.assign(g_contract_alt=np.nan)
 
     def run(i, r, m):
         return evaluate_scenario(segments, cfg, i, r, m)
@@ -76,13 +76,13 @@ def scenario_table(result: ForecastResult, cfg: dict) -> pd.DataFrame:
     named = {CENTRAL: (0.0, 0.0, False), "incentives_deeper": (incentive, 0.0, False),
              "incentives_shallower": (-incentive, 0.0, False), "more_renewals": (0.0, renewal, False),
              "fewer_renewals": (0.0, -renewal, False)}
-    if any(met_values):
-        named["met_guideline_applies"] = (0.0, 0.0, True)
-    rows = [{"scenario": name, "incentive_shift_pp": i, "renewal_share_shift_pp": r, "met_guideline_applies": m,
+    if any(newbuild_values):
+        named["ontario_newbuild_guideline_applies"] = (0.0, 0.0, True)
+    rows = [{"scenario": name, "incentive_shift_pp": i, "renewal_share_shift_pp": r, "ontario_newbuild_guideline_applies": m,
              **run(i, r, m)} for name, (i, r, m) in named.items()]
 
-    combos = [{"incentive_shift_pp": i, "renewal_share_shift_pp": r, "met_guideline_applies": m, **run(i, r, m)}
-              for i, r, m in itertools.product((-incentive, 0.0, incentive), (-renewal, 0.0, renewal), met_values)]
+    combos = [{"incentive_shift_pp": i, "renewal_share_shift_pp": r, "ontario_newbuild_guideline_applies": m, **run(i, r, m)}
+              for i, r, m in itertools.product((-incentive, 0.0, incentive), (-renewal, 0.0, renewal), newbuild_values)]
     valid = [combo for combo in combos if not np.isnan(combo["headline_net_pct"])]
     for label, pick in (("low", min), ("high", max)):
         best = pick(valid, key=lambda combo: combo["headline_net_pct"])
@@ -199,7 +199,7 @@ def sensitivity_table(tables, external: pd.DataFrame, cfg: dict, champion: str |
     The champion model (chosen once under the base configuration and held fixed) is rerun with each data or rule choice
     changed alone: public-data information rule (agreed vs strict), pair gap bounds (including 6-month leases and two
     alternative upper bounds), winsorization quantiles, and the weight window moved by plus and minus a step.
-    E2_regulated is rerun for the regulatory levers (Met exempt vs guideline applies, incentive intensity, renewal mix,
+    E2_regulated is rerun for the regulatory levers (new-build exempt vs guideline applies, incentive intensity, renewal mix,
     which are the scenario levers) and for the information rule, because it is the model that reads the TAL rate.
     Model choice compares every model in `sensitivity.model_choices` with the champion. Each row's `delta_pp` is
     relative to the base run of the SAME model (champion base or E2 central; model-choice rows: relative to the champion),
@@ -260,7 +260,7 @@ def sensitivity_table(tables, external: pd.DataFrame, cfg: dict, champion: str |
         e2_base = float(scenarios.loc[CENTRAL, "headline_net_pct"])
     except ValueError as problem:
         e2_base, scenarios, e2_note = np.nan, None, str(problem)
-    lever_rows = [("met_applicability", "met_guideline_applies", "guideline_applies", "met_guideline_applies"),
+    lever_rows = [("newbuild_applicability", "ontario_newbuild_guideline_applies", "guideline_applies", "ontario_newbuild_guideline_applies"),
                   ("incentive_intensity", "incentives_deeper", cfg["scenarios"]["incentive_intensity_shift_pp"], "incentives_deeper"),
                   ("incentive_intensity", "incentives_shallower", -cfg["scenarios"]["incentive_intensity_shift_pp"], "incentives_shallower"),
                   ("renewal_mix", "more_renewals", cfg["scenarios"]["renewal_share_shift_pp"], "more_renewals"),

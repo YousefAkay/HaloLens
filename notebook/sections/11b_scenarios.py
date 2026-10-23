@@ -60,11 +60,11 @@ pairs_all = build_pairs(tables.leases, cfg)
 renewal_share = pairs_all[pairs_all["eligible"]].groupby("year")["is_renewal"].mean()
 renewal_swing_pp = 100 * renewal_share.diff().abs().dropna()
 
-met_entries = [entry for entry in cfg["regulation"]["buildings"] if entry.get("scenario") == EXEMPTION_SCENARIO]
-met_names = [entry["building"] for entry in met_entries]
+newbuild_entries = [entry for entry in cfg["regulation"]["buildings"] if entry.get("scenario") == EXEMPTION_SCENARIO]
+newbuild_names = [entry["building"] for entry in newbuild_entries]
 matrix = applicability_matrix(cfg, tables.leases)
-met_first_years = matrix.loc[matrix["building"].isin(met_names), "first_lease_year"].dropna()
-met_first_year = f"**{int(met_first_years.min())}**" if len(met_first_years) else "non disponible dans ces données"
+newbuild_first_years = matrix.loc[matrix["building"].isin(newbuild_names), "first_lease_year"].dropna()
+newbuild_first_year = f"**{int(newbuild_first_years.min())}**" if len(newbuild_first_years) else "non disponible dans ces données"
 exemption_date = french_date(cfg["regulation"]["ontario_post_2018_exemption_cutoff"])
 
 display(Markdown(
@@ -76,7 +76,7 @@ display(Markdown(
     + " (baux connus à la coupure du CRM).\n"
     f"- **Renouvellements** : la part des renouvellements parmi les paires admissibles varie en moyenne de "
     f"**{renewal_swing_pp.mean():.1f} pp** par an (maximum **{renewal_swing_pp.max():.1f} pp**).\n"
-    f"- **{', '.join(met_names)}** : premier bail de l'extrait : {met_first_year} ; exemption plausible pour les "
+    f"- **{', '.join(newbuild_names)}** : premier bail de l'extrait : {newbuild_first_year} ; exemption plausible pour les "
     f"premières occupations résidentielles postérieures au **{exemption_date}** (scénario central), ligne directrice "
     f"ontarienne appliquée (scénario alternatif)."))
 
@@ -92,21 +92,21 @@ e2_result = forecast_regulated(snapshot_2026, cfg)
 scenarios = scenario_table(e2_result, cfg)
 labels = {"central": "central", "incentives_deeper": "concessions plus profondes",
           "incentives_shallower": "concessions plus légères", "more_renewals": "plus de renouvellements",
-          "fewer_renewals": "moins de renouvellements", "met_guideline_applies": "ligne directrice au projet ontarien neuf",
+          "fewer_renewals": "moins de renouvellements", "ontario_newbuild_guideline_applies": "ligne directrice au projet ontarien neuf",
           "low": "bas (minimum)", "high": "haut (maximum)"}
 display(scenarios.assign(scenario=scenarios["scenario"].map(labels)).rename(columns={
     "scenario": "scénario", "incentive_shift_pp": "concessions (pp)", "renewal_share_shift_pp": "renouvellements (pp)",
-    "met_guideline_applies": "ligne directrice au projet ontarien neuf", "headline_net_pct": "net %",
+    "ontario_newbuild_guideline_applies": "ligne directrice au projet ontarien neuf", "headline_net_pct": "net %",
     "headline_contract_pct": "contractuel %", "delta_net_pp": "écart au central (pp)"}).round(2))
 by_name = scenarios.set_index("scenario")
-single_levers = ["incentives_deeper", "incentives_shallower", "more_renewals", "fewer_renewals", "met_guideline_applies"]
+single_levers = ["incentives_deeper", "incentives_shallower", "more_renewals", "fewer_renewals", "ontario_newbuild_guideline_applies"]
 effects = by_name.loc[single_levers, "delta_net_pp"].dropna().abs()
 strongest = effects.idxmax()
 display(Markdown(
     f"Scénario central E2 : **{by_name.loc['central', 'headline_net_pct']:.2f} %** net "
     f"({by_name.loc['central', 'headline_contract_pct']:.2f} % contractuel). Scénario bas : "
     f"**{by_name.loc['low', 'headline_net_pct']:.2f} %** ; scénario haut : **{by_name.loc['high', 'headline_net_pct']:.2f} %**. "
-    f"Si la ligne directrice ontarienne s'applique au projet ontarien neuf : **{by_name.loc['met_guideline_applies', 'delta_net_pp']:+.2f} pp** "
+    f"Si la ligne directrice ontarienne s'applique au projet ontarien neuf : **{by_name.loc['ontario_newbuild_guideline_applies', 'delta_net_pp']:+.2f} pp** "
     f"sur la hausse nette. Le levier qui déplace le plus la hausse nette est « {labels[strongest]} » "
     f"(**{by_name.loc[strongest, 'delta_net_pp']:+.2f} pp**) ; les concessions plus profondes ou plus légères donnent "
     f"**{by_name.loc['incentives_deeper', 'delta_net_pp']:+.2f} pp** et **{by_name.loc['incentives_shallower', 'delta_net_pp']:+.2f} pp**."))
@@ -130,7 +130,7 @@ else:
 
 # %%
 fig, axis = plt.subplots(figsize=(7, 3.6))
-order = ["low", "incentives_deeper", "more_renewals", "met_guideline_applies", "central", "fewer_renewals",
+order = ["low", "incentives_deeper", "more_renewals", "ontario_newbuild_guideline_applies", "central", "fewer_renewals",
          "incentives_shallower", "high"]
 shown = by_name.loc[[name for name in order if name in by_name.index]]["headline_net_pct"].dropna()
 colors = [COLOR_NET if name == "central" else COLOR_NAIVE for name in shown.index]
@@ -170,7 +170,7 @@ sensitivities = sensitivity_table(tables, external, cfg, champion=champion)
 assumption_fr = {
     "information_rule": "Règle d'information (données publiques)", "gap_bounds": "Bornes de l'écart entre baux",
     "winsorization": "Winsorisation", "weight_window": "Fenêtre des poids",
-    "met_applicability": "Ligne directrice au projet ontarien neuf", "incentive_intensity": "Intensité des concessions",
+    "newbuild_applicability": "Ligne directrice au projet ontarien neuf", "incentive_intensity": "Intensité des concessions",
     "renewal_mix": "Part des renouvellements", "model_choice": "Choix du modèle"}
 
 
@@ -181,7 +181,7 @@ def variant_fr(row):
         "include_six_month_leases": (f"baux courts inclus (borne basse {setting} {'ans' if float(setting) >= 2 else 'an'})"
                                      if row["variant"] == "include_six_month_leases" else ""),
         "max_gap": f"écart maximal {setting} ans", "quantiles": f"quantiles {setting}",
-        "years": f"{setting} ans", "met_guideline_applies": "ligne directrice applicable",
+        "years": f"{setting} ans", "ontario_newbuild_guideline_applies": "ligne directrice applicable",
         "incentives_deeper": f"concessions plus profondes ({float(setting):+.1f} pp)" if row["variant"] == "incentives_deeper" else "",
         "incentives_shallower": f"concessions plus légères ({float(setting):+.1f} pp)" if row["variant"] == "incentives_shallower" else "",
         "more_renewals": f"plus de renouvellements ({float(setting):+.1f} pp)" if row["variant"] == "more_renewals" else "",
