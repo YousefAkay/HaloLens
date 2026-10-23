@@ -73,8 +73,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from IPython.display import Markdown, display
 
-from leaselens.config import data_dir, load_config
-from leaselens.contracts import SOURCE_FILES
+from leaselens.config import data_dir, load_config, source_files
 from leaselens.io import canonicalize, column_mapping, load_raw, run_qa
 
 warnings.filterwarnings("ignore", category=FutureWarning)
@@ -82,7 +81,8 @@ pd.set_option("display.width", 160)
 
 cfg = load_config()
 FOLDER = Path(DATA_DIR or os.environ.get("LEASELENS_DATA_DIR") or data_dir(cfg))
-EXPECTED_FILES = [*SOURCE_FILES.values(), "manifest.json"]
+SOURCE_FILE_NAMES = source_files(cfg)  # défauts de contracts.SOURCE_FILES, ou config/local.yaml (data.source_files)
+EXPECTED_FILES = [*SOURCE_FILE_NAMES.values(), "manifest.json"]
 missing_files = [name for name in EXPECTED_FILES if not (FOLDER / name).is_file()]
 if missing_files:
     _stop(f"Fichiers introuvables dans « {FOLDER} » : {', '.join(missing_files)}. Attendus : "
@@ -90,7 +90,7 @@ if missing_files:
           f"Files not found in « {FOLDER} »: {', '.join(missing_files)}. Expected: {', '.join(EXPECTED_FILES)}. "
           "Set DATA_DIR (top of this cell) or the LEASELENS_DATA_DIR variable.")
 try:
-    raw = load_raw(FOLDER)           # vérifie les empreintes SHA-256 du manifeste avant de lire
+    raw = load_raw(FOLDER, source_files=SOURCE_FILE_NAMES)           # vérifie les empreintes SHA-256 du manifeste avant de lire
 except ValueError as error:
     _stop(f"Contrôle des empreintes SHA-256 échoué : {error}. Vérifiez que les fichiers correspondent au manifeste.",
           f"SHA-256 check failed: {error}. Check that the files match manifest.json.")

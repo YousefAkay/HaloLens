@@ -1,7 +1,8 @@
 """Configuration loading. Owner: INT.
 
 Merges config/core.yaml, config/measure.yaml and config/forecast.yaml into one dict.
-Each top-level key must live in exactly one file; duplicates raise an error.
+Each top-level key must live in exactly one file; duplicates raise an error. An optional, gitignored
+config/local.yaml is merged last and may override any key (for example `data.source_files`).
 """
 
 from __future__ import annotations
@@ -12,7 +13,10 @@ from pathlib import Path
 import pandas as pd
 import yaml
 
+from leaselens.contracts import SOURCE_FILES
+
 CONFIG_FILES = ("core.yaml", "measure.yaml", "forecast.yaml")
+LOCAL_CONFIG_FILE = "local.yaml"  # optional per-machine overrides; gitignored, never committed
 MODE_ENV_VAR = "LEASELENS_DATA_MODE"  # set by scripts/build_notebook.py so the notebook runs in the same mode
 
 
@@ -37,12 +41,30 @@ def load_config(root: Path | None = None, mode: str | None = None) -> dict:
         if duplicates:
             raise ValueError(f"Config keys defined in more than one file: {sorted(duplicates)} ({name})")
         merged.update(part)
+    local_path = root / "config" / LOCAL_CONFIG_FILE
+    if local_path.is_file():
+        with open(local_path, encoding="utf-8") as handle:
+            _deep_update(merged, yaml.safe_load(handle) or {})
     if mode is not None:
         if mode not in ("synthetic", "real"):
             raise ValueError("mode must be 'synthetic' or 'real'")
         merged["data"]["mode"] = mode
     merged["_root"] = str(root)
     return merged
+
+
+def _deep_update(base: dict, override: dict) -> None:
+    """Merge `override` into `base` in place; nested dicts are merged key by key, anything else is replaced."""
+    for key, value in override.items():
+        if isinstance(value, dict) and isinstance(base.get(key), dict):
+            _deep_update(base[key], value)
+        else:
+            base[key] = value
+
+
+def source_files(cfg: dict) -> dict[str, str]:
+    """Logical table name -> file name: the defaults of `contracts.SOURCE_FILES`, overridden by `data.source_files`."""
+    return {**SOURCE_FILES, **(cfg.get("data", {}).get("source_files") or {})}
 
 
 def data_dir(cfg: dict) -> Path:
@@ -67,7 +89,7 @@ def cutoff_for(year: int, cfg: dict) -> pd.Timestamp:
 def external_cutoff_for(year: int, cfg: dict) -> pd.Timestamp:
     """Information date for external (public) data used for target `year`: January 31 of `year` by default.
 
-    Public data released on or before this day may be used (mentor-approved 2026-10-03). The CRM cutoff from
+    Public data released on or before this day may be used (see docs/methodology.md). The CRM cutoff from
     `cutoff_for` is unchanged; the Dec-31 version is kept as a sensitivity via `external_cutoff_strict_sensitivity`.
     """
     return pd.Timestamp(f"{year}-{cfg['forecast_years']['external_cutoff_month_day']}")

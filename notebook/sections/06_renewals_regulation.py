@@ -39,7 +39,7 @@ from leaselens.measure.pairs import build_pairs
 from leaselens.measure.renewals import split_summary
 
 LEASE_TYPE_FR = {"renewal": "renouvellement", "turnover": "relocation"}
-MET_SCENARIO_ROW = "met_guideline_applies"
+NEWBUILD_SCENARIO_ROW = "ontario_newbuild_guideline_applies"
 target_year = cfg["forecast_years"]["target_year"]
 strict_label = f"{french_month_day(cfg['forecast_years']['cutoff_month_day'])} de l'année précédente"
 info_label = f"{french_month_day(cfg['forecast_years']['external_cutoff_month_day'])} de l'année visée"
@@ -184,21 +184,21 @@ display(matrix.assign(lease_type=matrix["lease_type"].map(LEASE_TYPE_FR))[
 # %%
 evidence_settings = cfg["regulation"]["exemption_evidence"]
 evidence_years = list(cfg["forecast_years"]["backtest_years"])
-met_entries = [entry for entry in cfg["regulation"]["buildings"] if entry.get("scenario") == EXEMPTION_SCENARIO]
-met_buildings = [entry["building"] for entry in met_entries]
-met_name = ", ".join(met_buildings) or "le projet ontarien neuf"
-met_evidence = exemption_evidence(pairs, references, cfg, evidence_years)
-met_first_year = matrix.loc[matrix["building"].isin(met_buildings), "first_lease_year"].dropna()
-display(met_evidence.rename(columns={
+newbuild_entries = [entry for entry in cfg["regulation"]["buildings"] if entry.get("scenario") == EXEMPTION_SCENARIO]
+newbuild_buildings = [entry["building"] for entry in newbuild_entries]
+newbuild_name = ", ".join(newbuild_buildings) or "le projet ontarien neuf"
+newbuild_evidence = exemption_evidence(pairs, references, cfg, evidence_years)
+newbuild_first_year = matrix.loc[matrix["building"].isin(newbuild_buildings), "first_lease_year"].dropna()
+display(newbuild_evidence.rename(columns={
     "year": "année", "n_renewals": "renouvellements admissibles", "n_above_reference": "au-dessus de la ligne directrice",
     "share_above_reference": "part au-dessus", "reference_pct": "ligne directrice (%)"}).round(2))
 
 share_text = ", ".join(
     f"{int(row.year)} : {row.n_above_reference}/{row.n_renewals} ({row.share_above_reference:.0%})" if row.n_renewals
-    else f"{int(row.year)} : aucun renouvellement admissible" for row in met_evidence.itertuples())
-first_text = f"{int(met_first_year.min())}" if len(met_first_year) else "non observée (données synthétiques)"
+    else f"{int(row.year)} : aucun renouvellement admissible" for row in newbuild_evidence.itertuples())
+first_text = f"{int(newbuild_first_year.min())}" if len(newbuild_first_year) else "non observée (données synthétiques)"
 occupancy_fact = (
-    f"{met_name} ({evidence_settings['building_address']}), projet locatif de {evidence_settings['building_units']} "
+    f"{newbuild_name} ({evidence_settings['building_address']}), projet locatif de {evidence_settings['building_units']} "
     f"logements, a commencé à être occupée en {french_month_year(evidence_settings['occupancy_start_month'])} "
     f"({evidence_settings['occupancy_source_label']}, {french_date(evidence_settings['occupancy_source_date'])}), "
     f"soit après le {exemption_cutoff}.")
@@ -223,21 +223,21 @@ display(Markdown(
 # pas l'occupation du portefeuille.
 
 # %%
-met_snapshot = make_snapshot(tables, external, cutoff_for(target_year, cfg), external_cutoff_for(target_year, cfg))
-met_result = forecast_regulated(met_snapshot, cfg)
-met_scenarios = scenario_table(met_result, cfg).set_index("scenario")
-met_provinces = {entry["province"] for entry in met_entries}
-met_segments = met_result.segments
-met_renewal_weight = float(met_segments.loc[met_segments["province"].isin(met_provinces)
-                                            & met_segments["is_renewal"].astype(bool), "weight"].sum())
-if MET_SCENARIO_ROW in met_scenarios.index and pd.notna(met_scenarios.loc[MET_SCENARIO_ROW, "headline_net_pct"]):
-    central_pct = met_scenarios.loc[CENTRAL, "headline_net_pct"]
-    alternative_pct = met_scenarios.loc[MET_SCENARIO_ROW, "headline_net_pct"]
-    delta_pp = met_scenarios.loc[MET_SCENARIO_ROW, "delta_net_pp"]
+newbuild_snapshot = make_snapshot(tables, external, cutoff_for(target_year, cfg), external_cutoff_for(target_year, cfg))
+newbuild_result = forecast_regulated(newbuild_snapshot, cfg)
+newbuild_scenarios = scenario_table(newbuild_result, cfg).set_index("scenario")
+newbuild_provinces = {entry["province"] for entry in newbuild_entries}
+newbuild_segments = newbuild_result.segments
+newbuild_renewal_weight = float(newbuild_segments.loc[newbuild_segments["province"].isin(newbuild_provinces)
+                                            & newbuild_segments["is_renewal"].astype(bool), "weight"].sum())
+if NEWBUILD_SCENARIO_ROW in newbuild_scenarios.index and pd.notna(newbuild_scenarios.loc[NEWBUILD_SCENARIO_ROW, "headline_net_pct"]):
+    central_pct = newbuild_scenarios.loc[CENTRAL, "headline_net_pct"]
+    alternative_pct = newbuild_scenarios.loc[NEWBUILD_SCENARIO_ROW, "headline_net_pct"]
+    delta_pp = newbuild_scenarios.loc[NEWBUILD_SCENARIO_ROW, "delta_net_pp"]
     display(Markdown(
         f"Appliquer la ligne directrice aux renouvellements du projet ontarien neuf change la hausse {target_year} (loyer net de "
         f"toutes les concessions) de **{delta_pp:+.2f} point** ({central_pct:.2f} % → {alternative_pct:.2f} %), car "
-        f"ces renouvellements ne pèsent que **{met_renewal_weight:.1%}** des poids fixes."))
+        f"ces renouvellements ne pèsent que **{newbuild_renewal_weight:.1%}** des poids fixes."))
 else:
     display(Markdown("Le scénario « ligne directrice appliquée au projet ontarien neuf » ne peut pas être calculé avec ces données."))
 

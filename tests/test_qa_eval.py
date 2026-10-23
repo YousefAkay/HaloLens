@@ -156,7 +156,7 @@ def test_the_token_limit_is_raised_and_sent(doc):
 
 
 def test_fallback_texts_pass_the_guard(doc):
-    row = narrative.scenario_row(doc, "zero", "zero", narrative.SELECTION_MET[0], "jan31")
+    row = narrative.scenario_row(doc, "zero", "zero", narrative.SELECTION_NEWBUILD[0], "jan31")
     base = narrative.baseline_row(doc, "jan31")
     for lang in ("fr", "en"):
         assert ungrounded_numbers(narrative.fallback_scenario_text(row, base, lang), doc) == []

@@ -66,7 +66,7 @@ regulation:
     ontario_post_2018_exemption:
       central: "Exemption post-15 novembre 2018 plausible : la ligne directrice ne plafonne pas les renouvellements."
       alternative: "La ligne directrice s'applique aux renouvellements."
-      central_reference: false    # matches forecast.yaml scenarios.met_guideline_applies[0] (central = exempt)
+      central_reference: false    # matches forecast.yaml scenarios.ontario_newbuild_guideline_applies[0] (central = exempt)
       alternative_reference: true
   quebec_method_change_date: "2025-12-17"  # TAL announced the new rent-adjustment method ("pourcentage de base") on this date
   post_cutoff_note: "Québec : le pourcentage du TAL pour {target_year} (publié le {tal_release}) est connu à la date d'information du {info_date} et sert donc d'intrant à la prévision {target_year}. Il est calculé avec la nouvelle méthode annoncée le {method_change} (« pourcentage de base ») : il ne se compare pas directement aux « estimations moyennes » des années antérieures. Avec la coupure stricte du {strict_cutoff} (sensibilité), il {strict_known}."  # placeholders filled in section 06 from config and sources.csv

@@ -84,7 +84,7 @@ def test_missing_required_field_is_rejected(example):
 
 def test_schema_version_is_pinned(example):
     tampered = copy.deepcopy(example)
-    tampered["schema_version"] = 2
+    tampered["schema_version"] = 3
     assert list(_validator().iter_errors(tampered))
 
 

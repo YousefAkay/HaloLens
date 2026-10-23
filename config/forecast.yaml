@@ -39,7 +39,7 @@ anchors:
   tal_metric: tal_renewal_reference_pct   # `metric` in sources.csv for the Québec TAL reference percentage of a lease year
   tal_geography: QC                       # geography code of the TAL rows (and the province whose renewals E2 anchors)
   ontario_metric: ontario_guideline_pct   # `metric` for the Ontario rent increase guideline
-  ontario_geography: "ON"                 # geography code of the guideline rows (and the province of the alternative Met scenario); quoted because bare ON parses as a YAML boolean
+  ontario_geography: "ON"                 # geography code of the guideline rows (and the province of the alternative new-build scenario); quoted because bare ON parses as a YAML boolean
   gap_window_years: 3                     # training years before the target used to learn gap = actual renewal log growth - log(1 + rate)
   min_pairs_per_gap_year: 5               # a province-year with fewer eligible renewal pairs is skipped when learning the gap
   tal_method_change_year: 2026            # first lease year under the new TAL method; gap learned on older years is flagged, not adjusted
@@ -67,8 +67,8 @@ leakage_test:
   future_row_count: 5             # number of fake future leases appended per test
 
 scenarios:
-  # Low / central / high levers. Sizes come from the real history (counts and means only), justified in docs/assumptions/FCT.md.
+  # Low / central / high levers. Sizes are round, illustrative stress sizes, not estimates; calibrate them to your own history.
   incentive_intensity_shift_pp: 2.0       # +/- shift of every segment's forecast discount share d1; a round illustrative stress size, to be calibrated to your own history
   renewal_share_shift_pp: 5.0             # +/- shift of the renewal share of the frozen weights; a round illustrative stress size, to be calibrated to your own history
-  met_guideline_applies: [false, true]    # central: post-2018 exemption plausible; alternative: Ontario guideline applies to the Ontario new-build property's renewals
+  ontario_newbuild_guideline_applies: [false, true]    # central: post-2018 exemption plausible; alternative: Ontario guideline applies to the Ontario new-build property's renewals
   include_post_cutoff_quebec_method: false  # unused: the Jan 19 2026 TAL percentage is inside the Jan-31 window, so the new method is already the base case

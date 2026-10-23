@@ -215,7 +215,7 @@ def empty_external() -> pd.DataFrame:
 
 
 def tables_from_leases(leases: pd.DataFrame, asking: pd.DataFrame) -> CanonicalTables:
-    """CanonicalTables from the two tables the sponsor signatures receive; concessions and listings are left empty.
+    """CanonicalTables from the two tables the notebook-facing signatures receive; concessions and listings are left empty.
 
     No model uses them: the incentive engine works from the lease rows (contract vs net rent) and listings are never
     used for historical folds.

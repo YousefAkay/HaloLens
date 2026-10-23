@@ -144,11 +144,11 @@ class BacktestResult:
 # Percentages are in percent units (3.2 means 3.2%). null means "not computable", never a placeholder.
 # Every object is closed (additionalProperties false): no unit-level list, identifier or extra field can appear.
 # ---------------------------------------------------------------------------
-AGGREGATES_SCHEMA_VERSION = 1
+AGGREGATES_SCHEMA_VERSION = 2
 INFORMATION_RULES = ("jan31", "dec31_strict")  # jan31: public data by January 31 of the target year; dec31_strict: sensitivity
 MODES = ("synthetic", "real")
 LEVER_LABELS = ("minus", "zero", "plus", "none")  # scenario lever settings: minus or plus one step, zero, or not a lever
-MET_LABELS = ("exempt", "guideline", "none")  # Met central (exempt) or alternative (guideline applies), or not a lever
+NEWBUILD_LABELS = ("exempt", "guideline", "none")  # new-build central (exempt) or alternative (guideline applies), or not a lever
 
 _NUMBER = {"type": ["number", "null"]}
 _COUNT = {"type": "integer", "minimum": 0}
@@ -248,12 +248,12 @@ AGGREGATES_SCHEMA = {
             "type": "array",
             "items": {
                 "type": "object", "additionalProperties": False,
-                "required": ["model", "information_rule", "incentive_shift", "renewal_shift", "met_regime",
+                "required": ["model", "information_rule", "incentive_shift", "renewal_shift", "newbuild_regime",
                              "headline_net_pct", "headline_contract_pct"],
                 "properties": {
                     "model": _TEXT, "information_rule": {"enum": list(INFORMATION_RULES)},
                     "incentive_shift": {"enum": list(LEVER_LABELS)}, "renewal_shift": {"enum": list(LEVER_LABELS)},
-                    "met_regime": {"enum": list(MET_LABELS)},
+                    "newbuild_regime": {"enum": list(NEWBUILD_LABELS)},
                     "headline_net_pct": _NUMBER, "headline_contract_pct": _NUMBER,
                 },
             },

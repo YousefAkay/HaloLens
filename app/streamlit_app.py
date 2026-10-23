@@ -40,8 +40,8 @@ VIEW_PARAMETER = "view"  # ?view=<tab key> opens that tab (used for the screensh
 MODE_DEMO, MODE_REAL = "Demo (synthetic)", "Real (outputs/private)"
 MODE_OF = {MODE_DEMO: "synthetic", MODE_REAL: "real"}  # the document's own mode must match the selected one
 LEVER_CHOICES = ("minus", "zero", "plus")
-MET_CHOICES = ("exempt", "guideline")
-LEVER_DEFAULTS = {"lever_incentive": "zero", "lever_renewal": "zero", "lever_met": "exempt", "lever_rule": "jan31"}
+NEWBUILD_CHOICES = ("exempt", "guideline")
+LEVER_DEFAULTS = {"lever_incentive": "zero", "lever_renewal": "zero", "lever_newbuild": "exempt", "lever_rule": "jan31"}
 NO_KEY_REASONS = ("cache_synthetic_only", "cache_missing", "cache_rejected")
 NO_KEY_MESSAGES = {reason: t(f"no_key_{reason}", "en") for reason in NO_KEY_REASONS}
 HIDDEN_ANSWER_REASONS = {"cache_synthetic_only", "cache_rejected"}  # a cached text is never shown for these
@@ -224,9 +224,9 @@ def _understood(row: dict[str, Any] | None, lang: str) -> None:
         return
     items = []
     for field, label_key, prefix in (("incentive_shift", "lab_incentive", "opt_incentive_"),
-                                     ("renewal_shift", "lab_renewal", "opt_renewal_"), ("met_regime", "lab_met", "opt_met_")):
+                                     ("renewal_shift", "lab_renewal", "opt_renewal_"), ("newbuild_regime", "lab_newbuild", "opt_newbuild_")):
         value = row.get(field)
-        if value in LEVER_CHOICES + MET_CHOICES:
+        if value in LEVER_CHOICES + NEWBUILD_CHOICES:
             items.append(f"{t(label_key, lang)}: {t(prefix + value, lang)}")
     if items:
         _html(f'<div class="ll-small">{ui.esc(t("lab_understood", lang))}</div>' + ui.chips_html(items))
@@ -264,13 +264,13 @@ def _lab(doc: dict[str, Any], lang: str) -> None:
                            lambda value: t(f"opt_incentive_{value}", lang), lang)
         renewal = _lever("lever_renewal", t("lab_renewal", lang), LEVER_CHOICES,
                          lambda value: t(f"opt_renewal_{value}", lang), lang)
-        met = _lever("lever_met", t("lab_met", lang), MET_CHOICES, lambda value: t(f"opt_met_{value}", lang), lang)
+        newbuild = _lever("lever_newbuild", t("lab_newbuild", lang), NEWBUILD_CHOICES, lambda value: t(f"opt_newbuild_{value}", lang), lang)
         rule = _lever("lever_rule", t("lab_rule", lang), list(narrative.INFORMATION_RULES),
                       lambda value: rule_labels.get(value, value), lang)
         st.button(t("lab_reset", lang), key="reset_lab", on_click=_reset_levers)
-    row = narrative.scenario_row(doc, incentive, renewal, met, rule)
+    row = narrative.scenario_row(doc, incentive, renewal, newbuild, rule)
     base = narrative.baseline_row(doc, rule)
-    selection = {"incentive": incentive, "renewal": renewal, "met": met, "rule": rule}
+    selection = {"incentive": incentive, "renewal": renewal, "newbuild": newbuild, "rule": rule}
     with result:
         numbers = None if row is None or base is None else (
             row["headline_net_pct"], row["headline_contract_pct"], base["headline_net_pct"])

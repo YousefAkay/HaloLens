@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "mode": "synthetic",
   "target_year": 2026,
   "as_of": {
@@ -549,7 +549,7 @@
       "information_rule": "jan31",
       "incentive_shift": "none",
       "renewal_shift": "none",
-      "met_regime": "none",
+      "newbuild_regime": "none",
       "headline_net_pct": 4.856032690252625,
       "headline_contract_pct": 5.663026413306089
     },
@@ -558,7 +558,7 @@
       "information_rule": "jan31",
       "incentive_shift": "minus",
       "renewal_shift": "minus",
-      "met_regime": "exempt",
+      "newbuild_regime": "exempt",
       "headline_net_pct": 5.70634650120062,
       "headline_contract_pct": 3.7896182227423374
     },
@@ -567,7 +567,7 @@
       "information_rule": "jan31",
       "incentive_shift": "minus",
       "renewal_shift": "minus",
-      "met_regime": "guideline",
+      "newbuild_regime": "guideline",
       "headline_net_pct": 5.41265587146202,
       "headline_contract_pct": 3.5012529604369194
     },
@@ -576,7 +576,7 @@
       "information_rule": "jan31",
       "incentive_shift": "minus",
       "renewal_shift": "zero",
-      "met_regime": "exempt",
+      "newbuild_regime": "exempt",
       "headline_net_pct": 5.70932002683381,
       "headline_contract_pct": 3.629099276682984
     },
@@ -585,7 +585,7 @@
       "information_rule": "jan31",
       "incentive_shift": "minus",
       "renewal_shift": "zero",
-      "met_regime": "guideline",
+      "newbuild_regime": "guideline",
       "headline_net_pct": 5.393239304593643,
       "headline_contract_pct": 3.319238608426324
     },
@@ -594,7 +594,7 @@
       "information_rule": "jan31",
       "incentive_shift": "minus",
       "renewal_shift": "plus",
-      "met_regime": "exempt",
+      "newbuild_regime": "exempt",
       "headline_net_pct": 5.712293636112449,
       "headline_contract_pct": 3.4688285860126107
     },
@@ -603,7 +603,7 @@
       "information_rule": "jan31",
       "incentive_shift": "minus",
       "renewal_shift": "plus",
-      "met_regime": "guideline",
+      "newbuild_regime": "guideline",
       "headline_net_pct": 5.373826314175039,
       "headline_contract_pct": 3.1375443416648454
     },
@@ -612,7 +612,7 @@
       "information_rule": "jan31",
       "incentive_shift": "zero",
       "renewal_shift": "minus",
-      "met_regime": "exempt",
+      "newbuild_regime": "exempt",
       "headline_net_pct": 3.5289330621177637,
       "headline_contract_pct": 3.7896182227423374
     },
@@ -621,7 +621,7 @@
       "information_rule": "jan31",
       "incentive_shift": "zero",
       "renewal_shift": "minus",
-      "met_regime": "guideline",
+      "newbuild_regime": "guideline",
       "headline_net_pct": 3.2412920778857215,
       "headline_contract_pct": 3.5012529604369194
     },
@@ -630,7 +630,7 @@
       "information_rule": "jan31",
       "incentive_shift": "zero",
       "renewal_shift": "zero",
-      "met_regime": "exempt",
+      "newbuild_regime": "exempt",
       "headline_net_pct": 3.535312762390413,
       "headline_contract_pct": 3.629099276682984
     },
@@ -639,7 +639,7 @@
       "information_rule": "jan31",
       "incentive_shift": "zero",
       "renewal_shift": "zero",
-      "met_regime": "guideline",
+      "newbuild_regime": "guideline",
       "headline_net_pct": 3.2257325245552764,
       "headline_contract_pct": 3.319238608426324
     },
@@ -648,7 +648,7 @@
       "information_rule": "jan31",
       "incentive_shift": "zero",
       "renewal_shift": "plus",
-      "met_regime": "exempt",
+      "newbuild_regime": "exempt",
       "headline_net_pct": 3.5416928557954397,
       "headline_contract_pct": 3.4688285860126107
     },
@@ -657,7 +657,7 @@
       "information_rule": "jan31",
       "incentive_shift": "zero",
       "renewal_shift": "plus",
-      "met_regime": "guideline",
+      "newbuild_regime": "guideline",
       "headline_net_pct": 3.210175316213885,
       "headline_contract_pct": 3.1375443416648454
     },
@@ -666,7 +666,7 @@
       "information_rule": "jan31",
       "incentive_shift": "plus",
       "renewal_shift": "minus",
-      "met_regime": "exempt",
+      "newbuild_regime": "exempt",
       "headline_net_pct": 1.3514995268011938,
       "headline_contract_pct": 3.7896182227423374
     },
@@ -675,7 +675,7 @@
       "information_rule": "jan31",
       "incentive_shift": "plus",
       "renewal_shift": "minus",
-      "met_regime": "guideline",
+      "newbuild_regime": "guideline",
       "headline_net_pct": 1.0699082439103451,
       "headline_contract_pct": 3.5012529604369194
     },
@@ -684,7 +684,7 @@
       "information_rule": "jan31",
       "incentive_shift": "plus",
       "renewal_shift": "zero",
-      "met_regime": "exempt",
+      "newbuild_regime": "exempt",
       "headline_net_pct": 1.3612858395863083,
       "headline_contract_pct": 3.629099276682984
     },
@@ -693,7 +693,7 @@
       "information_rule": "jan31",
       "incentive_shift": "plus",
       "renewal_shift": "zero",
-      "met_regime": "guideline",
+      "newbuild_regime": "guideline",
       "headline_net_pct": 1.058206144936531,
       "headline_contract_pct": 3.319238608426324
     },
@@ -702,7 +702,7 @@
       "information_rule": "jan31",
       "incentive_shift": "plus",
       "renewal_shift": "plus",
-      "met_regime": "exempt",
+      "newbuild_regime": "exempt",
       "headline_net_pct": 1.3710730973196317,
       "headline_contract_pct": 3.4688285860126107
     },
@@ -711,7 +711,7 @@
       "information_rule": "jan31",
       "incentive_shift": "plus",
       "renewal_shift": "plus",
-      "met_regime": "guideline",
+      "newbuild_regime": "guideline",
       "headline_net_pct": 1.0465054008577872,
       "headline_contract_pct": 3.1375443416648454
     },
@@ -720,7 +720,7 @@
       "information_rule": "dec31_strict",
       "incentive_shift": "none",
       "renewal_shift": "none",
-      "met_regime": "none",
+      "newbuild_regime": "none",
       "headline_net_pct": 4.856032690252625,
       "headline_contract_pct": 5.663026413306089
     },
@@ -729,7 +729,7 @@
       "information_rule": "dec31_strict",
       "incentive_shift": "minus",
       "renewal_shift": "minus",
-      "met_regime": "exempt",
+      "newbuild_regime": "exempt",
       "headline_net_pct": 7.23555787524116,
       "headline_contract_pct": 5.291101056526022
     },
@@ -738,7 +738,7 @@
       "information_rule": "dec31_strict",
       "incentive_shift": "minus",
       "renewal_shift": "minus",
-      "met_regime": "guideline",
+      "newbuild_regime": "guideline",
       "headline_net_pct": 6.9376185408002335,
       "headline_contract_pct": 4.998564129475853
     },
@@ -747,7 +747,7 @@
       "information_rule": "dec31_strict",
       "incentive_shift": "minus",
       "renewal_shift": "zero",
-      "met_regime": "exempt",
+      "newbuild_regime": "exempt",
       "headline_net_pct": 7.356193190460138,
       "headline_contract_pct": 5.243564136793854
     },
@@ -756,7 +756,7 @@
       "information_rule": "dec31_strict",
       "incentive_shift": "minus",
       "renewal_shift": "zero",
-      "met_regime": "guideline",
+      "newbuild_regime": "guideline",
       "headline_net_pct": 7.035188163921497,
       "headline_contract_pct": 4.928876068087682
     },
@@ -765,7 +765,7 @@
       "information_rule": "dec31_strict",
       "incentive_shift": "minus",
       "renewal_shift": "plus",
-      "met_regime": "exempt",
+      "newbuild_regime": "exempt",
       "headline_net_pct": 7.476964215135625,
       "headline_contract_pct": 5.196048679072388
     },
@@ -774,7 +774,7 @@
       "information_rule": "dec31_strict",
       "incentive_shift": "minus",
       "renewal_shift": "plus",
-      "met_regime": "guideline",
+      "newbuild_regime": "guideline",
       "headline_net_pct": 7.132846809329639,
       "headline_contract_pct": 4.859234259007248
     },
@@ -783,7 +783,7 @@
       "information_rule": "dec31_strict",
       "incentive_shift": "zero",
       "renewal_shift": "minus",
-      "met_regime": "exempt",
+      "newbuild_regime": "exempt",
       "headline_net_pct": 5.026644668100419,
       "headline_contract_pct": 5.291101056526022
     },
@@ -792,7 +792,7 @@
       "information_rule": "dec31_strict",
       "incentive_shift": "zero",
       "renewal_shift": "minus",
-      "met_regime": "guideline",
+      "newbuild_regime": "guideline",
       "headline_net_pct": 4.734842496964401,
       "headline_contract_pct": 4.998564129475853
     },
@@ -801,7 +801,7 @@
       "information_rule": "dec31_strict",
       "incentive_shift": "zero",
       "renewal_shift": "zero",
-      "met_regime": "exempt",
+      "newbuild_regime": "exempt",
       "headline_net_pct": 5.148316497848706,
       "headline_contract_pct": 5.243564136793854
     },
@@ -810,7 +810,7 @@
       "information_rule": "dec31_strict",
       "incentive_shift": "zero",
       "renewal_shift": "zero",
-      "met_regime": "guideline",
+      "newbuild_regime": "guideline",
       "headline_net_pct": 4.833913228462988,
       "headline_contract_pct": 4.928876068087682
     },
@@ -819,7 +819,7 @@
       "information_rule": "dec31_strict",
       "incentive_shift": "zero",
       "renewal_shift": "plus",
-      "met_regime": "exempt",
+      "newbuild_regime": "exempt",
       "headline_net_pct": 5.270129282629891,
       "headline_contract_pct": 5.196048679072388
     },
@@ -828,7 +828,7 @@
       "information_rule": "dec31_strict",
       "incentive_shift": "zero",
       "renewal_shift": "plus",
-      "met_regime": "guideline",
+      "newbuild_regime": "guideline",
       "headline_net_pct": 4.933077672899942,
       "headline_contract_pct": 4.859234259007248
     },
@@ -837,7 +837,7 @@
       "information_rule": "dec31_strict",
       "incentive_shift": "plus",
       "renewal_shift": "minus",
-      "met_regime": "exempt",
+      "newbuild_regime": "exempt",
       "headline_net_pct": 2.8177110740018003,
       "headline_contract_pct": 5.291101056526022
     },
@@ -846,7 +846,7 @@
       "information_rule": "dec31_strict",
       "incentive_shift": "plus",
       "renewal_shift": "minus",
-      "met_regime": "guideline",
+      "newbuild_regime": "guideline",
       "headline_net_pct": 2.5320461228130644,
       "headline_contract_pct": 4.998564129475853
     },
@@ -855,7 +855,7 @@
       "information_rule": "dec31_strict",
       "incentive_shift": "plus",
       "renewal_shift": "zero",
-      "met_regime": "exempt",
+      "newbuild_regime": "exempt",
       "headline_net_pct": 2.940419840613821,
       "headline_contract_pct": 5.243564136793854
     },
@@ -864,7 +864,7 @@
       "information_rule": "dec31_strict",
       "incentive_shift": "plus",
       "renewal_shift": "zero",
-      "met_regime": "guideline",
+      "newbuild_regime": "guideline",
       "headline_net_pct": 2.6326183880771135,
       "headline_contract_pct": 4.928876068087682
     },
@@ -873,7 +873,7 @@
       "information_rule": "dec31_strict",
       "incentive_shift": "plus",
       "renewal_shift": "plus",
-      "met_regime": "exempt",
+      "newbuild_regime": "exempt",
       "headline_net_pct": 3.0632750551602124,
       "headline_contract_pct": 5.196048679072388
     },
@@ -882,7 +882,7 @@
       "information_rule": "dec31_strict",
       "incentive_shift": "plus",
       "renewal_shift": "plus",
-      "met_regime": "guideline",
+      "newbuild_regime": "guideline",
       "headline_net_pct": 2.733289303284499,
       "headline_contract_pct": 4.859234259007248
     }
@@ -1004,8 +1004,8 @@
       "note": ""
     },
     {
-      "assumption": "met_applicability",
-      "variant": "met_guideline_applies",
+      "assumption": "newbuild_applicability",
+      "variant": "ontario_newbuild_guideline_applies",
       "setting": "guideline_applies",
       "model": "E2_regulated",
       "headline_net_pct": 3.2257325245552764,

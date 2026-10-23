@@ -258,7 +258,7 @@ def test_french_and_english_labels_have_identical_keys_and_placeholders():
 def test_every_label_is_used_somewhere():
     sources = "\n".join(path.read_text(encoding="utf-8") for path in (repo_root() / "app").rglob("*.py")
                         if path.name != "labels.py")
-    built_from_a_prefix = ("why_step_", "why_title_", "why_body_", "opt_incentive_", "opt_renewal_", "opt_met_", "province_",
+    built_from_a_prefix = ("why_step_", "why_title_", "why_body_", "opt_incentive_", "opt_renewal_", "opt_newbuild_", "province_",
                            "as_", "va_", "no_key_", "val_headline_")                   # keys assembled with an f-string
     unused = [key for key in LABELS["en"]
               if not key.startswith(built_from_a_prefix + ("tab_",)) and f'"{key}"' not in sources and f"'{key}'" not in sources]
@@ -320,7 +320,7 @@ def test_the_sidebar_holds_the_controls_and_the_notes(monkeypatch, lang):
     for key in ("trust_privacy", "trust_ai", "trust_guard", "trust_tools", "trust_font"):
         assert t(key, lang) in notes
     assert not at.main.radio                                                       # no data or language control in the main area
-    assert [group.key for group in at.main.button_group] == ["lever_incentive", "lever_renewal", "lever_met", "lever_rule"]
+    assert [group.key for group in at.main.button_group] == ["lever_incentive", "lever_renewal", "lever_newbuild", "lever_rule"]
 
 
 def test_the_masthead_title_and_badge_sit_above_the_tabs(monkeypatch):
@@ -440,8 +440,8 @@ def test_the_building_empty_state_keeps_the_info_message(monkeypatch, tmp_path):
 # ---------------------------------------------------------------------------
 # Scenario Lab
 # ---------------------------------------------------------------------------
-def grid_net(incentive, renewal, met, rule="jan31"):
-    row = narrative.scenario_row(SYNTHETIC, incentive, renewal, met, rule)
+def grid_net(incentive, renewal, newbuild, rule="jan31"):
+    row = narrative.scenario_row(SYNTHETIC, incentive, renewal, newbuild, rule)
     return f"{row['headline_net_pct']:.1f} %"
 
 
@@ -449,7 +449,7 @@ def test_the_lever_options_and_labels_follow_the_design(monkeypatch):
     at = new_app(monkeypatch).run()
     assert at.segmented_control(key="lever_incentive").options == ["Shallower", "Baseline", "Deeper"]
     assert at.segmented_control(key="lever_renewal").options == ["Fewer", "Baseline", "More"]
-    assert at.segmented_control(key="lever_met").options == ["Exempt", "Guideline"]
+    assert at.segmented_control(key="lever_newbuild").options == ["Exempt", "Guideline"]
     rule_labels = at.segmented_control(key="lever_rule").options
     assert rule_labels == [ui.format_date(SYNTHETIC["as_of"]["external_cutoff"], "en"),
                            t("opt_rule_strict", "en", day=ui.format_day_month(SYNTHETIC["as_of"]["external_strict_cutoff"], "en"))]
@@ -459,7 +459,7 @@ def test_the_scenario_number_comes_only_from_the_precomputed_grid(monkeypatch):
     at = new_app(monkeypatch).run()
     assert number_in(at, "ll-scn-num") == grid_net("zero", "zero", "exempt")
     at.segmented_control(key="lever_incentive").set_value("plus").run()
-    at.segmented_control(key="lever_met").set_value("guideline").run()
+    at.segmented_control(key="lever_newbuild").set_value("guideline").run()
     assert not at.exception
     assert number_in(at, "ll-scn-num") == grid_net("plus", "zero", "guideline")
     assert number_in(at, "ll-base-num") == f"{narrative.baseline_row(SYNTHETIC, 'jan31')['headline_net_pct']:.1f} %"
@@ -482,7 +482,7 @@ def test_a_changed_lever_gets_the_magenta_word_and_reset_clears_it(monkeypatch):
     assert changed_markers(at) == 2
     at.button(key="reset_lab").click().run()
     assert not at.exception and changed_markers(at) == 0
-    assert [at.segmented_control(key=key).value for key in ("lever_incentive", "lever_renewal", "lever_met", "lever_rule")] \
+    assert [at.segmented_control(key=key).value for key in ("lever_incentive", "lever_renewal", "lever_newbuild", "lever_rule")] \
         == ["zero", "zero", "exempt", "jan31"]
     assert number_in(at, "ll-scn-num") == grid_net("zero", "zero", "exempt")
 
@@ -650,7 +650,7 @@ def test_the_copilot_text_is_shown_as_returned_and_the_scenario_it_chose_appears
     assert not at.exception
     assert "COPILOT TEXT" in text_of(at) and t("lab_understood", "en") in text_of(at)
     chips = " ".join(element.value for element in at.markdown if 'class="ll-chip"' in element.value)
-    for expected in (t("opt_incentive_plus", "en"), t("opt_met_guideline", "en")):
+    for expected in (t("opt_incentive_plus", "en"), t("opt_newbuild_guideline", "en")):
         assert expected in chips
 
 
@@ -673,10 +673,10 @@ def test_the_lever_selection_is_passed_to_the_copilot_when_it_accepts_one(monkey
 
     at = lab_app(monkeypatch, copilot=copilot)
     at.segmented_control(key="lever_incentive").set_value("plus").run()
-    at.segmented_control(key="lever_met").set_value("guideline").run()
+    at.segmented_control(key="lever_newbuild").set_value("guideline").run()
     at.text_input(key="copilot_question").input("q").run()
     at.button(key="copilot_go").click().run()
-    assert seen["selection"] == {"incentive": "plus", "renewal": "zero", "met": "guideline", "rule": "jan31"}
+    assert seen["selection"] == {"incentive": "plus", "renewal": "zero", "newbuild": "guideline", "rule": "jan31"}
 
 
 def test_the_copilot_still_works_without_a_selection_parameter(monkeypatch):
@@ -775,7 +775,7 @@ def test_the_lab_never_words_or_subtracts_null_figures(monkeypatch, tmp_path):
 def test_a_single_null_grid_row_gives_the_no_row_message_and_the_rest_still_works(monkeypatch, tmp_path):
     document = copy.deepcopy(SYNTHETIC)
     for row in document["scenario_grid"]:
-        if (row["incentive_shift"], row["renewal_shift"], row["met_regime"], row["information_rule"]) == ("plus", "zero", "exempt", "jan31"):
+        if (row["incentive_shift"], row["renewal_shift"], row["newbuild_regime"], row["information_rule"]) == ("plus", "zero", "exempt", "jan31"):
             row.update(headline_net_pct=None, headline_contract_pct=None)
     at = serve(monkeypatch, tmp_path, document).run()
     assert number_in(at, "ll-scn-num") == grid_net("zero", "zero", "exempt")

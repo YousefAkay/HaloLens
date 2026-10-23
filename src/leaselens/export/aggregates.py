@@ -168,7 +168,7 @@ def build_aggregates(tables: CanonicalTables, external: pd.DataFrame, cfg: dict)
 
 
 SHIFT_SIGNS = {"minus": -1, "zero": 0, "plus": 1}  # one step down, no change, one step up (scenarios in config)
-MET_FLAGS = {"exempt": False, "guideline": True}  # central Met scenario is exempt; alternative applies the guideline
+NEWBUILD_FLAGS = {"exempt": False, "guideline": True}  # central new-build scenario is exempt; alternative applies the guideline
 STRICT_BY_RULE = {RULE_JAN31: False, RULE_DEC31: True}  # Jan-31 rule, or the Dec-31 sensitivity
 
 
@@ -188,18 +188,18 @@ def _scenario_grid(tables: CanonicalTables, external: pd.DataFrame, cfg: dict, b
         snapshot = snapshot_for_year(tables, external, target, cfg, strict=strict)
         base = forecaster(snapshot, cfg)
         rows.append({"model": champion, "information_rule": rule, "incentive_shift": "none",
-                     "renewal_shift": "none", "met_regime": "none",
+                     "renewal_shift": "none", "newbuild_regime": "none",
                      "headline_net_pct": _clean(base.headline_net_pct),
                      "headline_contract_pct": _clean(base.headline_contract_pct)})
         segments = forecast_regulated(snapshot, cfg).segments
         for incentive_label, incentive_sign in SHIFT_SIGNS.items():
             for renewal_label, renewal_sign in SHIFT_SIGNS.items():
-                for met_label, met_flag in MET_FLAGS.items():
+                for newbuild_label, newbuild_flag in NEWBUILD_FLAGS.items():
                     headline = evaluate_scenario(segments, cfg, incentive_sign * incentive_step,
-                                                 renewal_sign * renewal_step, met_flag)
+                                                 renewal_sign * renewal_step, newbuild_flag)
                     rows.append({"model": REGULATED_MODEL_NAME, "information_rule": rule,
                                  "incentive_shift": incentive_label, "renewal_shift": renewal_label,
-                                 "met_regime": met_label,
+                                 "newbuild_regime": newbuild_label,
                                  "headline_net_pct": _clean(headline["headline_net_pct"]),
                                  "headline_contract_pct": _clean(headline["headline_contract_pct"])})
     return rows
