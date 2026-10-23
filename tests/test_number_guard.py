@@ -77,3 +77,17 @@ def test_check_grounded_raises_with_offending_numbers():
     with pytest.raises(UngroundedNumberError, match="7,2") as error:
         check_grounded("Hausse de 7,2 % en 2026.", AGGREGATES)
     assert error.value.numbers == ["7,2", "2026"]
+
+
+# --- section citations and long floats (Q-01) ---------------------------------------------------------------------
+def test_section_citations_are_not_numbers():
+    assert ungrounded_numbers("Voir §07, §11a et § 10.", {}) == []
+
+
+def test_a_real_ungrounded_number_next_to_a_citation_is_still_rejected():
+    assert ungrounded_numbers("Voir §07 : 12,5 % de hausse.", {}) == ["12,5"]
+
+
+def test_numbers_with_too_many_decimals_are_rejected_even_if_present():
+    assert ungrounded_numbers("3.535312230641093", {"x": 3.535312230641093}) != []
+    assert ungrounded_numbers("3.54", {"x": 3.535312230641093}) == []
