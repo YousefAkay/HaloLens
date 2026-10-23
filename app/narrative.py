@@ -1,6 +1,4 @@
-"""Scenario copilot, privacy wall and shared helpers for the Q&A over the aggregates (I-12). Answers: app/qa_answers.py.
-
-Owner: INT.
+"""Scenario copilot, privacy wall and shared helpers for the Q&A over the aggregates. Answers: app/qa_answers.py.
 
 Privacy wall: the Claude API only ever receives (1) the aggregates document, which has no unit-level field by schema,
 (2) committed decision and assumption notes with their real-data numbers removed, and (3) the user's question. Never CRM

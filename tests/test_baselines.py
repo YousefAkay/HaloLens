@@ -1,4 +1,4 @@
-"""Tests for the headline helpers and baselines B0-B2 (forecast.baselines). Owner: FCT.
+"""Tests for the headline helpers and baselines B0-B2 (forecast.baselines).
 
 Hand-made leases with exact yearly growth (2020 is the high year, 2022 the low one, so the training winsor bounds
 span every later year and clipping does not bite): four units (two QC, two ON) renewed every January 1 from 2019 to 2025,

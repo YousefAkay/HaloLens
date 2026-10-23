@@ -1,6 +1,6 @@
 """Naive vs fixed-mix same-unit growth and the contractual→net bridge.
 
-Owner: MSR. Implements `rent_bridge` (AGENTS.md Section 7.3) and `mix_by_year` for notebook section 03.
+Implements `rent_bridge` (AGENTS.md Section 7.3) and `mix_by_year` for notebook section 03.
 
 For each calendar year y the bridge decomposes, on the annual log scale (so the parts add exactly):
 

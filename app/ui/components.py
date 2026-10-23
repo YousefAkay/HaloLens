@@ -1,6 +1,6 @@
 """Pure HTML components and the data preparation behind them (hero, range bars, validation, tornado, buildings, answers).
 
-Owner: FCT (redesign I-11c, from the design hand-off). Every function returns a string or a small structure and reads only the
+Every function returns a string or a small structure and reads only the
 aggregates document passed in: no file, no network, no computation of an authoritative figure. Every dynamic string is escaped
 with `html.escape`; a null value is shown as "n/a" and its marker is left out. Bars are percent-positioned divs on a scale that
 starts at the design's fixed range and widens when a value would fall outside it, so nothing is clipped.

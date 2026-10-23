@@ -1,8 +1,8 @@
 """Time-respecting backtests on 2023-2025.
 
-Owner: FCT. Implements AGENTS.md Section 7.3. Every fold forecasts as of December 31 of the year before the target
+Implements AGENTS.md Section 7.3. Every fold forecasts as of December 31 of the year before the target
 through `snapshot_for_year` (CRM cut at Dec 31, public data at Jan 31 of the target year), then compares with the actual of that year under the same headline definition.
-`run_backtest` uses `forecast.combine.forecast` (F-05); `backtest_baselines` runs B0-B2 through the same machinery.
+`run_backtest` uses `forecast.combine.forecast`; `backtest_baselines` runs B0-B2 through the same machinery.
 """
 
 from __future__ import annotations
@@ -153,8 +153,8 @@ def backtest_both_rules(tables: CanonicalTables, external: pd.DataFrame, cfg: di
 def summarize_models(table: pd.DataFrame, cfg: dict) -> pd.DataFrame:
     """Per model: mean absolute net error (pp) over the selection years, over the holdout year and over all years.
 
-    Selection and holdout years come from core.yaml (forecast_years). The champion is chosen on the selection years only
-    (F-07); the holdout column is for the final comparison. Columns: model, mae_selection_pp, mae_holdout_pp,
+    Selection and holdout years come from core.yaml (forecast_years). The champion is chosen on the selection years only;
+    the holdout column is for the final comparison. Columns: model, mae_selection_pp, mae_holdout_pp,
     mae_all_pp, n_folds_run (folds that produced a forecast). A `rule` column is added and the summary is computed
     per rule when the table holds both information-date rules.
     """

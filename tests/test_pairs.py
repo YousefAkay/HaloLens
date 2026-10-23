@@ -1,6 +1,6 @@
-"""Tests for same-unit lease matching (measure.pairs.build_pairs). Owner: MSR.
+"""Tests for same-unit lease matching (measure.pairs.build_pairs).
 
-Written in M-01 before the implementation; the xfail markers were removed in M-02.
+Written before the implementation.
 
 Fixtures: hand-made leases (exact arithmetic) and the committed synthetic data. Never CRM data.
 """
@@ -201,7 +201,7 @@ def test_input_is_not_modified(tables, cfg):
 
 
 # ---------------------------------------------------------------------------
-# Audit details and gap sensitivity (M-02)
+# Audit details and gap sensitivity
 # ---------------------------------------------------------------------------
 def test_pair_failing_two_rules_lists_both_reasons(cfg):
     short = pd.Timestamp("2023-01-01") + pd.Timedelta(days=cfg["pairs"]["min_gap_years"] * DAYS_PER_YEAR / 2)

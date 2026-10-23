@@ -1,4 +1,4 @@
-"""Each model forced as champion: the export validates and the section 00 and 10 code paths do not raise. Owner: INT.
+"""Each model forced as champion: the export validates and the section 00 and 10 code paths do not raise.
 
 Synthetic fixtures only. `select_champion` is patched to name the forced model while keeping the real ranking, so the
 paths that read the ranking (section 00) and the champion forecast (sections 00 and 10) run exactly as in the notebook.

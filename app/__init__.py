@@ -1,1 +1,1 @@
-"""Streamlit app, LLM narrative and number guard for Halo Lens. Owner: INT."""
+"""Streamlit app, LLM narrative and number guard for Halo Lens."""

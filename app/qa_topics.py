@@ -1,6 +1,5 @@
 """Question router for the Questions tab: one topic per question, French and English, no API needed.
 
-Owner: INT. Task Q-02.
 
 `route` is deterministic: it strips accents, lower-cases the question and scores keyword patterns per topic.
 Forbidden subjects (occupancy, vacancy, absorption, rent roll) always win. A question with no keyword at all is

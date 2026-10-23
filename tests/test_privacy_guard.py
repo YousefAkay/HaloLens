@@ -1,4 +1,4 @@
-"""Fails if anything confidential is tracked by git. Owner: INT."""
+"""Fails if anything confidential is tracked by git."""
 
 import subprocess
 from pathlib import Path

@@ -1,7 +1,6 @@
-"""Leakage tests for the as-of snapshot and the forecast. Owner: FCT.
+"""Leakage tests for the as-of snapshot and the forecast.
 
-Written in F-01 before the implementation; the `make_snapshot` tests became hard tests in F-02 and the `forecast`
-test in F-05.
+Written before the implementation; the `make_snapshot` and `forecast` tests are hard tests.
 
 Policy under test: AGENTS.md Section 9.3. Cutoff for year y is December 31 of y-1; training uses leases with BOTH
 sign_date and lease_start on/before the cutoff; asking months and concession date_from on/before the cutoff;
@@ -141,7 +140,7 @@ def test_cutoff_is_december_31_of_previous_year(cfg):
 
 
 # ---------------------------------------------------------------------------
-# make_snapshot (F-02)
+# make_snapshot
 # ---------------------------------------------------------------------------
 def test_snapshot_keeps_only_leases_signed_and_started_by_the_cutoff(tables, external, cutoff):
     snapshot = make_snapshot(tables, external, cutoff)
@@ -198,7 +197,7 @@ def test_appending_future_rows_leaves_the_snapshot_identical(tables, external, c
 
 
 # ---------------------------------------------------------------------------
-# forecast (F-05)
+# forecast
 # ---------------------------------------------------------------------------
 def test_appending_future_rows_leaves_the_forecast_identical(tables, external, cutoff, cfg):
     """Same forecast whether or not post-cutoff rows exist in the source tables."""

@@ -1,6 +1,6 @@
 """Point-in-time snapshots: the single anti-leakage chokepoint.
 
-Owner: FCT. Implements `make_snapshot` (AGENTS.md Section 7.3). Every forecast and backtest reads its data
+Implements `make_snapshot` (AGENTS.md Section 7.3). Every forecast and backtest reads its data
 through this function, so the time policy of Section 9.3 lives in one place.
 """
 

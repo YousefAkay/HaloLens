@@ -1,4 +1,4 @@
-"""I-11d: the Questions tab wording. The refusal never cites repository files, and the chips follow the page language."""
+"""The Questions tab wording. The refusal never cites repository files, and the chips follow the page language."""
 from app import narrative, streamlit_app
 
 

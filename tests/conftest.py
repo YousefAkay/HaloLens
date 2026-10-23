@@ -1,4 +1,4 @@
-"""Shared pytest fixtures. Owner: INT.
+"""Shared pytest fixtures.
 
 All fixtures use the committed synthetic data (data/synthetic). Tests never read CRM files.
 Regenerate fixtures with: python scripts/make_synthetic.py

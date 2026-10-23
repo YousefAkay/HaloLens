@@ -1,4 +1,4 @@
-"""Loading, hash verification, data dictionary and QA. Owner: INT."""
+"""Loading, hash verification, data dictionary and QA."""
 
 from halolens.io.dictionary import canonicalize, column_mapping
 from halolens.io.load import load_raw

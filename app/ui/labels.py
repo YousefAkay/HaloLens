@@ -1,6 +1,6 @@
 """Labels of the Streamlit app in English and French, with identical keys.
 
-Owner: FCT (redesign I-11c, on top of I-11b). Text only: no number or date is typed here; every figure and date shown is
+Text only: no number or date is typed here; every figure and date shown is
 passed in as a placeholder from the aggregates JSON.
 """
 

@@ -1,7 +1,5 @@
 """Assemble notebook/sections/*.py (jupytext percent) into one notebook and execute it on a clean kernel.
 
-Owner: INT. Task I-05.
-
 Usage (run from anywhere; paths resolve from the repository root):
     python scripts/build_notebook.py               # data mode from config/core.yaml (synthetic by default)
     python scripts/build_notebook.py --synthetic   # committed fixtures in data/synthetic

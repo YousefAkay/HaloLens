@@ -1,6 +1,6 @@
 """Renewal vs turnover summaries by year and province.
 
-Owner: MSR. Implements `split_summary` (AGENTS.md Section 7.3) for notebook section 06.
+Implements `split_summary` (AGENTS.md Section 7.3) for notebook section 06.
 
 Renewals (`is_renewal` true, source `sRenewal`) and turnovers (a new tenant) follow different rules in each province
 (see `market.regulation`), so their growth is always shown separately and never pooled across provinces.

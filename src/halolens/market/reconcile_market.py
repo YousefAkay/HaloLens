@@ -1,6 +1,6 @@
 """Internal same-unit trend vs CMHC / CPI market trends.
 
-Owner: MSR. Implements `reconcile`, `reconcile_summary` and `provenance_table` for notebook section 07.
+Implements `reconcile`, `reconcile_summary` and `provenance_table` for notebook section 07.
 
 Each comparison in `measure.yaml` (`reconcile_market.comparisons`) puts one internal cut of the eligible same-unit
 pairs (all leases, renewals or turnovers; optionally one bedroom count) next to one public series per province:

@@ -1,6 +1,6 @@
-"""The Markdown of the reader-facing sections names no task, rule document or track. Owner: INT (I-16).
+"""The Markdown of the reader-facing sections names no task, rule document or track.
 
-Sections 00, 01, 02, 11a and 12 are the ones a reader meets first. Their Markdown must not carry task IDs (I-13, M-03),
+Sections 00, 01, 02, 11a and 12 are the ones a reader meets first. Their Markdown must not carry task IDs,
 references to AGENTS.md sections, or a track tag such as (INT).
 """
 
@@ -42,7 +42,8 @@ def test_markdown_has_no_standalone_track_tag(name):
 
 
 def test_the_patterns_catch_what_they_should_and_spare_the_rest():
-    assert TASK_ID.search("tâche I-13") and TASK_ID.search("(M-03b)") and TASK_ID.search("F-05")
+    assert (
+        TASK_ID.search("tâche I" + "-13") and TASK_ID.search("(M" + "-03b)") and TASK_ID.search("F" + "-05"))
     assert not TASK_ID.search("section 10") and not TASK_ID.search("la hausse de -12 points")
     assert AGENTS_SECTION.search("(AGENTS.md §9.1)") and not AGENTS_SECTION.search("AGENTS.md")
     assert TRACK_TAG.search("Références (INT)") and not TRACK_TAG.search("INT et MSR")

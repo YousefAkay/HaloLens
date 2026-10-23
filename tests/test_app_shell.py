@@ -1,4 +1,4 @@
-"""Tests for app/streamlit_app.py (I-11a). Owner: INT.
+"""Tests for app/streamlit_app.py.
 
 The app runs headlessly through Streamlit's AppTest on the synthetic aggregates file. No browser, no network.
 """
@@ -99,7 +99,7 @@ def test_no_key_qa_view_answers_from_the_aggregates_in_both_modes(monkeypatch, m
 
 
 def test_masthead_and_page_title_show_halo_lens(app):
-    """I-16: the display name is Halo Lens in the masthead (both languages) and in the browser page title."""
+    """The display name is Halo Lens in the masthead (both languages) and in the browser page title."""
     from app.ui import labels
 
     page = html.unescape(" ".join(element.value for element in app.markdown))

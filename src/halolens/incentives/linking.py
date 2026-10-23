@@ -1,6 +1,6 @@
 """Concession→lease candidate generation and assignment.
 
-Owner: FCT. Implements `link_concessions` (AGENTS.md Section 7.3).
+Implements `link_concessions` (AGENTS.md Section 7.3).
 
 The concessions table carries a unit but no lease identifier, so each concession is assigned to a lease of the same unit:
 1. Candidates: leases of the same `unit_id`, signed on or before the concession's `date_from`, and not ended before it.

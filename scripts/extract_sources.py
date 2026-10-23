@@ -1,6 +1,6 @@
-"""Extract public market data into data/public/sources_draft.csv for human verification. Task M-03.
+"""Extract public market data into data/public/sources_draft.csv for human verification.
 
-Owner: MSR. Only PUBLIC data is fetched or sent anywhere; no CRM data is read by this script.
+Only PUBLIC data is fetched or sent anywhere; no CRM data is read by this script.
 
 Usage (from the repo root):
     python scripts/extract_sources.py statcan   # StatCan rent CPI (QC, ON) via the WDS API, no LLM
@@ -16,7 +16,7 @@ then runs `promote`. Analysis code only ever reads sources.csv.
 The LLM step needs ANTHROPIC_API_KEY (in .env). Without it, cached answers in data/public/extraction_cache/
 are reused, and pages with no cached answer are skipped with a message.
 
-Watcher (task M-11): `--watch` re-pulls StatCan and re-reads every configured page live (never from the cache,
+Watcher: `--watch` re-pulls StatCan and re-reads every configured page live (never from the cache,
 which would only repeat what is already known), keeps the observations whose period is not yet in sources.csv
 and writes them to data/public/sources_watch.csv (same columns as sources.csv, `verified_by` empty, notes
 prefixed with `[watch: <status>]`). It prints the series released after the external cutoff of the target year

@@ -1,6 +1,6 @@
 """Newsprint theme: design tokens and the CSS injected at the top of every page.
 
-Owner: FCT (redesign I-11c, from the design hand-off). Paper ground, near-black serif, cyan for what can be touched, magenta
+Paper ground, near-black serif, cyan for what can be touched, magenta
 only for "changed" markers and the AI section. No boxes and no divider rules: hierarchy comes from type scale and whitespace.
 The tokens below are the single source: .streamlit/config.toml repeats the five theme colours and a test keeps them equal.
 """

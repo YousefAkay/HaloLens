@@ -1,4 +1,4 @@
-"""Export the aggregates JSON from the pipeline. Owner: INT. Task I-09.
+"""Export the aggregates JSON from the pipeline.
 
 Usage:
     python scripts/export_aggregates.py --synthetic   # committed fixtures -> outputs/public/aggregates_synthetic.json

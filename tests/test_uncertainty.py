@@ -1,4 +1,4 @@
-"""Tests for the unit-cluster bootstrap (evaluate.uncertainty). Owner: FCT.
+"""Tests for the unit-cluster bootstrap (evaluate.uncertainty).
 
 Fixtures: the committed synthetic data and hand-made leases with known growth. No CRM data.
 """

@@ -116,7 +116,7 @@ display(Markdown(
 # données publiques (B2, B3, E2) diffèrent d'un panneau à l'autre.
 
 # %%
-MODEL_PALETTE = ("#0072B2", "#E69F00", "#009E73", "#CC79A7", "#56B4E9", "#D55E00")  # Okabe-Ito, un modèle par couleur (REQUEST-FCT-03 : à déplacer dans contracts.py)
+MODEL_PALETTE = ("#0072B2", "#E69F00", "#009E73", "#CC79A7", "#56B4E9", "#D55E00")  # Okabe-Ito, un modèle par couleur
 rules_shown = [rule for rule in ("jan31", "dec31_strict") if (backtest_all["rule"] == rule).any()]
 fig, axes = plt.subplots(1, len(rules_shown), figsize=(5.5 * len(rules_shown), 3.8), sharey=True, squeeze=False)
 model_names = list(dict.fromkeys(backtest_all["model"]))

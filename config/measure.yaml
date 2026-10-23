@@ -137,7 +137,7 @@ external:
     max_page_characters: 400000   # refuse (not truncate) pages longer than this; split the source instead
   pages:                          # public pages read by the LLM; human verifies every extracted row
                                   # CMHC: only the latest report page is read by the LLM; 2021-2024 report values were
-                                  # added manually from CMHC's rmr workbooks with their own release dates (M-03b)
+                                  # added manually from CMHC's rmr workbooks with their own release dates
     - source_id: ontario_guideline
       publisher: Government of Ontario
       url: https://www.ontario.ca/page/rent-increase-guideline

@@ -1,6 +1,6 @@
 """Low / central / high scenarios and per building x beds forecasts.
 
-Owner: FCT. Implements `scenario_table` (AGENTS.md Section 7.3) and `building_beds_forecast` (F-07).
+Implements `scenario_table` (AGENTS.md Section 7.3) and `building_beds_forecast`.
 
 Scenarios are computed from the segment table of an E2_regulated forecast, so they are exact re-aggregations of the same
 segment forecasts, not new models. Levers (forecast.yaml `scenarios`): incentive intensity (shift of every segment's
@@ -174,7 +174,7 @@ def headline_by_province(result: ForecastResult, province_of: pd.Series) -> pd.D
 
 
 # ---------------------------------------------------------------------------
-# Sensitivity of the headline to one assumption at a time (tornado chart, F-10)
+# Sensitivity of the headline to one assumption at a time (tornado chart)
 # ---------------------------------------------------------------------------
 SENSITIVITY_COLUMNS = ["assumption", "variant", "setting", "model", "headline_net_pct", "base_net_pct", "delta_pp",
                        "abs_delta_pp", "note"]

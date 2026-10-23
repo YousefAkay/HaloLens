@@ -1,4 +1,4 @@
-"""Tests for the composition / rent bridge (measure.composition). Owner: MSR.
+"""Tests for the composition / rent bridge (measure.composition).
 
 Fixtures: hand-made leases (exact arithmetic) and the committed synthetic data. Never CRM data.
 """

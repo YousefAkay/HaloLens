@@ -2,7 +2,7 @@
 
 baselines:
   trailing_window_years: 3        # B1: trailing mean window, years before the cutoff
-  market_anchor_series: rent_cpi  # B2: `metric` value in sources.csv used as the market anchor (placeholder until MSR's M-03 fixes the names)
+  market_anchor_series: rent_cpi  # B2: `metric` value in sources.csv used as the market anchor (placeholder until the series names are fixed)
   market_gap_window_years: 3      # B2: years before the cutoff used to learn the internal-minus-market gap
 
 incentives:
@@ -28,11 +28,11 @@ combine:
   history_window_years: 3         # years before the cutoff of segment pair history used by the history component
   min_pairs_history: 5            # a segment-window with fewer pairs uses its province x renewal-flag pool, then the portfolio x renewal-flag pool
   renewal_history_weight: 0.5     # renewals: segment's own recent contractual growth
-  renewal_nowcast_weight: 0.5     # renewals: portfolio-wide level from the monthly nowcast (F-04)
+  renewal_nowcast_weight: 0.5     # renewals: portfolio-wide level from the monthly nowcast
   turnover_history_weight: 0.3    # turnovers: segment's own recent contractual growth
   turnover_signal_weight: 0.4     # turnovers: asking-rent signal from MSR (leading indicator, highest weight)
   turnover_nowcast_weight: 0.3    # turnovers: portfolio-wide level from the monthly nowcast
-  shrinkage_strength: 20          # pseudo-pairs pulling thin building x beds cells toward their building mean (F-07)
+  shrinkage_strength: 20          # pseudo-pairs pulling thin building x beds cells toward their building mean
 
 anchors:
   # Regulatory anchors for renewals (E2_regulated) and the B3_tal_anchor baseline. Rates come from the snapshot's external rows (Jan-31 rule).

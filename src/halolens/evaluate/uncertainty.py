@@ -1,6 +1,6 @@
 """Unit-cluster bootstrap: resample whole unit histories and recompute the headline.
 
-Owner: FCT. Implements `unit_bootstrap` (AGENTS.md Section 7.3, task F-11).
+Implements `unit_bootstrap` (AGENTS.md Section 7.3).
 
 Each draw resamples UNITS with replacement (every lease, concession and asking row of a drawn unit travels with it), so the
 within-unit dependence of consecutive leases is kept. A unit drawn twice becomes two distinct units (suffix "~0", "~1"),

@@ -1,4 +1,4 @@
-"""Data dictionary v2: evidence-based renaming of source columns. Owner: INT.
+"""Data dictionary v2: evidence-based renaming of source columns.
 
 Original names are kept in COLUMN_MAPS so notebook section 02 can show source → canonical.
 """

@@ -1,7 +1,6 @@
-"""Tests for the monthly index and the nowcast (forecast.monthly_index, forecast.nowcast). Owner: FCT.
+"""Tests for the monthly index and the nowcast (forecast.monthly_index, forecast.nowcast).
 
-This file is the FCT test file for the forecast pipeline pieces that feed `forecast.combine`; F-05 adds the combine
-tests here. Hand-made pairs with exact growth; no CRM data.
+This file tests the forecast pipeline pieces that feed `forecast.combine` and the combine step itself. Hand-made pairs with exact growth; no CRM data.
 """
 
 from __future__ import annotations
@@ -203,7 +202,7 @@ def test_index_and_nowcast_run_on_the_synthetic_fixtures(raw, cfg):
 
 
 # ---------------------------------------------------------------------------
-# forecast (F-05): renewal + turnover + incentive engines, fixed-weight aggregation
+# forecast: renewal + turnover + incentive engines, fixed-weight aggregation
 # ---------------------------------------------------------------------------
 UNITS_PER_PROP = 6                      # above incentives.min_leases_per_cell and combine.min_pairs_history
 CONSTANT_GROWTH = {year: 0.03 for year in range(2020, 2026)}
@@ -570,7 +569,7 @@ def test_province_split_works_on_engine_results_too(cfg):
 
 
 # ---------------------------------------------------------------------------
-# Sensitivity of the headline to one assumption at a time (F-10)
+# Sensitivity of the headline to one assumption at a time
 # ---------------------------------------------------------------------------
 def sensitivity_inputs(cfg, discounts=True):
     tables = engine_tables(discount_by_year={2023: 0.03, 2024: 0.05} if discounts else None)

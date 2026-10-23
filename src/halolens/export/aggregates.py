@@ -1,4 +1,4 @@
-"""Aggregate export: build the aggregates JSON from the pipeline and validate it before writing. Owner: INT (I-09).
+"""Aggregate export: build the aggregates JSON from the pipeline and validate it before writing.
 
 Only aggregates leave this module: counts, percentages, dates and source metadata. No lease, unit, segment or
 pair rows. The output is validated against contracts.AGGREGATES_SCHEMA (closed objects), so a unit-level field
@@ -227,7 +227,7 @@ def _building_beds(tables: CanonicalTables, external: pd.DataFrame, cfg: dict) -
 
 
 def _sensitivity(tables: CanonicalTables, external: pd.DataFrame, cfg: dict, champion: str) -> list[dict]:
-    """One-assumption-at-a-time sensitivities (FCT `sensitivity_table`, F-10), with the champion held fixed."""
+    """One-assumption-at-a-time sensitivities (`sensitivity_table`), with the champion held fixed."""
     table = sensitivity_table(tables, external, cfg, champion=champion)
     return [{"assumption": str(record["assumption"]), "variant": str(record["variant"]),
              "setting": str(record["setting"]), "model": str(record["model"]),

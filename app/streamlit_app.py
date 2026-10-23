@@ -198,7 +198,7 @@ def _call_copilot(question: str, doc: dict[str, Any], client: Any, selection: di
     options: dict[str, Any] = {"rule": selection["rule"]}
     if "selection" in inspect.signature(narrative.scenario_copilot).parameters:
         options["selection"] = selection
-    # TODO(I-12b): scenario_copilot has no `selection` parameter yet; once it has, the lines above pass the lever choices.
+    # TODO: scenario_copilot has no `selection` parameter yet; once it has, the lines above pass the lever choices.
     return narrative.scenario_copilot(question, doc, client, **options)
 
 

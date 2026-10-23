@@ -1,4 +1,4 @@
-"""Generate fully invented fixtures in the source schema. Owner: INT.
+"""Generate fully invented fixtures in the source schema.
 
 No real record, name, address or value is used: buildings, codes and rents are made up.
 The fixtures deliberately reproduce the structural traps of the real extract so tests are meaningful:

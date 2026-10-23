@@ -1,4 +1,4 @@
-"""Tests for the newsprint redesign of the app (I-11c): pure components, the single page, levers, answers, privacy. Owner: FCT.
+"""Tests for the newsprint redesign of the app: pure components, the single page, levers, answers, privacy.
 
 Everything runs headlessly on the synthetic aggregates file (Streamlit's AppTest). No browser, no network, no CRM data.
 """

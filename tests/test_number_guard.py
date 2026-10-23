@@ -1,4 +1,4 @@
-"""Tests for app/number_guard.py. Owner: INT.
+"""Tests for app/number_guard.py.
 
 Uses a small invented aggregates dict; no CRM data and no results.
 """

@@ -1,4 +1,4 @@
-"""Tests for the aggregate export (I-09). Owner: INT.
+"""Tests for the aggregate export.
 
 Synthetic fixtures only (conftest). The public sources file supplies the external table; it holds no CRM data.
 The headline tests check the document against the champion pipeline (the path estimate_2026() uses).

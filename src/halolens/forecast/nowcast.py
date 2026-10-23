@@ -1,6 +1,6 @@
 """Small local-trend / state-space model on the monthly index.
 
-Owner: FCT. Implements `nowcast` (F-04). A local linear trend (statsmodels UnobservedComponents) is fitted to the
+Implements `nowcast`. A local linear trend (statsmodels UnobservedComponents) is fitted to the
 monthly annualized log growth up to the cutoff; its last filtered level and slope are projected 12 months ahead with
 a damped slope, then the months of the target year are combined with the calendar-month shares of recent pairs
 (leases cluster in some months, so a plain average of the twelve months would misstate the year).

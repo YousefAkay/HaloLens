@@ -1,6 +1,6 @@
 """Tests for the renewal/turnover split (measure.renewals) and the QC/ON regulation matrix (market.regulation).
 
-Owner: MSR. Fixtures: hand-made pairs and reference rows, the committed synthetic data and the committed public
+Fixtures: hand-made pairs and reference rows, the committed synthetic data and the committed public
 sources. Never CRM data.
 """
 

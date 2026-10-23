@@ -1,4 +1,4 @@
-"""Contract sanity checks and config helpers. Owner: INT."""
+"""Contract sanity checks and config helpers."""
 
 import pandas as pd
 

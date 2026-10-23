@@ -1,4 +1,4 @@
-"""Tests for AGGREGATES_SCHEMA and the synthetic example. Owner: INT (I-09a).
+"""Tests for AGGREGATES_SCHEMA and the synthetic example.
 
 The schema is the contract for the only file the app and the narrative read. These tests check that the
 example conforms, that the schema is closed (no unit-level field can be added), and that backtest errors

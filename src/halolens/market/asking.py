@@ -1,6 +1,6 @@
 """Asking-rent leading indicator for turnover rents.
 
-Owner: MSR. Implements `turnover_signal` (AGENTS.md Section 7.3).
+Implements `turnover_signal` (AGENTS.md Section 7.3).
 
 Idea: a unit listed before the cutoff tells us what the next tenant will be asked to pay. Comparing that asking rent
 with the contractual rent of the unit's current lease gives a forward-looking turnover growth. Asking rents are not

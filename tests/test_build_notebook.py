@@ -1,4 +1,4 @@
-"""Tests for scripts/build_notebook.py and the MODE_ENV_VAR override. Owner: INT.
+"""Tests for scripts/build_notebook.py and the MODE_ENV_VAR override.
 
 Runs on the repository's section files and the synthetic configuration. The failure test uses a temporary
 section folder, so no real or committed notebook is touched.

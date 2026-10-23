@@ -1,4 +1,4 @@
-"""Loading, hash verification and data dictionary. Owner: INT."""
+"""Loading, hash verification and data dictionary."""
 
 import shutil
 

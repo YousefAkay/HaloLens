@@ -1,4 +1,4 @@
-"""Typed loading of the source CSVs with SHA-256 verification. Owner: INT.
+"""Typed loading of the source CSVs with SHA-256 verification.
 
 This is the only module that reads source files. Source files are never modified.
 """

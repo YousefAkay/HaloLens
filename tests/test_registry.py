@@ -1,5 +1,5 @@
 """Tests for the external-source registry (market.registry), the extraction helpers and the market reconciliation
-(market.reconcile_market). Owner: MSR.
+(market.reconcile_market).
 
 Hand-made public-style observations only; no network calls and no CRM data.
 """

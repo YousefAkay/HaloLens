@@ -1,6 +1,6 @@
 """Québec (TAL) vs Ontario (guideline) applicability matrix and scenarios.
 
-Owner: MSR. Implements `applicability_matrix` (AGENTS.md Section 7.3), plus `reference_lines`, `exemption_evidence` and
+Implements `applicability_matrix` (AGENTS.md Section 7.3), plus `reference_lines`, `exemption_evidence` and
 `renewals_vs_reference` for notebook section 06.
 
 Québec buildings are under the TAL, Ontario buildings under Ontario's Residential Tenancies Act. A province's rule is only

@@ -1,4 +1,4 @@
-"""Tests for the asking-rent turnover signal (market.asking). Owner: MSR.
+"""Tests for the asking-rent turnover signal (market.asking).
 
 Fixtures: hand-made snapshots (exact arithmetic) and the committed synthetic data. Never CRM data.
 """
@@ -161,7 +161,7 @@ def test_future_asking_rows_do_not_change_the_signal(tables, cfg, synthetic_cuto
 
 
 def test_empty_asking_table_gives_empty_signal(hand_snapshot, cfg):
-    """REQUEST-FCT-01: a snapshot with no asking rows returns an empty SIGNAL_COLUMNS table instead of crashing."""
+    """A snapshot with no asking rows returns an empty SIGNAL_COLUMNS table instead of crashing."""
     empty = copy.copy(hand_snapshot)
     empty.asking = hand_snapshot.asking.iloc[:0]
     signal = turnover_signal(empty, cfg)

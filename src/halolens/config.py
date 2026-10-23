@@ -1,4 +1,4 @@
-"""Configuration loading. Owner: INT.
+"""Configuration loading.
 
 Merges config/core.yaml, config/measure.yaml and config/forecast.yaml into one dict.
 Each top-level key must live in exactly one file; duplicates raise an error. An optional, gitignored

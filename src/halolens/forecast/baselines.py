@@ -1,6 +1,6 @@
 """Baseline forecasts B0 (last year), B1 (trailing mean), B2 (market anchor + gap), and the shared headline helpers.
 
-Owner: FCT. Implements AGENTS.md Section 7.3 and the headline definition of Section 9.1:
+Implements AGENTS.md Section 7.3 and the headline definition of Section 9.1:
 winsorized annualized log growth per segment, aggregated with fixed weights (segment shares of eligible pairs in the
 window before the cutoff), headline % = 100 x (exp(sum w_s x mean_s) - 1).
 

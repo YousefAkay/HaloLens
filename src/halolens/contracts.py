@@ -1,7 +1,6 @@
 """Shared contracts: canonical column names, table schemas, dataclasses and constants.
 
-Owner: INT. FROZEN after H1. Changes only through a change request to INT (AGENTS.md Section 6.4).
-Every track implements its functions against these names and signatures (AGENTS.md Section 7).
+Change it deliberately and update every user: all modules implement their functions against these names and signatures.
 """
 
 from __future__ import annotations
@@ -140,7 +139,7 @@ class BacktestResult:
 
 
 # ---------------------------------------------------------------------------
-# Aggregates JSON (I-09a). The only file the Streamlit app and the LLM narrative may read (AGENTS.md Section 15).
+# Aggregates JSON. The only file the Streamlit app and the LLM narrative may read (AGENTS.md Section 15).
 # Percentages are in percent units (3.2 means 3.2%). null means "not computable", never a placeholder.
 # Every object is closed (additionalProperties false): no unit-level list, identifier or extra field can appear.
 # ---------------------------------------------------------------------------
@@ -180,7 +179,7 @@ AGGREGATES_SCHEMA = {
             "properties": {
                 "net_pct": _NUMBER, "contract_pct": _NUMBER,
                 "information_rule": {"enum": list(INFORMATION_RULES)},
-                # the pre-declared champion (I-09 wires this to F-08's champion_forecast)
+                # the pre-declared champion (the export wires this to the champion forecast)
                 "model": {"type": ["string", "null"]},
                 # low and high 2026 net headline across the candidate models (B0, B1, E1, E2)
                 "model_range": {
@@ -242,7 +241,7 @@ AGGREGATES_SCHEMA = {
                 "properties": {"series_id": _TEXT, "publisher": _TEXT, "release_date": _DATE, "url": _TEXT},
             },
         },
-        # Scenario grid (I-12): E2 under every lever combination and both information rules, plus the champion's
+        # Scenario grid: E2 under every lever combination and both information rules, plus the champion's
         # base headline per rule (its levers are "none": scenario levers act on the E2 segments only).
         "scenario_grid": {
             "type": "array",
@@ -258,7 +257,7 @@ AGGREGATES_SCHEMA = {
                 },
             },
         },
-        # Building x beds (I-12): forecast per building and bedroom count; building names only, never unit identifiers.
+        # Building x beds: forecast per building and bedroom count; building names only, never unit identifiers.
         "building_beds": {
             "type": "array",
             "items": {
@@ -272,7 +271,7 @@ AGGREGATES_SCHEMA = {
                 },
             },
         },
-        # One-assumption-at-a-time sensitivities (F-10): deltas are relative to the base of the same model.
+        # One-assumption-at-a-time sensitivities: deltas are relative to the base of the same model.
         "sensitivity": {
             "type": "array",
             "items": {

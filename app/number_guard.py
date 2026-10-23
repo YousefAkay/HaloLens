@@ -1,8 +1,6 @@
-"""Reject generated text that contains numbers absent from the aggregates JSON. Task I-12a.
+"""Reject generated text that contains numbers absent from the aggregates JSON.
 
-Owner: INT.
-
-The LLM narrative (I-12) may quote only numbers that exist in aggregates.json. A number in the text is
+The LLM narrative may quote only numbers that exist in aggregates.json. A number in the text is
 grounded when some value in the JSON equals it at the precision the text was written with: "3,5 %" is
 grounded by 3.47, because 3.47 rounds to 3.5 at one decimal. Digit runs inside JSON strings count as
 values, so "2025-12-31" grounds 2025, 12 and 31. Booleans never ground a number.

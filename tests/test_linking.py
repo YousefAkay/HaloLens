@@ -1,4 +1,4 @@
-"""Tests for concession→lease linking and net-rent reconstruction (incentives.linking, incentives.reconcile). Owner: FCT.
+"""Tests for concession→lease linking and net-rent reconstruction (incentives.linking, incentives.reconcile).
 
 Hand-made leases and concessions with exact arithmetic: net = contract - (lump + monthly x months) / term. No CRM data.
 """

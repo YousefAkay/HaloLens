@@ -1,4 +1,4 @@
-"""Tests for app/narrative.py (I-12). Owner: INT.
+"""Tests for app/narrative.py.
 
 No network: the Claude client is a fake that records what it was sent. Tests read the synthetic aggregates only.
 """

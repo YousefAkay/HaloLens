@@ -1,7 +1,7 @@
-"""Tests for error metrics and the backtest skeleton (evaluate.metrics, evaluate.backtest). Owner: FCT.
+"""Tests for error metrics and the backtest skeleton (evaluate.metrics, evaluate.backtest).
 
 Uses the same hand-made leases as test_baselines (known yearly growth). `run_backtest` uses
-`forecast.combine.forecast` (F-05).
+`forecast.combine.forecast`.
 """
 
 from __future__ import annotations
@@ -393,7 +393,7 @@ def test_sections_08_09_10_11a_11b_type_no_dates_years_or_figures_in_markdown():
 
     import jupytext
     from halolens.config import repo_root
-    allowed = re.compile(r"`[^`]*`|\\bB[0-3]\\b|\\bE[12]\\b|F-05b|estimate_2026|\\|[-| ]+\\||section \\d+")
+    allowed = re.compile(r"`[^`]*`|\\bB[0-3]\\b|\\bE[12]\\b|estimate_2026|\\|[-| ]+\\||section \\d+")
     for name in ("08_forecast_method", "09_backtest", "10_forecast_2026", "11a_uncertainty", "11b_scenarios"):
         notebook = jupytext.read(repo_root() / "notebook" / "sections" / f"{name}.py")
         for cell in notebook.cells:

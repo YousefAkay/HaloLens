@@ -1,4 +1,4 @@
-"""Tests for the incentive engine (incentives.engine). Owner: FCT.
+"""Tests for the incentive engine (incentives.engine).
 
 Hand-made leases with exact discount shares (net = contract x (1 - discount)): every segment has six units renewed each
 January 1, so a cell always clears the minimum lease count. No CRM data.

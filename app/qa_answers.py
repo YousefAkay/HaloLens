@@ -1,6 +1,5 @@
 """Fact sheets, deterministic composer and optional LLM polish for the Questions tab.
 
-Owner: INT. Task Q-02.
 
 Pipeline: `qa_topics.route` picks a topic -> `fact_sheet` reads the aggregates JSON and returns plain-label facts, rounded to
 at most one decimal -> `compose` fills a template (one short answer sentence, two to four bullets, a "Read more" line) ->

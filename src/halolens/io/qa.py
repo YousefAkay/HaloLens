@@ -1,4 +1,4 @@
-"""Structural QA on the source and canonical tables. Owner: INT.
+"""Structural QA on the source and canonical tables.
 
 Returns counts only — never rows — so the output is safe to show in the notebook.
 """

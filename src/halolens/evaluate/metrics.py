@@ -1,6 +1,6 @@
 """Error metrics in percentage points.
 
-Owner: FCT. Implements AGENTS.md Section 7.3 (errors are forecast minus actual, both in percent).
+Implements AGENTS.md Section 7.3 (errors are forecast minus actual, both in percent).
 """
 
 from __future__ import annotations
