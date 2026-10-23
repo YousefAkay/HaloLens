@@ -31,8 +31,8 @@ Full detail: [`docs/methodology.md`](docs/methodology.md), [`docs/decisions.md`]
 Requires Python 3.11, 3.12 or 3.13.
 
 ```bash
-git clone https://github.com/YousefAkay/HALO.git
-cd HALO
+git clone https://github.com/YousefAkay/HaloLens.git
+cd HaloLens
 python -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
@@ -41,7 +41,9 @@ pre-commit install               # optional, for contributors
 
 | Task | Command |
 |---|---|
-| Tests (synthetic data) | `pytest -q` |
+| Tests, full suite (synthetic data) | `pytest -q` |
+| Tests, fast subset (skips the slow tests) | `pytest -o addopts="" -p no:warnings -q -m "not slow"` |
+| Install the exact versions tested | `pip install -r requirements.lock.txt` (Python 3.12) |
 | Build and execute the notebook (synthetic data by default; writes `analysis.ipynb`) | `python scripts/build_notebook.py` |
 | Build and execute the notebook on your data (real mode) | `python scripts/build_notebook.py --real` (or `HALOLENS_DATA_MODE=real`) |
 | Export aggregate results for the app | `python scripts/export_aggregates.py --synthetic` (or `--real`) |
@@ -66,6 +68,14 @@ Three features call the Claude API, always on public pages or on aggregates, nev
 values into `data/public/sources_draft.csv`, a source watcher (`python scripts/extract_sources.py --watch`), and the
 dashboard's scenario copilot and Q&A over the aggregates, with a number guard that rejects any figure not in the results.
 To enable them, copy `.env.example` to `.env` and set `ANTHROPIC_API_KEY`. The notebook and the forecast never need a key.
+
+## Limitations and roadmap
+
+- The loader expects the column layout of `data/synthetic/`; a column-mapping config for other layouts is planned.
+- The regulation layer covers Quebec (TAL) and Ontario only.
+- The notebook text is in French; the dashboard is bilingual (French and English).
+- The forecasting engines do not beat the naive baseline on the synthetic demo, and three backtest years support only weak conclusions.
+- Leases signed before the cutoff but starting after it are not used yet (a booked-lease signal is planned).
 
 ## Repository layout
 
