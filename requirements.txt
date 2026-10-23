@@ -1,6 +1,5 @@
-# Python 3.11. Ranges below are known-compatible; after the first clean install run
-#   pip freeze > requirements.lock.txt
-# and INT pins exact versions here before the final submission.
+# Python 3.11 or newer. The ranges below are known to work; requirements.lock.txt holds the exact versions tested
+# (Python 3.12): pip install -r requirements.lock.txt
 
 # Analysis
 pandas>=2.2,<3
@@ -12,7 +11,7 @@ matplotlib>=3.8,<4
 pyyaml>=6.0,<7
 
 # Notebook build
-jupyter>=1.0
+jupyter>=1.0,<2
 ipykernel>=6.29
 jupytext>=1.16,<2
 nbformat>=5.10
@@ -20,16 +19,16 @@ nbclient>=0.10
 
 # App and AI features (optional at runtime)
 streamlit>=1.65,<2
-anthropic>=0.40
+anthropic>=0.40,<3
 python-dotenv>=1.0,<2
-# REQUEST-MSR-01: scripts/extract_sources.py imports pydantic directly for the LLM schema
+# scripts/extract_sources.py imports pydantic directly for the LLM schema
 pydantic>=2,<3
 
 # Quality
 pytest>=8.0,<9
 pre-commit>=3.7
 nbstripout>=0.7
-# I-09a: validates outputs/public/aggregates_synthetic.json against contracts.AGGREGATES_SCHEMA
+# validates outputs/public/aggregates_synthetic.json against contracts.AGGREGATES_SCHEMA
 jsonschema>=4.18,<5
 
 # Local editable install of our package
