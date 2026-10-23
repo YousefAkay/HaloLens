@@ -42,8 +42,8 @@ pre-commit install               # optional, for contributors
 | Task | Command |
 |---|---|
 | Tests (synthetic data) | `pytest -q` |
-| Build and execute the notebook on synthetic data (writes `analysis.ipynb`) | `python scripts/build_notebook.py --synthetic` |
-| Build and execute the notebook on your data | `python scripts/build_notebook.py --real` |
+| Build and execute the notebook (synthetic data by default; writes `analysis.ipynb`) | `python scripts/build_notebook.py` |
+| Build and execute the notebook on your data (real mode) | `python scripts/build_notebook.py --real` (or `HALOLENS_DATA_MODE=real`) |
 | Export aggregate results for the app | `python scripts/export_aggregates.py --synthetic` (or `--real`) |
 | Launch the dashboard (synthetic demo by default) | `streamlit run app/streamlit_app.py` |
 | Privacy scan of tracked files | `python scripts/leak_scan.py --tree-only` |
@@ -111,3 +111,7 @@ No row-level lease data was sent to any API. The forecast itself is produced by 
 ## Contributors and license
 
 See [`CONTRIBUTORS.md`](CONTRIBUTORS.md). Released under the [MIT License](LICENSE).
+
+## History
+
+The git history was rewritten before publication to remove confidential third-party data and tool-attribution trailers. Commit dates, messages and authorship are preserved.

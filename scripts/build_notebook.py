@@ -3,9 +3,9 @@
 Owner: INT. Task I-05.
 
 Usage (run from anywhere; paths resolve from the repository root):
-    python scripts/build_notebook.py               # data mode from config/core.yaml (real by default)
+    python scripts/build_notebook.py               # data mode from config/core.yaml (synthetic by default)
     python scripts/build_notebook.py --synthetic   # committed fixtures in data/synthetic
-    python scripts/build_notebook.py --real        # CRM data in data/private; output goes to outputs/private
+    python scripts/build_notebook.py --real        # your own data in data/private; output goes to outputs/private
     python scripts/build_notebook.py --no-execute  # assemble only, do not run the cells
 
 The build fails (exit code 1) on the first cell that raises. Real-mode output is gitignored because an
@@ -60,7 +60,7 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Build the Halo Lens analysis notebook.")
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--synthetic", action="store_true", help="run on the committed synthetic fixtures")
-    mode.add_argument("--real", action="store_true", help="run on the CRM data in data/private")
+    mode.add_argument("--real", action="store_true", help="run on your own data in data/private")
     parser.add_argument("--no-execute", action="store_true", help="assemble the notebook without running it")
     return parser.parse_args(argv)
 
@@ -91,16 +91,16 @@ def main(argv: list[str] | None = None) -> int:
     print(f"Wrote {out_path.relative_to(repo_root())} ({len(notebook.cells)} cells, mode={mode}, "
           f"executed={not args.no_execute})")
     if mode == "real":
-        # The jury runs the notebook on their own copy of the CRM files: ship the source with outputs cleared,
-        # so no CRM aggregate is written next to the code. The executed copy stays in the gitignored outputs/private.
-        jury_copy = copy.deepcopy(notebook)
-        for cell in jury_copy.cells:
+        # Ship the source with outputs cleared, so that no aggregate computed from your own data is written next
+        # to the code. The executed copy stays in the gitignored outputs/private.
+        source_copy = copy.deepcopy(notebook)
+        for cell in source_copy.cells:
             if cell.cell_type == "code":
                 cell.outputs = []
                 cell.execution_count = None
-        jury_path = repo_root() / build["notebook_file"]
-        nbformat.write(jury_copy, jury_path)
-        print(f"Wrote {jury_path.relative_to(repo_root())} (source only, outputs cleared, for the jury)")
+        source_path = repo_root() / build["notebook_file"]
+        nbformat.write(source_copy, source_path)
+        print(f"Wrote {source_path.relative_to(repo_root())} (source only, outputs cleared)")
     return 0
 
 

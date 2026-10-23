@@ -77,7 +77,7 @@ display(split_display.round(2))
 # %%
 display(Markdown(
     f"**Date d'information :** une donnée publique est utilisable pour l'année *y* si elle est publiée au plus tard le "
-    f"**{info_label}** (règle approuvée par le mentor, appliquée de la même façon aux backtests ; les baux restent "
+    f"**{info_label}** (règle de date d'information retenue, appliquée de la même façon aux backtests ; les baux restent "
     f"coupés au {strict_label}). La version stricte (publication au plus tard le {strict_label}) est montrée comme "
     f"sensibilité."))
 

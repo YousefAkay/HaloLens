@@ -10,7 +10,7 @@
 # **Entrée :** les quatre fichiers CSV du commanditaire, intacts (empreintes vérifiées).
 # **Opération :** renommer chaque colonne selon ce qu'elle contient réellement, typer les identifiants comme
 # texte (zéros initiaux) et les dates, puis exécuter des contrôles structurels.
-# **Pourquoi :** la description des colonnes ne correspond pas toujours aux données (consigne du défi).
+# **Pourquoi :** la description des colonnes ne correspond pas toujours aux données.
 # **Vérification :** chaque contrôle affiche un décompte, jamais des lignes.
 
 # %% [markdown]

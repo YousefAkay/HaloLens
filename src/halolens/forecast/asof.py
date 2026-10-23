@@ -21,7 +21,7 @@ def make_snapshot(tables: CanonicalTables, external: pd.DataFrame, cutoff: pd.Ti
     - asking: `month` on or before the month containing the cutoff.
     - external: `release_date` on or before `external_cutoff` (same rule as `market.registry.as_of`; applied here
       directly so the snapshot does not depend on MSR's loader). `external_cutoff` defaults to `cutoff`, so a call without
-      it behaves as before. The mentor-approved rule (REQUEST-INT-01) passes January 31 of the target year, see
+      it behaves as before. The information-date rule passes January 31 of the target year, see
       `snapshot_for_year`. CRM tables are always cut at `cutoff`.
     - units (listings): the table is a 2025 snapshot, so it is kept only when every row's `snapshot_month` is on
       or before the cutoff's month; otherwise it is None (never used for historical folds).
@@ -55,7 +55,7 @@ def snapshot_for_year(tables: CanonicalTables, external: pd.DataFrame, year: int
     """Snapshot for forecasting `year` under the agreed information dates (AGENTS.md Section 9.3).
 
     CRM cutoff = December 31 of year - 1 (`config.cutoff_for`). External cutoff = January 31 of `year`
-    (`config.external_cutoff_for`, mentor-approved 2026-10-03); with `strict=True` it is the CRM cutoff instead, which is
+    (`config.external_cutoff_for`, information-date rule); with `strict=True` it is the CRM cutoff instead, which is
     the Dec-31 sensitivity version. Backtests and the 2026 forecast build their snapshots only through this function so
     the rule is applied identically everywhere.
     """

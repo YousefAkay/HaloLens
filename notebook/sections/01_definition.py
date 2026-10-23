@@ -56,7 +56,7 @@ display(Markdown(f"""
 
 **Horizon :** année cible **{target_year}**, date de coupure **{cutoff}**. L'entraînement n'utilise que les baux dont la signature **et** le début sont antérieurs ou égaux à la coupure.
 
-**Données publiques :** une publication est utilisable pour l'année *y* si elle est parue au plus tard le **{external_month_day}** de l'année *y* (pour {target_year} : **{external_date}**). Cette règle, approuvée par le mentor, est appliquée de la même façon aux backtests. La version stricte, où seules comptent les publications parues au plus tard à la coupure des baux (**{crm_cutoff_label}**), est présentée comme sensibilité.
+**Données publiques :** une publication est utilisable pour l'année *y* si elle est parue au plus tard le **{external_month_day}** de l'année *y* (pour {target_year} : **{external_date}**). Cette règle de date d'information est appliquée de la même façon aux backtests. La version stricte, où seules comptent les publications parues au plus tard à la coupure des baux (**{crm_cutoff_label}**), est présentée comme sensibilité.
 """))
 
 # %% [markdown]
