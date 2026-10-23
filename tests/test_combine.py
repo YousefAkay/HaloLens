@@ -10,10 +10,10 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from leaselens.forecast.asof import make_snapshot
-from leaselens.forecast.baselines import frozen_weights, training_pairs
-from leaselens.forecast.monthly_index import INDEX_COLUMNS, build_monthly_index
-from leaselens.forecast.nowcast import METHOD_LOCAL_TREND, METHOD_TRAILING_MEAN, nowcast
+from halolens.forecast.asof import make_snapshot
+from halolens.forecast.baselines import frozen_weights, training_pairs
+from halolens.forecast.monthly_index import INDEX_COLUMNS, build_monthly_index
+from halolens.forecast.nowcast import METHOD_LOCAL_TREND, METHOD_TRAILING_MEAN, nowcast
 from tests.test_baselines import annual_leases, empty_external, tables_from
 
 CUTOFF = pd.Timestamp("2024-12-31")
@@ -191,7 +191,7 @@ def test_pipeline_ignores_leases_starting_after_the_cutoff(cfg):
 
 def test_index_and_nowcast_run_on_the_synthetic_fixtures(raw, cfg):
     """Smoke test on the committed synthetic fixtures (aggregates only)."""
-    from leaselens.io import canonicalize
+    from halolens.io import canonicalize
     snapshot = make_snapshot(canonicalize(raw), empty_external(), CUTOFF)
     pairs = training_pairs(snapshot, cfg)
     weights = frozen_weights(pairs, CUTOFF, cfg)
@@ -222,12 +222,12 @@ def engine_tables(growth=CONSTANT_GROWTH, discount_by_year=None, renewal=True):
 
 
 def run_forecast(tables, cfg, cutoff=CUTOFF):
-    from leaselens.forecast.combine import forecast
+    from halolens.forecast.combine import forecast
     return forecast(make_snapshot(tables, empty_external(), cutoff), cfg)
 
 
 def test_weighted_median_follows_the_weights():
-    from leaselens.forecast.combine import weighted_median
+    from halolens.forecast.combine import weighted_median
     values = pd.Series([1.0, 2.0, 3.0])
     assert weighted_median(values, pd.Series([1.0, 1.0, 1.0])) == 2.0
     assert weighted_median(values, pd.Series([0.1, 0.1, 0.8])) == 3.0
@@ -295,8 +295,8 @@ def test_forecast_reports_where_each_component_came_from(cfg):
 
 
 def test_forecast_runs_on_the_synthetic_fixtures_at_every_backtest_fold(raw, cfg):
-    from leaselens.config import cutoff_for
-    from leaselens.io import canonicalize
+    from halolens.config import cutoff_for
+    from halolens.io import canonicalize
     synthetic = canonicalize(raw)
     for year in cfg["forecast_years"]["backtest_years"] + [cfg["forecast_years"]["target_year"]]:
         result = run_forecast(synthetic, cfg, cutoff_for(year, cfg))
@@ -313,8 +313,8 @@ PERCENT_OF_RATE = 100
 
 
 def run_regulated(tables, cfg, strict=False, ontario_newbuild_guideline_applies=False, external=None):
-    from leaselens.forecast.asof import snapshot_for_year
-    from leaselens.forecast.combine import forecast_regulated
+    from halolens.forecast.asof import snapshot_for_year
+    from halolens.forecast.combine import forecast_regulated
     external = regulated_rows() if external is None else external
     snapshot = snapshot_for_year(tables, external, 2025, cfg, strict=strict)
     return forecast_regulated(snapshot, cfg, ontario_newbuild_guideline_applies=ontario_newbuild_guideline_applies)
@@ -367,8 +367,8 @@ def test_turnovers_and_the_incentive_engine_are_identical_to_e1(cfg):
                         annual_leases(CONSTANT_GROWTH, units=[("ccc", "QC", f"{i:04d}") for i in range(UNITS_PER_PROP)])
                         .assign(is_renewal=False)], ignore_index=True)
     tables = tables_from(leases)
-    from leaselens.forecast.asof import snapshot_for_year
-    from leaselens.forecast.combine import forecast
+    from halolens.forecast.asof import snapshot_for_year
+    from halolens.forecast.combine import forecast
     snapshot = snapshot_for_year(tables, regulated_rows(), 2025, cfg)
     e1, e2 = forecast(snapshot, cfg).segments, run_regulated(tables, cfg).segments
     turnover = ~e1["is_renewal"].astype(bool)
@@ -411,7 +411,7 @@ def row_of(table: pd.DataFrame, name: str) -> pd.Series:
 
 
 def test_central_scenario_equals_the_forecast_headline(regulated_result, cfg):
-    from leaselens.forecast.scenarios import SCENARIO_COLUMNS, scenario_table
+    from halolens.forecast.scenarios import SCENARIO_COLUMNS, scenario_table
     table = scenario_table(regulated_result, cfg)
     assert list(table.columns) == SCENARIO_COLUMNS
     central = row_of(table, "central")
@@ -421,7 +421,7 @@ def test_central_scenario_equals_the_forecast_headline(regulated_result, cfg):
 
 
 def test_deeper_incentives_lower_net_growth_and_leave_contract_growth_alone(regulated_result, cfg):
-    from leaselens.forecast.scenarios import scenario_table
+    from halolens.forecast.scenarios import scenario_table
     table = scenario_table(regulated_result, cfg)
     deeper, shallower, central = (row_of(table, n) for n in ("incentives_deeper", "incentives_shallower", "central"))
     assert deeper["headline_net_pct"] < central["headline_net_pct"] < shallower["headline_net_pct"]
@@ -429,7 +429,7 @@ def test_deeper_incentives_lower_net_growth_and_leave_contract_growth_alone(regu
 
 
 def test_renewal_mix_scenarios_move_toward_the_segment_with_more_growth(regulated_result, cfg):
-    from leaselens.forecast.scenarios import scenario_table
+    from halolens.forecast.scenarios import scenario_table
     segments = regulated_result.segments
     renewals_grow_more = (segments.loc[segments["is_renewal"], "g_contract"].mean()
                           > segments.loc[~segments["is_renewal"], "g_contract"].mean())
@@ -442,7 +442,7 @@ def test_renewal_mix_scenarios_move_toward_the_segment_with_more_growth(regulate
 
 
 def test_reweighting_keeps_the_weights_summing_to_one_and_stays_in_bounds():
-    from leaselens.forecast.scenarios import _reweight
+    from halolens.forecast.scenarios import _reweight
     weights = pd.Series([0.3, 0.3, 0.2, 0.2])
     is_renewal = pd.Series([True, True, False, False])
     for shift in (-0.05, 0.0, 0.05, 0.9, -0.9):
@@ -453,14 +453,14 @@ def test_reweighting_keeps_the_weights_summing_to_one_and_stays_in_bounds():
 
 
 def test_shallower_incentives_cannot_push_the_discount_below_zero(cfg):
-    from leaselens.forecast.scenarios import scenario_table
+    from halolens.forecast.scenarios import scenario_table
     table = scenario_table(run_regulated(engine_tables(), cfg), cfg)          # no discounts at all: d1 = 0 already
     assert row_of(table, "incentives_shallower")["headline_net_pct"] == pytest.approx(row_of(table, "central")["headline_net_pct"])
     assert row_of(table, "incentives_deeper")["headline_net_pct"] < row_of(table, "central")["headline_net_pct"]
 
 
 def test_newbuild_scenario_matches_the_alternative_forecast(regulated_result, cfg):
-    from leaselens.forecast.scenarios import scenario_table
+    from halolens.forecast.scenarios import scenario_table
     alternative = run_regulated(engine_tables(discount_by_year={2023: 0.03, 2024: 0.05}), cfg, ontario_newbuild_guideline_applies=True)
     table = scenario_table(regulated_result, cfg)
     assert row_of(table, "ontario_newbuild_guideline_applies")["headline_net_pct"] == pytest.approx(alternative.headline_net_pct)
@@ -468,7 +468,7 @@ def test_newbuild_scenario_matches_the_alternative_forecast(regulated_result, cf
 
 
 def test_low_and_high_bracket_the_central_and_every_single_lever(regulated_result, cfg):
-    from leaselens.forecast.scenarios import scenario_table
+    from halolens.forecast.scenarios import scenario_table
     table = scenario_table(regulated_result, cfg).set_index("scenario")
     assert table.loc["low", "headline_net_pct"] <= table["headline_net_pct"].drop(["low", "high"]).min() + 1e-9
     assert table.loc["high", "headline_net_pct"] >= table["headline_net_pct"].drop(["low", "high"]).max() - 1e-9
@@ -477,14 +477,14 @@ def test_low_and_high_bracket_the_central_and_every_single_lever(regulated_resul
 
 
 def test_scenarios_on_an_e1_result_leave_the_newbuild_rows_empty_but_still_give_low_and_high(cfg):
-    from leaselens.forecast.scenarios import scenario_table
+    from halolens.forecast.scenarios import scenario_table
     table = scenario_table(run_forecast(engine_tables(), cfg), cfg).set_index("scenario")
     assert np.isnan(table.loc["ontario_newbuild_guideline_applies", "headline_net_pct"])
     assert np.isfinite(table.loc["low", "headline_net_pct"]) and not table.loc["low", "ontario_newbuild_guideline_applies"]
 
 
 def test_incentive_shift_is_capped_at_the_maximum_discount_share(regulated_result, cfg):
-    from leaselens.forecast.scenarios import evaluate_scenario
+    from halolens.forecast.scenarios import evaluate_scenario
     huge = evaluate_scenario(regulated_result.segments, cfg, incentive_shift_pp=1000.0)
     capped_d1 = cfg["incentives"]["max_discount_share"]
     segments = regulated_result.segments
@@ -493,7 +493,7 @@ def test_incentive_shift_is_capped_at_the_maximum_discount_share(regulated_resul
 
 
 def test_building_beds_forecast_has_one_row_per_cell_and_unit_weights(regulated_result, cfg):
-    from leaselens.forecast.scenarios import building_beds_forecast
+    from halolens.forecast.scenarios import building_beds_forecast
     table = building_beds_forecast(regulated_result, cfg)
     assert len(table) == regulated_result.segments[["prop_code", "beds"]].drop_duplicates().shape[0]
     assert table["weight"].sum() == pytest.approx(1.0)
@@ -501,8 +501,8 @@ def test_building_beds_forecast_has_one_row_per_cell_and_unit_weights(regulated_
 
 
 def test_shrinkage_pulls_thin_cells_toward_the_building_mean_and_leaves_thick_cells_alone(cfg):
-    from leaselens.forecast.scenarios import building_beds_forecast
-    from leaselens.contracts import ForecastResult
+    from halolens.forecast.scenarios import building_beds_forecast
+    from halolens.contracts import ForecastResult
     segments = pd.DataFrame({"prop_code": ["aaa", "aaa", "aaa"], "beds": [1, 2, 3], "is_renewal": [True, True, True],
                              "weight": [0.5, 0.25, 0.25], "n_pairs_window": [1000, 1, 0],
                              "g_net": [0.02, 0.10, 0.10], "g_contract": [0.02, 0.10, 0.10]})
@@ -516,10 +516,10 @@ def test_shrinkage_pulls_thin_cells_toward_the_building_mean_and_leaves_thick_ce
 
 def test_regulated_forecast_runs_when_the_synthetic_fixtures_get_tal_rows(raw, cfg):
     """Smoke test: E2, its scenarios and the building table on the committed synthetic fixtures (aggregates only)."""
-    from leaselens.forecast.asof import snapshot_for_year
-    from leaselens.forecast.combine import forecast_regulated
-    from leaselens.forecast.scenarios import building_beds_forecast, scenario_table
-    from leaselens.io import canonicalize
+    from halolens.forecast.asof import snapshot_for_year
+    from halolens.forecast.combine import forecast_regulated
+    from halolens.forecast.scenarios import building_beds_forecast, scenario_table
+    from halolens.io import canonicalize
     tal = {year: 2.0 for year in range(2019, 2027)}
     guideline = {year: 2.5 for year in range(2019, 2027)}
     snapshot = snapshot_for_year(canonicalize(raw), regulated_rows(tal, guideline), 2025, cfg)
@@ -537,8 +537,8 @@ def province_map(tables) -> pd.Series:
 
 
 def test_province_split_covers_every_province_and_repeats_the_headline(cfg):
-    from leaselens.forecast.baselines import last_year
-    from leaselens.forecast.scenarios import headline_by_province
+    from halolens.forecast.baselines import last_year
+    from halolens.forecast.scenarios import headline_by_province
     tables = engine_tables()
     result = last_year(make_snapshot(tables, empty_external(), CUTOFF), cfg)
     split = headline_by_province(result, province_map(tables)).set_index("province")
@@ -549,8 +549,8 @@ def test_province_split_covers_every_province_and_repeats_the_headline(cfg):
 
 
 def test_province_split_gives_each_province_its_own_growth(cfg):
-    from leaselens.forecast.baselines import last_year
-    from leaselens.forecast.scenarios import headline_by_province
+    from halolens.forecast.baselines import last_year
+    from halolens.forecast.scenarios import headline_by_province
     fast = annual_leases({year: 0.10 for year in range(2020, 2026)}, units=[u for u in ENGINE_UNITS if u[0] == "aaa"])
     flat = annual_leases({year: 0.0 for year in range(2020, 2026)}, units=[u for u in ENGINE_UNITS if u[0] == "bbb"])
     tables = tables_from(pd.concat([fast, flat], ignore_index=True))
@@ -562,7 +562,7 @@ def test_province_split_gives_each_province_its_own_growth(cfg):
 
 
 def test_province_split_works_on_engine_results_too(cfg):
-    from leaselens.forecast.scenarios import headline_by_province
+    from halolens.forecast.scenarios import headline_by_province
     tables = engine_tables()
     result = run_forecast(tables, cfg)
     split = headline_by_province(result, province_map(tables)).set_index("province")
@@ -578,13 +578,13 @@ def sensitivity_inputs(cfg, discounts=True):
 
 
 def run_sensitivity(cfg, champion="B0_last_year", external=None):
-    from leaselens.forecast.scenarios import sensitivity_table
+    from halolens.forecast.scenarios import sensitivity_table
     tables, regulated = sensitivity_inputs(cfg)
     return sensitivity_table(tables, regulated if external is None else external, cfg, champion=champion, year=2025)
 
 
 def test_sensitivity_table_lists_one_row_per_variant_sorted_by_absolute_change(cfg):
-    from leaselens.forecast.scenarios import SENSITIVITY_COLUMNS
+    from halolens.forecast.scenarios import SENSITIVITY_COLUMNS
     table = run_sensitivity(cfg)
     assert list(table.columns) == SENSITIVITY_COLUMNS
     assert table["abs_delta_pp"].dropna().is_monotonic_decreasing
@@ -603,8 +603,8 @@ def test_each_row_is_the_variant_minus_the_base_of_the_same_model(cfg):
 
 
 def test_a_variant_changes_exactly_one_key_and_matches_a_manual_rerun(cfg):
-    from leaselens.forecast.asof import snapshot_for_year
-    from leaselens.forecast.baselines import last_year
+    from halolens.forecast.asof import snapshot_for_year
+    from halolens.forecast.baselines import last_year
     tables, regulated = sensitivity_inputs(cfg)
     table = run_sensitivity(cfg)
     shorter = {**cfg, "headline": {**cfg["headline"], "weight_window_years": cfg["headline"]["weight_window_years"] - 1}}
@@ -629,7 +629,7 @@ def test_information_rule_cannot_move_a_model_that_ignores_public_data_but_moves
 
 
 def test_regulatory_levers_are_the_e2_scenario_deltas(cfg):
-    from leaselens.forecast.scenarios import scenario_table
+    from halolens.forecast.scenarios import scenario_table
     table = run_sensitivity(cfg).set_index("variant")
     tables, regulated = sensitivity_inputs(cfg)
     scenarios = scenario_table(run_regulated(tables, cfg), cfg).set_index("scenario")
@@ -639,8 +639,8 @@ def test_regulatory_levers_are_the_e2_scenario_deltas(cfg):
 
 
 def test_model_choice_rows_compare_each_model_with_the_champion(cfg):
-    from leaselens.forecast.asof import snapshot_for_year
-    from leaselens.forecast.baselines import trailing_mean
+    from halolens.forecast.asof import snapshot_for_year
+    from halolens.forecast.baselines import trailing_mean
     tables, regulated = sensitivity_inputs(cfg)
     table = run_sensitivity(cfg).set_index("variant")
     direct = trailing_mean(snapshot_for_year(tables, regulated, 2025, cfg), cfg).headline_net_pct
@@ -664,8 +664,8 @@ def test_variants_that_cannot_run_keep_their_row_with_the_reason(cfg):
 
 
 def test_sensitivity_table_runs_on_the_synthetic_fixtures_with_the_champion_pipeline(raw, cfg):
-    from leaselens.forecast.scenarios import sensitivity_table
-    from leaselens.io import canonicalize
+    from halolens.forecast.scenarios import sensitivity_table
+    from halolens.io import canonicalize
     table = sensitivity_table(canonicalize(raw), regulated_rows({y: 2.0 for y in range(2019, 2027)},
                                                                 {y: 2.5 for y in range(2019, 2027)}), cfg)
     assert len(table) > 10 and table["delta_pp"].notna().sum() > 5
@@ -678,7 +678,7 @@ PORTFOLIO_ONLY_MODELS = {"B1_trailing_mean", "B2_market_anchor", "B3_tal_anchor"
 
 
 def snapshot_for_every_model(cfg):
-    from leaselens.forecast.asof import snapshot_for_year
+    from halolens.forecast.asof import snapshot_for_year
     from tests.test_baselines import market_rows
     tables = engine_tables(discount_by_year={2023: 0.03, 2024: 0.05})
     return tables, snapshot_for_year(tables, market_rows(), 2025, cfg)
@@ -687,8 +687,8 @@ def snapshot_for_every_model(cfg):
 @pytest.mark.parametrize("model", ["B0_last_year", "B1_trailing_mean", "B2_market_anchor", "B3_tal_anchor",
                                    "E1_engine_blend", "E2_regulated"])
 def test_province_split_works_for_every_model(model, cfg):
-    from leaselens.evaluate.backtest import all_models
-    from leaselens.forecast.scenarios import PROVINCE_COLUMNS, headline_by_province
+    from halolens.evaluate.backtest import all_models
+    from halolens.forecast.scenarios import PROVINCE_COLUMNS, headline_by_province
     tables, snapshot = snapshot_for_every_model(cfg)
     result = all_models()[model](snapshot, cfg)
     split = headline_by_province(result, province_map(tables))
@@ -705,8 +705,8 @@ def test_province_split_works_for_every_model(model, cfg):
 
 
 def test_the_fallback_row_counts_the_segments_of_the_model(cfg):
-    from leaselens.forecast.baselines import trailing_mean
-    from leaselens.forecast.scenarios import headline_by_province
+    from halolens.forecast.baselines import trailing_mean
+    from halolens.forecast.scenarios import headline_by_province
     tables, snapshot = snapshot_for_every_model(cfg)
     result = trailing_mean(snapshot, cfg)
     assert headline_by_province(result, province_map(tables)).loc[0, "n_segments"] == len(result.segments)
@@ -717,12 +717,12 @@ def test_the_export_survives_a_champion_without_segment_forecasts(champion, tabl
     """If the champion ever changes to a portfolio-only model, the aggregates still build, validate and say 'no split'."""
     from jsonschema import Draft202012Validator, FormatChecker
 
-    import leaselens.export.aggregates as exporter
-    from leaselens.config import repo_root
-    from leaselens.contracts import AGGREGATES_SCHEMA
-    from leaselens.evaluate.backtest import all_models
-    from leaselens.forecast.asof import snapshot_for_year
-    from leaselens.market.registry import load_external
+    import halolens.export.aggregates as exporter
+    from halolens.config import repo_root
+    from halolens.contracts import AGGREGATES_SCHEMA
+    from halolens.evaluate.backtest import all_models
+    from halolens.forecast.asof import snapshot_for_year
+    from halolens.market.registry import load_external
 
     def forced_pipeline(tables_, external_, cfg_, table=None):
         return {"champion": champion}

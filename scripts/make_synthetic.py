@@ -26,8 +26,8 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from leaselens.config import load_config  # noqa: E402
-from leaselens.contracts import SOURCE_FILES  # noqa: E402
+from halolens.config import load_config  # noqa: E402
+from halolens.contracts import SOURCE_FILES  # noqa: E402
 
 # ---- Invented portfolio --------------------------------------------------------------------
 PROPERTIES = [

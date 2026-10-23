@@ -29,9 +29,9 @@ from app.ui import DEFAULT_LANG, LANGS, t
 from app.ui import components as ui
 from app.ui.components import backtest_frame, rule_summary, selection_ranking  # noqa: F401  (re-exported for tests)
 from app.ui.theme import inject_css
-from leaselens.config import load_config, repo_root
-from leaselens.contracts import AGGREGATES_SCHEMA
-from leaselens.evaluate.backtest import RULE_DEC31
+from halolens.config import load_config, repo_root
+from halolens.contracts import AGGREGATES_SCHEMA
+from halolens.evaluate.backtest import RULE_DEC31
 
 MISSING = ui.MISSING  # shown when the aggregates hold null (not computable)
 TAB_KEYS = ("answer", "why", "validation", "lab", "buildings", "ask", "sources")

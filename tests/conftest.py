@@ -8,8 +8,8 @@ from __future__ import annotations
 
 import pytest
 
-from leaselens.config import data_dir, load_config
-from leaselens.io import canonicalize, load_raw
+from halolens.config import data_dir, load_config
+from halolens.io import canonicalize, load_raw
 
 
 @pytest.fixture(scope="session")

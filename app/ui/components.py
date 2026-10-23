@@ -16,7 +16,7 @@ from typing import Any
 import pandas as pd
 
 from app.ui.labels import DEFAULT_LANG, LABELS, t
-from leaselens.evaluate.backtest import RULE_DEC31, RULE_JAN31, select_champion, summarize_models
+from halolens.evaluate.backtest import RULE_DEC31, RULE_JAN31, select_champion, summarize_models
 
 MISSING = "n/a"
 PERCENT_DECIMALS = 1  # percentages in the page

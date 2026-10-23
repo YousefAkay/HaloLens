@@ -13,7 +13,7 @@ import jupytext
 import pytest
 from nbclient.exceptions import CellExecutionError
 
-from leaselens.config import MODE_ENV_VAR, load_config, repo_root
+from halolens.config import MODE_ENV_VAR, load_config, repo_root
 
 SECTIONS = repo_root() / "notebook" / "sections"
 

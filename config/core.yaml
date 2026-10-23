@@ -1,7 +1,7 @@
 # core.yaml — owned by INT. Shared settings. Each key lives in exactly one config file.
 
 data:
-  mode: real                      # default for the notebook (the jury has the CRM files); "synthetic" (committed fixtures) via the build flag or LEASELENS_DATA_MODE
+  mode: real                      # default for the notebook (the jury has the CRM files); "synthetic" (committed fixtures) via the build flag or HALOLENS_DATA_MODE
   private_dir: data/private       # private source files; gitignored
   synthetic_dir: data/synthetic   # invented fixtures produced by scripts/make_synthetic.py
   public_dir: data/public         # public-source extracts

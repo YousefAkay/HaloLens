@@ -21,9 +21,9 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from IPython.display import Markdown, display
 
-from leaselens.contracts import COLOR_CONTRACT, COLOR_NAIVE, COLOR_NET
-from leaselens.measure.composition import mix_by_year, rent_bridge
-from leaselens.measure.pairs import build_pairs
+from halolens.contracts import COLOR_CONTRACT, COLOR_NAIVE, COLOR_NET
+from halolens.measure.composition import mix_by_year, rent_bridge
+from halolens.measure.pairs import build_pairs
 
 # %% [markdown]
 # ### 3.1 Le mix des baux observés change d'une année à l'autre

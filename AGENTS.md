@@ -1,11 +1,11 @@
 # AGENTS.md: contributor guide for Halo Lens
 
-Halo Lens (Python package `leaselens`) estimates the next-year rent increase of a residential portfolio from lease
+Halo Lens (Python package `halolens`) estimates the next-year rent increase of a residential portfolio from lease
 history and public market data. It defines the increase precisely, compares each unit with itself, handles
 incentives explicitly, separates renewals from turnovers under each province's rules, and validates the method by
 backtest. Humans and coding agents follow the same rules.
 
-## Architecture (`src/leaselens/`)
+## Architecture (`src/halolens/`)
 
 - `io/`: loading with SHA-256 checks, the data dictionary (source names to canonical names), QA report.
 - `measure/`: same-unit lease pairs, composition bridge, renewals vs turnovers.
@@ -19,7 +19,7 @@ backtest. Humans and coding agents follow the same rules.
 
 ## Conventions
 
-- Configuration lives in `config/*.yaml`, read through `leaselens.config.load_config()`. No magic numbers: every
+- Configuration lives in `config/*.yaml`, read through `halolens.config.load_config()`. No magic numbers: every
   threshold, date, window, weight, seed and scenario lever is a documented YAML key. Each key lives in one file.
 - Pure functions: take tables and config, return new tables. Only `io/` reads files. Type hints and docstrings.
 - Match units on `prop_code + unit_code` (or `unit_id`), never on a site name plus unit code.

@@ -13,8 +13,8 @@ import pytest
 
 import app.narrative as narrative
 from app.number_guard import ungrounded_numbers
-from leaselens.config import load_config, repo_root
-from leaselens.contracts import INFORMATION_RULES
+from halolens.config import load_config, repo_root
+from halolens.contracts import INFORMATION_RULES
 
 EXAMPLE = repo_root() / "outputs" / "public" / "aggregates_synthetic.json"
 

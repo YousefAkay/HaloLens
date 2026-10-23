@@ -13,7 +13,7 @@ import jsonschema
 import pytest
 from streamlit.testing.v1 import AppTest
 
-from leaselens.config import repo_root
+from halolens.config import repo_root
 from app.streamlit_app import VIEWS, load_aggregates, synthetic_path
 from app import narrative, streamlit_app
 
@@ -118,6 +118,6 @@ def test_masthead_and_page_title_show_halo_lens(app):
     from app.ui import labels
 
     page = html.unescape(" ".join(element.value for element in app.markdown))
-    assert "Halo Lens" in page and "LeaseLens" not in page
+    assert "Halo Lens" in page and "HaloLens" not in page
     assert labels.LABELS["en"]["app_title"] == labels.LABELS["fr"]["app_title"] == "Halo Lens"
     assert 'page_title="Halo Lens"' in APP.read_text(encoding="utf-8")

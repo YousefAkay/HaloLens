@@ -41,14 +41,14 @@ from pathlib import Path
 import pandas as pd
 from pydantic import BaseModel
 
-from leaselens.config import external_cutoff_for, load_config
-from leaselens.contracts import EXTERNAL_COLUMNS, MONTHS_PER_YEAR, PERCENT
-from leaselens.market.registry import DATE_COLUMNS, OBSERVATION_KEY, load_external, parse_external, validate_external
+from halolens.config import external_cutoff_for, load_config
+from halolens.contracts import EXTERNAL_COLUMNS, MONTHS_PER_YEAR, PERCENT
+from halolens.market.registry import DATE_COLUMNS, OBSERVATION_KEY, load_external, parse_external, validate_external
 
 STATCAN_WDS_URL = "https://www150.statcan.gc.ca/t1/wds/rest/"
 STATCAN_TABLE_URL = "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid={pid}01"
 STATCAN_PUBLISHER = "Statistics Canada"
-USER_AGENT = "LeaseLens-research/1.0 (public data extraction)"
+USER_AGENT = "HaloLens-research/1.0 (public data extraction)"
 SKIPPED_HTML_TAGS = {"script", "style", "noscript", "svg"}
 PERIOD_KEY = ["series_id", "geography", "metric", "ref_period_start", "ref_period_end"]  # one observed period
 

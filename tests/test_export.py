@@ -13,13 +13,13 @@ import jsonschema
 import pytest
 from jsonschema import Draft202012Validator, FormatChecker
 
-from leaselens.config import cutoff_for, external_cutoff_for, repo_root
-from leaselens.contracts import AGGREGATES_SCHEMA
-from leaselens.evaluate.backtest import (RULE_JAN31, all_models, champion_forecast, champion_pipeline,
+from halolens.config import cutoff_for, external_cutoff_for, repo_root
+from halolens.contracts import AGGREGATES_SCHEMA
+from halolens.evaluate.backtest import (RULE_JAN31, all_models, champion_forecast, champion_pipeline,
                                          headline_table, tables_from_leases)
-from leaselens.export.aggregates import DEFINITION, MODEL_RANGE_NAMES, build_aggregates, export
-from leaselens.market.registry import load_external
-from leaselens.measure.pairs import build_pairs
+from halolens.export.aggregates import DEFINITION, MODEL_RANGE_NAMES, build_aggregates, export
+from halolens.market.registry import load_external
+from halolens.measure.pairs import build_pairs
 
 
 @pytest.fixture(scope="module")

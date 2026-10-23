@@ -20,9 +20,9 @@ from app import narrative, streamlit_app
 from app.ui import DEFAULT_LANG, LABELS, LANGS, t
 from app.ui import components as ui
 from app.ui import theme
-from leaselens.config import load_config, repo_root
-from leaselens.contracts import COLOR_CONTRACT, COLOR_NET
-from leaselens.evaluate.backtest import select_champion
+from halolens.config import load_config, repo_root
+from halolens.contracts import COLOR_CONTRACT, COLOR_NET
+from halolens.evaluate.backtest import select_champion
 
 TIMEOUT_SECONDS = 90
 APP = repo_root() / "app" / "streamlit_app.py"

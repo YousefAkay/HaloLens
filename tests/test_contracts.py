@@ -2,8 +2,8 @@
 
 import pandas as pd
 
-from leaselens import contracts
-from leaselens.config import cutoff_for, external_cutoff_for, load_config
+from halolens import contracts
+from halolens.config import cutoff_for, external_cutoff_for, load_config
 
 
 def test_schema_columns_are_unique():

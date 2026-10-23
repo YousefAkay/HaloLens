@@ -11,9 +11,9 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from leaselens.config import cutoff_for, external_cutoff_for
-from leaselens.evaluate.backtest import backtest_both_rules, french_day_month, select_champion, summarize_models
-from leaselens.market.registry import load_external
+from halolens.config import cutoff_for, external_cutoff_for
+from halolens.evaluate.backtest import backtest_both_rules, french_day_month, select_champion, summarize_models
+from halolens.market.registry import load_external
 
 if external is None:
     external = load_external(Path(cfg["_root"]) / cfg["data"]["public_dir"] / cfg["external"]["sources_file"])

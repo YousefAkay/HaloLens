@@ -13,8 +13,8 @@ import json
 import pytest
 from jsonschema import Draft202012Validator, FormatChecker
 
-from leaselens.config import repo_root
-from leaselens.contracts import AGGREGATES_SCHEMA, INFORMATION_RULES, MODES
+from halolens.config import repo_root
+from halolens.contracts import AGGREGATES_SCHEMA, INFORMATION_RULES, MODES
 
 EXAMPLE = repo_root() / "outputs" / "public" / "aggregates_synthetic.json"
 UNIT_LEVEL_TOKENS = ("hunit", "sunitcode", "spropcode", "unit_id", "unit_code", "prop_code", "unit")

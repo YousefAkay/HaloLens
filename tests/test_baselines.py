@@ -11,10 +11,10 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from leaselens.contracts import (ASKING_COLUMNS, CONCESSIONS_COLUMNS, EXTERNAL_COLUMNS, LEASES_COLUMNS, PERCENT,
+from halolens.contracts import (ASKING_COLUMNS, CONCESSIONS_COLUMNS, EXTERNAL_COLUMNS, LEASES_COLUMNS, PERCENT,
                                  UNITS_COLUMNS, CanonicalTables)
-from leaselens.forecast.asof import make_snapshot
-from leaselens.forecast.baselines import (BASELINES, frozen_weights, headline_summary, last_year, market_anchor,
+from halolens.forecast.asof import make_snapshot
+from halolens.forecast.baselines import (BASELINES, frozen_weights, headline_summary, last_year, market_anchor,
                                           to_pct, trailing_mean, training_pairs, winsor_bounds)
 
 START_RENT = 1000.0
@@ -228,7 +228,7 @@ def test_baseline_results_follow_the_forecast_result_contract(name, snapshot, cf
 
 def test_baselines_run_on_the_synthetic_snapshot(raw, cfg):
     """Smoke test on the committed synthetic fixtures (counts only)."""
-    from leaselens.io import canonicalize
+    from halolens.io import canonicalize
     synthetic = canonicalize(raw)
     snap = make_snapshot(synthetic, empty_external(), pd.Timestamp("2024-12-31"))
     for name in ("B0_last_year", "B1_trailing_mean"):
@@ -247,7 +247,7 @@ def expected_b3_contract_pct(rate_year: int) -> float:
 
 def test_b3_adds_the_training_gap_to_the_latest_public_tal_rate(snapshot, cfg):
     """Snapshot cut at Dec 31: the 2025 TAL rate (released Jan 15, 2025) is not public yet, so 2024's rate is used."""
-    from leaselens.forecast.baselines import tal_anchor
+    from halolens.forecast.baselines import tal_anchor
     result = tal_anchor(snapshot, cfg)
     assert result.model_name == "B3_tal_anchor" and result.components["tal_year_used"] == 2024
     assert result.headline_contract_pct == pytest.approx(expected_b3_contract_pct(2024), abs=ABS_TOLERANCE_PP)
@@ -255,8 +255,8 @@ def test_b3_adds_the_training_gap_to_the_latest_public_tal_rate(snapshot, cfg):
 
 
 def test_b3_uses_the_target_years_rate_when_public_under_the_jan_31_rule(tables, cfg):
-    from leaselens.forecast.asof import snapshot_for_year
-    from leaselens.forecast.baselines import tal_anchor
+    from halolens.forecast.asof import snapshot_for_year
+    from halolens.forecast.baselines import tal_anchor
     result = tal_anchor(snapshot_for_year(tables, market_rows(), 2025, cfg), cfg)
     assert result.components["tal_year_used"] == 2025 and result.components["tal_pct_used"] == pytest.approx(4.0)
     assert result.headline_contract_pct == pytest.approx(expected_b3_contract_pct(2025), abs=ABS_TOLERANCE_PP)
@@ -267,7 +267,7 @@ def test_b3_net_is_contract_minus_last_years_contract_to_net_spread(cfg):
     leases = annual_leases()
     in_2024 = leases["lease_start"].dt.year == 2024
     leases["rent_net_all_incentives"] = leases["rent_contract"].where(~in_2024, leases["rent_contract"] * 0.95)
-    from leaselens.forecast.baselines import tal_anchor
+    from halolens.forecast.baselines import tal_anchor
     result = tal_anchor(make_snapshot(tables_from(leases), market_rows(), CUTOFF_2025), cfg)
     spread = -np.log(0.95)                                          # contract log growth minus net log growth in 2024
     assert result.components["spread_log"] == pytest.approx(spread, abs=1e-3)
@@ -275,13 +275,13 @@ def test_b3_net_is_contract_minus_last_years_contract_to_net_spread(cfg):
 
 
 def test_b3_needs_a_released_tal_rate(tables, cfg):
-    from leaselens.forecast.baselines import tal_anchor
+    from halolens.forecast.baselines import tal_anchor
     with pytest.raises(ValueError, match="rate"):
         tal_anchor(make_snapshot(tables, empty_external(), CUTOFF_2025), cfg)
 
 
 def test_b3_ignores_tal_rows_released_after_the_external_cutoff(tables, cfg):
-    from leaselens.forecast.baselines import tal_anchor
+    from halolens.forecast.baselines import tal_anchor
     later = pd.concat([market_rows(), regulated_rows(tal={2025: 99.0}).assign(
         release_date=pd.Timestamp("2025-03-01"))], ignore_index=True)
     base = tal_anchor(make_snapshot(tables, market_rows(), CUTOFF_2025), cfg)
@@ -290,7 +290,7 @@ def test_b3_ignores_tal_rows_released_after_the_external_cutoff(tables, cfg):
 
 
 def test_rate_helpers_pick_the_latest_release_and_resolve_the_year():
-    from leaselens.forecast.baselines import anchor_gap, rate_logs_by_year, resolve_rate_year
+    from halolens.forecast.baselines import anchor_gap, rate_logs_by_year, resolve_rate_year
     rows = regulated_rows(tal={2024: 3.0})
     revised = rows.assign(value=3.5, release_date=pd.Timestamp("2024-06-01"))
     logs = rate_logs_by_year(pd.concat([rows, revised]), "tal_renewal_reference_pct", "QC")

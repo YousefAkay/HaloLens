@@ -20,8 +20,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from IPython.display import Markdown, display
 
-from leaselens.contracts import COLOR_CONTRACT, COLOR_NAIVE
-from leaselens.measure.pairs import build_pairs, exclusion_summary, gap_sensitivity, key_comparison
+from halolens.contracts import COLOR_CONTRACT, COLOR_NAIVE
+from halolens.measure.pairs import build_pairs, exclusion_summary, gap_sensitivity, key_comparison
 
 # %% [markdown]
 # ### 4.1 Pourquoi jamais « nom du site + code d'unité »

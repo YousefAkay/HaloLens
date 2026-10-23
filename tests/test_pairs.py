@@ -13,8 +13,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from leaselens.contracts import DAYS_PER_YEAR, LEASES_COLUMNS, PAIRS_COLUMNS, PERCENT
-from leaselens.measure.pairs import (REASON_GAP_TOO_SHORT, REASON_NON_POSITIVE_RENT, REASON_SEPARATOR,
+from halolens.contracts import DAYS_PER_YEAR, LEASES_COLUMNS, PAIRS_COLUMNS, PERCENT
+from halolens.measure.pairs import (REASON_GAP_TOO_SHORT, REASON_NON_POSITIVE_RENT, REASON_SEPARATOR,
                                      REASON_UNIT_ID_MISMATCH, build_pairs, exclusion_summary, gap_sensitivity,
                                      key_comparison)
 

@@ -20,11 +20,11 @@
 # Seuls des décomptes et des agrégats sont affichés : aucune ligne, aucun code d'unité.
 
 # %%
-from leaselens.contracts import COLOR_CONTRACT, COLOR_NET
-from leaselens.incentives.linking import link_concessions
-from leaselens.incentives.reconcile import (divergence_by_year, hypothesis_comparison, reconciliation_by_year,
+from halolens.contracts import COLOR_CONTRACT, COLOR_NET
+from halolens.incentives.linking import link_concessions
+from halolens.incentives.reconcile import (divergence_by_year, hypothesis_comparison, reconciliation_by_year,
                                             reconciliation_rate, reconstruct_net_rent)
-from leaselens.measure.pairs import build_pairs
+from halolens.measure.pairs import build_pairs
 
 # %% [markdown]
 # ### 5.1 Lier chaque concession à un bail

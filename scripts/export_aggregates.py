@@ -16,10 +16,10 @@ import sys
 
 import numpy as np
 
-from leaselens.config import data_dir, load_config, output_dir, repo_root, source_files
-from leaselens.export.aggregates import build_aggregates, export
-from leaselens.io import canonicalize, load_raw
-from leaselens.market.registry import load_external
+from halolens.config import data_dir, load_config, output_dir, repo_root, source_files
+from halolens.export.aggregates import build_aggregates, export
+from halolens.io import canonicalize, load_raw
+from halolens.market.registry import load_external
 
 EXIT_OK = 0
 

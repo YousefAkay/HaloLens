@@ -12,11 +12,11 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from leaselens.config import cutoff_for
-from leaselens.contracts import ASKING_COLUMNS, DAYS_PER_YEAR, LEASES_COLUMNS, Snapshot
-from leaselens.forecast.asof import make_snapshot
-from leaselens.forecast.baselines import frozen_weights, training_pairs
-from leaselens.market.asking import (SIGNAL_COLUMNS, SOURCE_PROVINCE, SOURCE_SEGMENT, listing_growth,
+from halolens.config import cutoff_for
+from halolens.contracts import ASKING_COLUMNS, DAYS_PER_YEAR, LEASES_COLUMNS, Snapshot
+from halolens.forecast.asof import make_snapshot
+from halolens.forecast.baselines import frozen_weights, training_pairs
+from halolens.market.asking import (SIGNAL_COLUMNS, SOURCE_PROVINCE, SOURCE_SEGMENT, listing_growth,
                                      matched_spreads, turnover_signal)
 
 CUTOFF = pd.Timestamp("2024-12-31")
