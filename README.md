@@ -112,6 +112,18 @@ No row-level lease data was sent to any API. The forecast itself is produced by 
 
 See [`CONTRIBUTORS.md`](CONTRIBUTORS.md). Released under the [MIT License](LICENSE).
 
+## Screenshots
+
+Synthetic demo, English interface.
+
+![Headline answer: 2026 net rent increase with the contractual figure and the model range](docs/images/overview.png)
+
+![Validation: forecast against actual by year and the mean error of each model](docs/images/validation.png)
+
+![Scenario lab: levers for incentives, renewals, the Ontario guideline and the public-data cutoff](docs/images/scenario_lab.png)
+
+![Questions tab: a preset question answered with bullets and a read-more line](docs/images/questions.png)
+
 ## History
 
 The git history was rewritten before publication to remove confidential third-party data and tool-attribution trailers. Commit dates, messages and authorship are preserved.
