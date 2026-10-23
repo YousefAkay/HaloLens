@@ -74,7 +74,7 @@ SENSITIVITY_KEY = "sensitivity_strict_dec31"
 def run_backtest(tables: CanonicalTables, external: pd.DataFrame, target_year: int, cfg: dict) -> BacktestResult:
     """Forecast as of Dec 31 of target_year - 1 with forecast.combine.forecast, then compare with the actual.
 
-    CRM data is cut at December 31 of target_year - 1; public data at January 31 of target_year (REQUEST-INT-01). When
+    CRM data is cut at December 31 of target_year - 1; public data at January 31 of target_year (information-date rule). When
     `forecast_years.external_cutoff_strict_sensitivity` is true, `coverage["sensitivity_strict_dec31"]` holds the same
     fold with public data cut at December 31 as well: forecast_net_pct, forecast_contract_pct, error_pp_net,
     error_pp_contract.

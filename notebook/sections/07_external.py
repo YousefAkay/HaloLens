@@ -44,8 +44,8 @@ LEASE_TYPE_FR = {"all": "tous", "renewal": "renouvellement", "turnover": "reloca
 # ### 7.1 Chargement et validation du registre
 # Étape qui transforme les données : le registre est lu avec des dates typées et des valeurs numériques. Il remplace
 # la variable partagée `external` (jusqu'ici `None`), que les sections suivantes utilisent. Les données publiques ne
-# servent à prévoir l'année *y* que si elles sont publiées au plus tard à la date d'information de *y* (règle approuvée
-# par le mentor, dates affichées ci-dessous à partir de `config/core.yaml`) ; ce filtre est appliqué par `as_of` lors de
+# servent à prévoir l'année *y* que si elles sont publiées au plus tard à la date d'information de *y* (règle de date d'information
+# retenue, dates affichées ci-dessous à partir de `config/core.yaml`) ; ce filtre est appliqué par `as_of` lors de
 # chaque prévision et de chaque backtest.
 
 # %%

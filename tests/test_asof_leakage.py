@@ -212,7 +212,7 @@ def test_appending_future_rows_leaves_the_forecast_identical(tables, external, c
 
 
 # ---------------------------------------------------------------------------
-# External information date (REQUEST-INT-01): public data by Jan 31 of the target year, CRM data by Dec 31
+# External information date (information-date rule): public data by Jan 31 of the target year, CRM data by Dec 31
 # ---------------------------------------------------------------------------
 JAN_31 = pd.Timestamp("2025-01-31")   # external cutoff for the 2025 fold (CRM cutoff 2024-12-31)
 

@@ -160,7 +160,7 @@ def test_model_summary_separates_selection_years_from_the_holdout(raw, cfg):
 
 
 # ---------------------------------------------------------------------------
-# Information-date rules (REQUEST-INT-01): Jan-31 rule vs Dec-31 strict sensitivity
+# Information-date rules (information-date rule): Jan-31 rule vs Dec-31 strict sensitivity
 # ---------------------------------------------------------------------------
 def january_release_market(year: int) -> pd.DataFrame:
     """Market rows for ref years year-3 .. year-1 where the latest (year-1) is released on January 15 of `year`."""

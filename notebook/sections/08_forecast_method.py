@@ -41,8 +41,8 @@ if external is None:
 #
 # **Opération :** les données du CRM (baux, rabais, loyers affichés) sont coupées à la fin de l'année précédant la
 # prévision. Les données publiques (TAL, IPC, SCHL, ligne directrice ontarienne) sont coupées un peu plus tard, règle
-# approuvée par le mentor : le pourcentage du TAL et l'IPC annuel sont publiés tôt dans l'année cible. La version stricte
-# (même date que le CRM) est conservée comme sensibilité. Les dates exactes sont affichées ci-dessous, lues de la
+# de date d'information retenue : le pourcentage du TAL et l'IPC annuel sont publiés tôt dans l'année cible. La
+# version stricte (même date que le CRM) est conservée comme sensibilité. Les dates exactes sont affichées ci-dessous, lues de la
 # configuration. Un bail compte comme connu seulement si sa **signature et son début** précèdent la coupure.
 
 # %%

@@ -9,7 +9,7 @@ from __future__ import annotations
 from typing import Any
 
 LANGS = ("en", "fr")
-DEFAULT_LANG = "fr"  # one constant: the app opens in this language (French jury); the sidebar toggle switches it
+DEFAULT_LANG = "fr"  # one constant: the app opens in this language (French by default); the sidebar toggle switches it
 LANG_NAMES = {"en": "English", "fr": "Français"}
 
 LABELS: dict[str, dict[str, str]] = {
