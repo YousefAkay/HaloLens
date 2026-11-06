@@ -1,6 +1,6 @@
 """Asking-rent leading indicator for turnover rents.
 
-Implements `turnover_signal` (AGENTS.md Section 7.3).
+Implements `turnover_signal`.
 
 Idea: a unit listed before the cutoff tells us what the next tenant will be asked to pay. Comparing that asking rent
 with the contractual rent of the unit's current lease gives a forward-looking turnover growth. Asking rents are not
@@ -9,7 +9,7 @@ signed rents, so a spread log(signed / asking), learned on turnover leases signe
     expected turnover log growth (unit) = [ln(asking / prior rent_contract) + spread(province)] / gap_years
 
 `gap_years` runs from the prior lease start to the asking month, i.e. the same annualization as PAIRS. The signal is
-contractual (asking rents are offers before incentives); FCT's incentive engine converts it to net.
+contractual (asking rents are offers before incentives); the incentive engine converts it to net.
 Units are matched on the safe key `pairs.unit_key` (prop_code + unit_code), never on the site name.
 Every input comes from a Snapshot, so nothing posted, signed or started after the cutoff can enter.
 """

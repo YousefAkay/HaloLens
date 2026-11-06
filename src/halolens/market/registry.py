@@ -1,6 +1,6 @@
 """External observation registry with release-date filtering.
 
-Implements `load_external` and `as_of` (AGENTS.md Section 7.3) plus `validate_external`.
+Implements `load_external` and `as_of` plus `validate_external`.
 
 `data/public/sources.csv` holds human-verified public observations (contracts.EXTERNAL_COLUMNS). Every row
 carries the date the value became public (`release_date`); `as_of` is the only gate analysis code uses to

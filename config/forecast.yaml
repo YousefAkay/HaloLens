@@ -1,4 +1,4 @@
-# forecast.yaml — owned by FCT. INT created the agreed keys; FCT tunes values and adds keys.
+# forecast.yaml: forecast, incentive and scenario settings.
 
 baselines:
   trailing_window_years: 3        # B1: trailing mean window, years before the cutoff
@@ -30,7 +30,7 @@ combine:
   renewal_history_weight: 0.5     # renewals: segment's own recent contractual growth
   renewal_nowcast_weight: 0.5     # renewals: portfolio-wide level from the monthly nowcast
   turnover_history_weight: 0.3    # turnovers: segment's own recent contractual growth
-  turnover_signal_weight: 0.4     # turnovers: asking-rent signal from MSR (leading indicator, highest weight)
+  turnover_signal_weight: 0.4     # turnovers: asking-rent signal from the asking-rent module (leading indicator, highest weight)
   turnover_nowcast_weight: 0.3    # turnovers: portfolio-wide level from the monthly nowcast
   shrinkage_strength: 20          # pseudo-pairs pulling thin building x beds cells toward their building mean
 
@@ -43,7 +43,7 @@ anchors:
   gap_window_years: 3                     # training years before the target used to learn gap = actual renewal log growth - log(1 + rate)
   min_pairs_per_gap_year: 5               # a province-year with fewer eligible renewal pairs is skipped when learning the gap
   tal_method_change_year: 2026            # first lease year under the new TAL method; gap learned on older years is flagged, not adjusted
-  tal_method_announced: "2025-12-17"      # date of the TAL method change (AGENTS.md 9.3); quoted in notebook text, which reads it from here
+  tal_method_announced: "2025-12-17"      # date of the TAL method change; quoted in notebook text, which reads it from here
 
 sensitivity:
   # One-at-a-time variants for the tornado chart (notebook section 11b); each is run against the base setting, never combined.

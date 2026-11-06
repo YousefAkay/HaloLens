@@ -1,7 +1,7 @@
 """Point-in-time snapshots: the single anti-leakage chokepoint.
 
-Implements `make_snapshot` (AGENTS.md Section 7.3). Every forecast and backtest reads its data
-through this function, so the time policy of Section 9.3 lives in one place.
+Implements `make_snapshot`. Every forecast and backtest reads its data
+through this function, so the time policy lives in one place.
 """
 
 from __future__ import annotations
@@ -13,14 +13,14 @@ from halolens.contracts import CanonicalTables, Snapshot
 
 def make_snapshot(tables: CanonicalTables, external: pd.DataFrame, cutoff: pd.Timestamp,
                   external_cutoff: pd.Timestamp | None = None) -> Snapshot:
-    """Filter every table to what was knowable at `cutoff` (AGENTS.md Section 9.3). Inputs are not modified.
+    """Filter every table to what was knowable at `cutoff`. Inputs are not modified.
 
     - leases: BOTH `sign_date` and `lease_start` on or before the cutoff (a lease signed earlier that starts
       later is not training data).
     - concessions: `date_from` on or before the cutoff.
     - asking: `month` on or before the month containing the cutoff.
     - external: `release_date` on or before `external_cutoff` (same rule as `market.registry.as_of`; applied here
-      directly so the snapshot does not depend on MSR's loader). `external_cutoff` defaults to `cutoff`, so a call without
+      directly so the snapshot does not depend on the loader). `external_cutoff` defaults to `cutoff`, so a call without
       it behaves as before. The information-date rule passes January 31 of the target year, see
       `snapshot_for_year`. CRM tables are always cut at `cutoff`.
     - units (listings): the table is a 2025 snapshot, so it is kept only when every row's `snapshot_month` is on
@@ -52,7 +52,7 @@ def make_snapshot(tables: CanonicalTables, external: pd.DataFrame, cutoff: pd.Ti
 
 def snapshot_for_year(tables: CanonicalTables, external: pd.DataFrame, year: int, cfg: dict,
                       strict: bool = False) -> Snapshot:
-    """Snapshot for forecasting `year` under the agreed information dates (AGENTS.md Section 9.3).
+    """Snapshot for forecasting `year` under the agreed information dates.
 
     CRM cutoff = December 31 of year - 1 (`config.cutoff_for`). External cutoff = January 31 of `year`
     (`config.external_cutoff_for`, information-date rule); with `strict=True` it is the CRM cutoff instead, which is

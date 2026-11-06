@@ -1,6 +1,6 @@
 """Québec (TAL) vs Ontario (guideline) applicability matrix and scenarios.
 
-Implements `applicability_matrix` (AGENTS.md Section 7.3), plus `reference_lines`, `exemption_evidence` and
+Implements `applicability_matrix`, plus `reference_lines`, `exemption_evidence` and
 `renewals_vs_reference` for notebook section 06.
 
 Québec buildings are under the TAL, Ontario buildings under Ontario's Residential Tenancies Act. A province's rule is only
@@ -95,7 +95,7 @@ def reference_lines(external: pd.DataFrame, cfg: dict) -> pd.DataFrame:
 
     Uses `regulation.reference_metrics` (QC: TAL reference %, ON: guideline). `year` is the calendar year the
     percentage applies to (its reference period). `known_by_info_date` is True when `release_date` <=
-    `external_cutoff_for(year)` (January 31 of that year, AGENTS.md 9.3): the value was public in time for that
+    `external_cutoff_for(year)` (January 31 of that year): the value was public in time for that
     year's forecast. `known_by_strict_cutoff` applies the Dec-31-of-y-1 cutoff instead (sensitivity only).
     Output columns REFERENCE_COLUMNS, sorted by province and year.
     """

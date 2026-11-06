@@ -2,7 +2,7 @@
 
 Written before the implementation; the `make_snapshot` and `forecast` tests are hard tests.
 
-Policy under test: AGENTS.md Section 9.3. Cutoff for year y is December 31 of y-1; training uses leases with BOTH
+Policy under test: the information-date rule. Cutoff for year y is December 31 of y-1; training uses leases with BOTH
 sign_date and lease_start on/before the cutoff; asking months and concession date_from on/before the cutoff;
 external rows by release_date; the listings snapshot is never used for historical folds.
 

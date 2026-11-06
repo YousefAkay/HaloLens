@@ -1,15 +1,15 @@
 """Naive vs fixed-mix same-unit growth and the contractual→net bridge.
 
-Implements `rent_bridge` (AGENTS.md Section 7.3) and `mix_by_year` for notebook section 03.
+Implements `rent_bridge` and `mix_by_year` for notebook section 03.
 
 For each calendar year y the bridge decomposes, on the annual log scale (so the parts add exactly):
 
     naive (median rent of leases starting in y vs y-1)
-      = same-unit contractual growth (fixed composition, Section 9.1)
+      = same-unit contractual growth (fixed composition)
       + composition and other effects (the residual: mix of buildings, bedrooms, renewals, gaps)
     same-unit net growth = same-unit contractual growth + incentive effect (contractual→net)
 
-The same-unit figures use exactly the headline machinery of the backtest (FCT `forecast.baselines`): segment weights
+The same-unit figures use exactly the headline machinery of the backtest (`forecast.baselines`): segment weights
 frozen at December 31 of y-1, winsorization thresholds learned on pairs known at that cutoff. Weights describe the mix
 of observed lease transitions, NOT portfolio occupancy or turnover rate. Output holds aggregates only.
 """

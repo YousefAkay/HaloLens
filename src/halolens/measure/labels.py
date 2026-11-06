@@ -1,4 +1,4 @@
-"""French date labels and Markdown helpers for the notebook (MSR sections 03, 04, 06, 07, 12).
+"""French date labels and Markdown helpers for the notebook (sections 03, 04, 06, 07, 12).
 
 Dates shown in the notebook text are generated from config or data with these helpers, never typed by hand.
 Section 12 renders the references file with `track_references_markdown`, so no reference text is copied

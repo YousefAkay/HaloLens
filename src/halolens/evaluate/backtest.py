@@ -1,6 +1,6 @@
 """Time-respecting backtests on 2023-2025.
 
-Implements AGENTS.md Section 7.3. Every fold forecasts as of December 31 of the year before the target
+Every fold forecasts as of December 31 of the year before the target
 through `snapshot_for_year` (CRM cut at Dec 31, public data at Jan 31 of the target year), then compares with the actual of that year under the same headline definition.
 `run_backtest` uses `forecast.combine.forecast`; `backtest_baselines` runs B0-B2 through the same machinery.
 """

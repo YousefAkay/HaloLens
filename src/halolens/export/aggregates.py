@@ -175,7 +175,7 @@ STRICT_BY_RULE = {RULE_JAN31: False, RULE_DEC31: True}  # Jan-31 rule, or the De
 def _scenario_grid(tables: CanonicalTables, external: pd.DataFrame, cfg: dict, backtest: pd.DataFrame) -> list[dict]:
     """E2 under every lever combination and both information rules, plus the champion's base per rule.
 
-    The levers act on the E2 segments through FCT's `evaluate_scenario` (the same engine as the scenario table). The
+    The levers act on the E2 segments through `evaluate_scenario` (the same engine as the scenario table). The
     champion has no levers, so its rows carry "none" for each lever and only the information rule varies.
     """
     target = cfg["forecast_years"]["target_year"]
@@ -206,7 +206,7 @@ def _scenario_grid(tables: CanonicalTables, external: pd.DataFrame, cfg: dict, b
 
 
 def _building_beds(tables: CanonicalTables, external: pd.DataFrame, cfg: dict) -> list[dict]:
-    """Building x beds forecast from the E2 engine (FCT `building_beds_forecast`). Building names, never unit codes.
+    """Building x beds forecast from the E2 engine (`building_beds_forecast`). Building names, never unit codes.
 
     Cells with fewer eligible pairs than `app.building_min_pairs` are left out, so no thin cell is shown or exported.
     """

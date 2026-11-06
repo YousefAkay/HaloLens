@@ -139,7 +139,7 @@ class BacktestResult:
 
 
 # ---------------------------------------------------------------------------
-# Aggregates JSON. The only file the Streamlit app and the LLM narrative may read (AGENTS.md Section 15).
+# Aggregates JSON. The only file the Streamlit app and the LLM narrative may read.
 # Percentages are in percent units (3.2 means 3.2%). null means "not computable", never a placeholder.
 # Every object is closed (additionalProperties false): no unit-level list, identifier or extra field can appear.
 # ---------------------------------------------------------------------------

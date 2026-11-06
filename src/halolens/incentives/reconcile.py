@@ -1,6 +1,6 @@
 """Reconstruction of net rent from concession records.
 
-Implements `reconstruct_net_rent` (AGENTS.md Section 7.3) and aggregate summaries for notebook section 05.
+Implements `reconstruct_net_rent` and aggregate summaries for notebook section 05.
 
 Working hypothesis, checked against the data rather than assumed: for a lease with monthly contract rent R and term T months,
     rent_net_all_incentives = R - (lump credits + sum of monthly credit x months) / T

@@ -1,3 +1,3 @@
-"""Backtests, metrics (FCT) and uncertainty (INT).
+"""Backtests, metrics and uncertainty.
 
 """

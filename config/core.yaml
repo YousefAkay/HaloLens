@@ -1,4 +1,4 @@
-# core.yaml — owned by INT. Shared settings. Each key lives in exactly one config file.
+# core.yaml: shared settings. Each key lives in exactly one config file.
 
 data:
   mode: synthetic                 # default: committed fixtures. "real" reads your own files (see README); set it with the --real build flag or HALOLENS_DATA_MODE

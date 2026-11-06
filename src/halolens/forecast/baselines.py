@@ -1,11 +1,11 @@
 """Baseline forecasts B0 (last year), B1 (trailing mean), B2 (market anchor + gap), and the shared headline helpers.
 
-Implements AGENTS.md Section 7.3 and the headline definition of Section 9.1:
+Implements the headline definition:
 winsorized annualized log growth per segment, aggregated with fixed weights (segment shares of eligible pairs in the
 window before the cutoff), headline % = 100 x (exp(sum w_s x mean_s) - 1).
 
 The helpers (`training_pairs`, `winsor_bounds`, `frozen_weights`, `headline_summary`) live here because the backtest
-and every later engine need them and this is the lowest FCT module in the import chain.
+and every later engine need them and this is the lowest module in the import chain.
 Everything is a pure function of a Snapshot, so nothing after the cutoff can enter.
 """
 

@@ -1,6 +1,6 @@
 """Monthly same-unit rent index built from PAIRS.
 
-Implements `build_monthly_index`. Each month holds the fixed-weight headline (AGENTS.md Section 9.1)
+Implements `build_monthly_index`. Each month holds the fixed-weight headline
 of the eligible pairs whose later lease starts in that month: annualized log growth, winsorized at bounds learned on the
 given pairs, aggregated with segment weights frozen at the cutoff. Months with too few pairs borrow neighbouring months.
 """

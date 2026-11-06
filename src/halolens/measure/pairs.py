@@ -1,6 +1,6 @@
 """Consecutive-lease matching on the safe unit key with an exclusion audit.
 
-Implements `build_pairs` (AGENTS.md Section 7.3) and a gap-bound sensitivity helper.
+Implements `build_pairs` and a gap-bound sensitivity helper.
 
 Units are matched on `cfg["pairs"]["unit_key"]` (prop_code + unit_code, the safe key) and
 cross-checked against `unit_id` (the source unit id). The site name is never used as a key; `key_comparison` reads it only to

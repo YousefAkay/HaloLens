@@ -1,12 +1,12 @@
 """Renewal + turnover + incentive engines combined with fixed weights.
 
-Implements `forecast` (AGENTS.md Section 7.3), the single pipeline behind `estimate_2026()` and `backtest()`.
+Implements `forecast`, the single pipeline behind `estimate_2026()` and `backtest()`.
 
 Per frozen-weight segment (prop_code x beds x is_renewal, core.yaml headline.segment_keys), contractual annualized log growth is
     renewal engine : weighted blend of the segment's recent history and the portfolio nowcast level
-    turnover engine: weighted blend of recent history, MSR's asking-rent signal and the nowcast level
+    turnover engine: weighted blend of recent history, the asking-rent signal and the nowcast level
 and the incentive engine turns it into net growth: log net = log contract + log(1 - d1) - log(1 - d0).
-Segment forecasts are aggregated with the fixed weights, headline % = 100 x (exp(sum w_s x g_s) - 1) (AGENTS.md 9.1).
+Segment forecasts are aggregated with the fixed weights, headline % = 100 x (exp(sum w_s x g_s) - 1).
 Everything is read from the Snapshot, so nothing after the cutoff can enter. Weights live in forecast.yaml (`combine`).
 """
 

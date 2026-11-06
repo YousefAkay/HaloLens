@@ -1,6 +1,6 @@
 """Discount-share trend per segment (renewals and turnovers separately).
 
-Implements `forecast_discount` (AGENTS.md Section 7.3).
+Implements `forecast_discount`.
 
 Discount share of a lease = 1 - rent_net_all_incentives / rent_contract (all concession codes, accessories included).
 Same-unit net growth splits exactly on the log scale:

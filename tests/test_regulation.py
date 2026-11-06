@@ -135,7 +135,7 @@ def test_turnovers_are_never_capped(real_cfg):
 
 
 def test_ontario_exemption_scenario_matches_forecast_levers(real_cfg):
-    """Central = guideline does not bind (exemption plausible); alternative = guideline binds (AGENTS.md 9.4)."""
+    """Central = guideline does not bind (exemption plausible); alternative = guideline binds."""
     ontario = applicability_matrix(real_cfg).query("province == 'ON' and lease_type == 'renewal'")
     assert len(ontario) == 1
     row = ontario.iloc[0]

@@ -11,7 +11,7 @@ import streamlit as st
 
 from halolens.contracts import COLOR_CONTRACT, COLOR_NET
 
-NET = COLOR_NET  # anything that means "net of incentives": the same colour as the notebook charts (AGENTS.md section 11)
+NET = COLOR_NET  # anything that means "net of incentives": the same colour as the notebook charts
 CONTRACT = COLOR_CONTRACT  # anything that means "contractual rent": likewise
 PAPER = "#f3f2f2"  # page ground
 SURFACE = "#eae9e9"  # inputs and quiet fills
