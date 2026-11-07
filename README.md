@@ -136,4 +136,4 @@ Synthetic demo, English interface.
 
 ## History
 
-The git history was rewritten before publication to remove confidential third-party and confidential data. Commit dates, messages and authorship are preserved.
+The git history was rewritten before publication to remove confidential third-party data. Commit dates, messages and authorship are preserved.
